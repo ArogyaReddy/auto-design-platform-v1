@@ -1,0 +1,310 @@
+[
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "user-login-with-data-manager;successful-login-with-standard-user-from-data-manager",
+        "keyword": "Scenario",
+        "line": 4,
+        "name": "Successful login with standard user from data manager",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 409305167
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 5,
+            "name": "User is on the SauceDemo login page",
+            "match": {
+              "location": "steps/TeamA/ProjectA/loginSteps.js:63"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 393458,
+              "error_message": "TypeError: Cannot read properties of undefined (reading 'goto')\n    at CustomWorld.<anonymous> (/Users/arog/AI/START/1/steps/TeamA/ProjectA/loginSteps.js:65:19)"
+            },
+            "embeddings": [
+              {
+                "data": "TmF2aWdhdGluZyB0byBTYXVjZURlbW8gbG9naW4gcGFnZQ==",
+                "mime_type": "text/x.cucumber.log+plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 6,
+            "name": "User attempts to login as \"standard_user\" user",
+            "match": {
+              "location": "steps/TeamA/ProjectA/loginSteps.js:71"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 31493625
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@login-feature",
+            "line": 2
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "user-login-with-data-manager;successful-login-with-standard-user-from-data-manager",
+        "keyword": "Scenario",
+        "line": 10,
+        "name": "Successful login with standard user from data manager",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 174017250
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "User is on the SauceDemo login page",
+            "match": {
+              "location": "steps/TeamA/ProjectA/loginSteps.js:63"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 243334,
+              "error_message": "TypeError: Cannot read properties of undefined (reading 'goto')\n    at CustomWorld.<anonymous> (/Users/arog/AI/START/1/steps/TeamA/ProjectA/loginSteps.js:65:19)"
+            },
+            "embeddings": [
+              {
+                "data": "TmF2aWdhdGluZyB0byBTYXVjZURlbW8gbG9naW4gcGFnZQ==",
+                "mime_type": "text/x.cucumber.log+plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 12,
+            "name": "User attempts to login as \"standard_user\" user",
+            "match": {
+              "location": "steps/TeamA/ProjectA/loginSteps.js:71"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 13,
+            "name": "User clicks the login button",
+            "match": {
+              "location": "steps/TeamA/ProjectA/loginSteps.js:143"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 14,
+            "name": "User should be redirected to the SauceDemo products page",
+            "match": {
+              "location": "steps/TeamA/ProjectA/loginSteps.js:123"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 25825832
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@login-feature",
+            "line": 2
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "user-login-with-data-manager",
+    "line": 3,
+    "keyword": "Feature",
+    "name": "User Login with Data Manager",
+    "tags": [
+      {
+        "name": "@login-feature",
+        "line": 2
+      }
+    ],
+    "uri": "features/sause/dashboard/login.feature"
+  },
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "basic-application-interaction;navigate-to-a-website-and-check-title",
+        "keyword": "Scenario",
+        "line": 2,
+        "name": "Navigate to a website and check title",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 164667042
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 3,
+            "name": "I open the browser",
+            "match": {
+              "location": "steps/TeamA/ProjectA/sampleSteps.js:54"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 55306665,
+              "error_message": "ReferenceError: url is not defined\n    at CustomWorld.<anonymous> (/Users/arog/AI/START/1/steps/TeamA/ProjectA/sampleSteps.js:57:19)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 4,
+            "name": "I navigate to \"https://www.saucedemo.com\"",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 5,
+            "name": "the page title should contain \"Swag Labs\"",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "I close the browser",
+            "match": {
+              "location": "steps/TeamA/ProjectA/sampleSteps.js:42"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 24229833
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "basic-application-interaction",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Basic Application Interaction",
+    "tags": [],
+    "uri": "features/sause/dashboard/sample.feature"
+  },
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "minimal-test;minimal-scenario",
+        "keyword": "Scenario",
+        "line": 2,
+        "name": "Minimal Scenario",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 175749582
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 3,
+            "name": "I do something",
+            "match": {
+              "location": "steps/test_steps.js:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 280792
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 27974083
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "minimal-test",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Minimal Test",
+    "tags": [],
+    "uri": "features/test.feature"
+  }
+]

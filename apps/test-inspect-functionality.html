@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Test Page - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .test-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .primary { background: #007cba; color: white; }
+        .secondary { background: #6c757d; color: white; }
+        .success { background: #28a745; color: white; }
+        .danger { background: #dc3545; color: white; }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            max-width: 300px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .highlight-target {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007cba;
+            margin: 10px 0;
+        }
+        .list-items {
+            list-style-type: none;
+            padding: 0;
+        }
+        .list-items li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #e9ecef;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .list-items li:hover {
+            background: #dee2e6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .nested-content {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px;
+            background: #fafafa;
+        }
+        .nested-content .inner {
+            border: 1px solid #999;
+            padding: 10px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="main-title">🧪 Inspector Test Page</h1>
+    <p class="intro-text">This page is designed to test the Element AI Extractor's Inspect Element functionality.</p>
+
+    <div class="test-section">
+        <h2>1. Button Testing</h2>
+        <p>Test different types of buttons:</p>
+        <div class="button-group">
+            <button id="primary-btn" class="test-button primary">Primary Button</button>
+            <button id="secondary-btn" class="test-button secondary">Secondary Button</button>
+            <input type="button" id="input-btn" class="test-button success" value="Input Button">
+            <input type="submit" id="submit-btn" class="test-button danger" value="Submit Button">
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Form Elements Testing</h2>
+        <form id="test-form">
+            <div class="form-group">
+                <label for="text-input">Text Input:</label>
+                <input type="text" id="text-input" name="textInput" class="form-control" placeholder="Enter text here">
+            </div>
+            <div class="form-group">
+                <label for="email-input">Email Input:</label>
+                <input type="email" id="email-input" name="emailInput" class="form-control" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="password-input">Password Input:</label>
+                <input type="password" id="password-input" name="passwordInput" class="form-control" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <label for="select-dropdown">Dropdown:</label>
+                <select id="select-dropdown" name="dropdown" class="form-control">
+                    <option value="">Choose option...</option>
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="textarea-input">Textarea:</label>
+                <textarea id="textarea-input" name="textareaInput" class="form-control" rows="3" placeholder="Enter multiple lines..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="checkbox-1" name="checkbox1" value="check1">
+                    Checkbox Option 1
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="radio" id="radio-1" name="radioGroup" value="radio1">
+                    Radio Option 1
+                </label>
+                <label>
+                    <input type="radio" id="radio-2" name="radioGroup" value="radio2">
+                    Radio Option 2
+                </label>
+            </div>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Links and Navigation</h2>
+        <p>Test different types of links:</p>
+        <a href="#section1" id="internal-link">Internal Link</a> |
+        <a href="https://example.com" id="external-link" target="_blank">External Link</a> |
+        <a href="mailto:test@example.com" id="email-link">Email Link</a> |
+        <a href="tel:+1234567890" id="phone-link">Phone Link</a>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Lists and Content</h2>
+        <h3 id="list-header">Test Lists:</h3>
+        <ul class="list-items">
+            <li id="list-item-1">List Item 1</li>
+            <li id="list-item-2">List Item 2</li>
+            <li id="list-item-3">List Item 3</li>
+        </ul>
+        
+        <div class="highlight-target" id="highlight-div">
+            <span id="highlight-span">This is a span inside a div</span>
+            <p id="highlight-paragraph">This is a paragraph with some text content.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Table Testing</h2>
+        <table id="test-table">
+            <thead>
+                <tr>
+                    <th id="th-name">Name</th>
+                    <th id="th-type">Type</th>
+                    <th id="th-value">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="row-1">
+                    <td id="td-name-1">Element 1</td>
+                    <td id="td-type-1">Button</td>
+                    <td id="td-value-1">Active</td>
+                </tr>
+                <tr id="row-2">
+                    <td id="td-name-2">Element 2</td>
+                    <td id="td-type-2">Input</td>
+                    <td id="td-value-2">Disabled</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Nested Elements</h2>
+        <div class="nested-content" id="outer-container">
+            <h4 id="nested-header">Nested Content</h4>
+            <div class="inner" id="inner-container">
+                <button id="nested-button" class="test-button primary">Nested Button</button>
+                <span id="nested-span">Nested Span Text</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>7. Custom Elements</h2>
+        <div id="custom-element" data-custom="true" role="button" aria-label="Custom Element">
+            Custom Element with Attributes
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity for testing
+        document.querySelectorAll('.test-button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                console.log('Button clicked:', e.target.id);
+                e.target.style.opacity = '0.7';
+                setTimeout(() => {
+                    e.target.style.opacity = '1';
+                }, 200);
+            });
+        });
+
+        document.querySelectorAll('.list-items li').forEach(item => {
+            item.addEventListener('click', (e) => {
+                console.log('List item clicked:', e.target.id);
+                e.target.style.background = '#007cba';
+                e.target.style.color = 'white';
+                setTimeout(() => {
+                    e.target.style.background = '#e9ecef';
+                    e.target.style.color = 'black';
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Inspector Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .highlight-test {
+            background: #f0f8ff;
+            padding: 10px;
+            border-left: 4px solid #007cba;
+        }
+        #special-element {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="main-title">Element Inspector Test Page</h1>
+        <p class="description">This page contains various elements to test the Element Inspector functionality.</p>
+
+        <div class="test-section">
+            <h2>Button Elements</h2>
+            <button class="test-button" id="primary-btn" data-testid="primary-button">Primary Button</button>
+            <button class="test-button" data-qa="secondary-btn" aria-label="Secondary action button">Secondary Button</button>
+            <input type="button" value="Input Button" class="test-button" data-cy="input-button">
+            <input type="submit" value="Submit Button" class="test-button" name="submit-btn">
+        </div>
+
+        <div class="test-section">
+            <h2>Form Elements</h2>
+            <form id="test-form" role="form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" class="test-input" placeholder="Enter username" aria-label="Username field">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" class="test-input" data-testid="email-input">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" class="test-input">
+                </div>
+                <div class="form-group">
+                    <label for="country">Country:</label>
+                    <select id="country" name="country" class="test-input" data-qa="country-select">
+                        <option value="">Select Country</option>
+                        <option value="us">United States</option>
+                        <option value="ca">Canada</option>
+                        <option value="uk">United Kingdom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="newsletter" name="newsletter" data-cy="newsletter-checkbox">
+                        Subscribe to newsletter
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="radio" name="plan" value="basic" id="plan-basic">
+                        Basic Plan
+                    </label>
+                    <label>
+                        <input type="radio" name="plan" value="premium" id="plan-premium" data-testid="premium-plan">
+                        Premium Plan
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <div class="test-section">
+            <h2>Navigation Elements</h2>
+            <nav role="navigation">
+                <a href="#home" id="home-link" data-testid="home-nav">Home</a> |
+                <a href="#about" class="nav-link" aria-label="About page">About</a> |
+                <a href="#contact" data-qa="contact-link">Contact</a> |
+                <a href="#help" title="Help documentation">Help</a>
+            </nav>
+        </div>
+
+        <div class="test-section">
+            <h2>Content Elements</h2>
+            <div class="highlight-test" id="special-element" data-cy="special-content">
+                <h3>Special Element</h3>
+                <p>This element has multiple identifiers and should be easy to locate.</p>
+            </div>
+            
+            <ul role="list" data-testid="feature-list">
+                <li data-qa="feature-1">Advanced element detection</li>
+                <li data-cy="feature-2" aria-label="Locator generation feature">Smart locator generation</li>
+                <li id="feature-3">Shadow DOM support</li>
+                <li class="feature-item">Multiple export formats</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>Complex Elements</h2>
+            <table id="data-table" role="table" data-testid="main-table">
+                <thead>
+                    <tr>
+                        <th data-qa="name-header">Name</th>
+                        <th data-cy="age-header">Age</th>
+                        <th aria-label="Location column">Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-testid="user-row-1">
+                        <td data-qa="user-name">John Doe</td>
+                        <td data-cy="user-age">30</td>
+                        <td>New York</td>
+                    </tr>
+                    <tr data-testid="user-row-2">
+                        <td data-qa="user-name">Jane Smith</td>
+                        <td data-cy="user-age">25</td>
+                        <td>California</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="test-section">
+            <h2>Custom Elements</h2>
+            <div class="custom-widget" data-widget="true" role="button" tabindex="0" aria-label="Custom interactive widget">
+                <span class="widget-icon">🔧</span>
+                <span class="widget-text">Custom Widget</span>
+            </div>
+        </div>
+
+        <footer id="page-footer" role="contentinfo">
+            <p>&copy; 2025 Element Inspector Test. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add some interactive behavior for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Button click handlers
+            document.querySelectorAll('.test-button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('Button clicked:', this.textContent || this.value);
+                });
+            });
+
+            // Custom widget interaction
+            document.querySelector('.custom-widget').addEventListener('click', function() {
+                console.log('Custom widget activated');
+                this.style.background = '#28a745';
+                setTimeout(() => {
+                    this.style.background = '';
+                }, 1000);
+            });
+
+            // Form validation
+            document.getElementById('test-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Form submitted');
+            });
+        });
+    </script>
+</body>
+</html>

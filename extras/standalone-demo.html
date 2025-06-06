@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Form Filler - Live Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .demo-form {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .control-panel h2, .demo-form h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filled-field {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            animation: fillPulse 0.8s ease;
+        }
+
+        .filling-field {
+            background-color: #fff3cd !important;
+            border-color: #ffc107 !important;
+            animation: fillPulse 0.5s ease infinite alternate;
+        }
+
+        @keyframes fillPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .results h3 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .success { color: #28a745; }
+        .warning { color: #ffc107; }
+        .error { color: #dc3545; }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Auto Form Filler</h1>
+            <p>Watch the magic happen as forms fill themselves automatically!</p>
+        </div>
+
+        <div class="content">
+            <div class="control-panel">
+                <h2>🎮 Control Panel</h2>
+                
+                <button class="btn" onclick="fillAllFields()">
+                    ✨ Fill All Fields
+                </button>
+                
+                <button class="btn" onclick="fillPersonalOnly()">
+                    👤 Fill Personal Info
+                </button>
+                
+                <button class="btn" onclick="fillContactOnly()">
+                    📞 Fill Contact Info
+                </button>
+                
+                <button class="btn" onclick="clearAllFields()">
+                    🧹 Clear All Fields
+                </button>
+                
+                <button class="btn" onclick="randomFill()">
+                    🎲 Random Fill
+                </button>
+
+                <div class="results" id="results" style="display: none;">
+                    <h3>📊 Fill Results</h3>
+                    <div class="status" id="status"></div>
+                </div>
+            </div>
+
+            <div class="demo-form">
+                <h2>📝 Sample Form</h2>
+                <form id="demoForm">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Enter your first name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Enter your last name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="your.email@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthDate">Date of Birth</label>
+                        <input type="date" id="birthDate" name="birthDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Street Address</label>
+                        <input type="text" id="address" name="address" placeholder="123 Main Street">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" placeholder="New York">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="state">State</label>
+                        <select id="state" name="state">
+                            <option value="">Select State</option>
+                            <option value="CA">California</option>
+                            <option value="NY">New York</option>
+                            <option value="TX">Texas</option>
+                            <option value="FL">Florida</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zipCode">ZIP Code</label>
+                        <input type="text" id="zipCode" name="zipCode" placeholder="12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="company">Company</label>
+                        <input type="text" id="company" name="company" placeholder="Company Name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="jobTitle">Job Title</label>
+                        <input type="text" id="jobTitle" name="jobTitle" placeholder="Software Engineer">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comments">Comments</label>
+                        <textarea id="comments" name="comments" rows="3" placeholder="Additional comments..."></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto Form Filler Class - Embedded for standalone demo
+        class AutoFormFiller {
+            constructor() {
+                this.sampleData = {
+                    personal: {
+                        firstName: ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'Chris', 'Ashley'],
+                        lastName: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis'],
+                        fullName: ['John Smith', 'Jane Doe', 'Michael Johnson', 'Sarah Williams'],
+                        name: ['John Smith', 'Jane Doe', 'Michael Johnson', 'Sarah Williams']
+                    },
+                    contact: {
+                        email: ['john.doe@email.com', 'jane.smith@gmail.com', 'user@example.com', 'test@demo.com'],
+                        phone: ['+1 (555) 123-4567', '+1 (555) 987-6543', '+1 (555) 246-8135', '+1 (555) 369-2580'],
+                        mobile: ['+1 (555) 123-4567', '+1 (555) 987-6543', '+1 (555) 246-8135']
+                    },
+                    address: {
+                        address: ['123 Main Street', '456 Oak Avenue', '789 Pine Road', '321 Elm Drive'],
+                        street: ['123 Main Street', '456 Oak Avenue', '789 Pine Road', '321 Elm Drive'],
+                        city: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia'],
+                        state: ['CA', 'NY', 'TX', 'FL', 'IL', 'PA'],
+                        zipCode: ['10001', '90210', '60601', '77001', '85001', '19101'],
+                        zip: ['10001', '90210', '60601', '77001', '85001', '19101'],
+                        country: ['United States', 'USA', 'US']
+                    },
+                    professional: {
+                        company: ['Tech Corp', 'Innovation Inc', 'Digital Solutions', 'Future Systems', 'Smart Tech'],
+                        jobTitle: ['Software Engineer', 'Product Manager', 'Data Analyst', 'UX Designer', 'Marketing Specialist'],
+                        position: ['Software Engineer', 'Product Manager', 'Data Analyst', 'UX Designer'],
+                        department: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance']
+                    },
+                    dates: {
+                        birthDate: ['1990-05-15', '1985-12-03', '1992-08-22', '1988-03-10'],
+                        date: ['2024-01-15', '2024-06-20', '2024-12-01']
+                    },
+                    other: {
+                        comments: ['This is a test comment', 'Great service!', 'Looking forward to hearing from you', 'Please contact me soon'],
+                        message: ['Hello there!', 'This is a sample message', 'Thank you for your time'],
+                        notes: ['Important note here', 'Please remember this', 'Follow up required']
+                    }
+                };
+
+                this.fieldPatterns = {
+                    firstName: /first.*name|fname|given.*name/i,
+                    lastName: /last.*name|lname|family.*name|surname/i,
+                    fullName: /^name$|full.*name|complete.*name/i,
+                    email: /email|e-mail|mail/i,
+                    phone: /phone|tel|mobile|cell/i,
+                    address: /address|street/i,
+                    city: /city|town/i,
+                    state: /state|province|region/i,
+                    zipCode: /zip|postal|postcode/i,
+                    country: /country|nation/i,
+                    company: /company|organization|org/i,
+                    jobTitle: /job.*title|position|role/i,
+                    birthDate: /birth.*date|dob|date.*birth/i,
+                    date: /date/i,
+                    comments: /comment|message|note|description/i
+                };
+            }
+
+            getRandomValue(category, fieldType) {
+                const values = this.sampleData[category]?.[fieldType];
+                if (!values || values.length === 0) return '';
+                return values[Math.floor(Math.random() * values.length)];
+            }
+
+            detectFieldType(element) {
+                const name = (element.name || '').toLowerCase();
+                const id = (element.id || '').toLowerCase();
+                const placeholder = (element.placeholder || '').toLowerCase();
+                const type = (element.type || '').toLowerCase();
+                
+                const searchText = `${name} ${id} ${placeholder}`.trim();
+
+                for (const [fieldType, pattern] of Object.entries(this.fieldPatterns)) {
+                    if (pattern.test(searchText) || pattern.test(type)) {
+                        return fieldType;
+                    }
+                }
+
+                // Fallback based on input type
+                if (type === 'email') return 'email';
+                if (type === 'tel') return 'phone';
+                if (type === 'date') return 'birthDate';
+                
+                return null;
+            }
+
+            getSampleValue(fieldType) {
+                // Map field types to data categories
+                const categoryMap = {
+                    firstName: 'personal',
+                    lastName: 'personal',
+                    fullName: 'personal',
+                    email: 'contact',
+                    phone: 'contact',
+                    address: 'address',
+                    city: 'address',
+                    state: 'address',
+                    zipCode: 'address',
+                    country: 'address',
+                    company: 'professional',
+                    jobTitle: 'professional',
+                    birthDate: 'dates',
+                    date: 'dates',
+                    comments: 'other'
+                };
+
+                const category = categoryMap[fieldType];
+                if (category) {
+                    return this.getRandomValue(category, fieldType);
+                }
+
+                return '';
+            }
+
+            async fillField(element, value, showAnimation = true) {
+                if (!element || element.disabled || element.readOnly) {
+                    return false;
+                }
+
+                try {
+                    if (showAnimation) {
+                        element.classList.add('filling-field');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+
+                    if (element.tagName.toLowerCase() === 'select') {
+                        // For select elements, try to find a matching option
+                        const options = Array.from(element.options);
+                        const matchingOption = options.find(option => 
+                            option.value.toLowerCase() === value.toLowerCase() ||
+                            option.text.toLowerCase().includes(value.toLowerCase())
+                        );
+                        
+                        if (matchingOption) {
+                            element.value = matchingOption.value;
+                        }
+                    } else {
+                        element.value = value;
+                    }
+
+                    // Trigger events
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    if (showAnimation) {
+                        element.classList.remove('filling-field');
+                        element.classList.add('filled-field');
+                        
+                        setTimeout(() => {
+                            element.classList.remove('filled-field');
+                        }, 2000);
+                    }
+
+                    return true;
+                } catch (error) {
+                    console.error('Error filling field:', error);
+                    return false;
+                }
+            }
+
+            async fillForm(selector = 'form', options = {}) {
+                const {
+                    includeTypes = null,
+                    excludeTypes = [],
+                    animationDelay = 200,
+                    showAnimation = true
+                } = options;
+
+                const forms = selector === 'form' ? 
+                    document.querySelectorAll('form') : 
+                    document.querySelectorAll(selector);
+
+                if (forms.length === 0) {
+                    return { success: false, message: 'No forms found', results: [] };
+                }
+
+                const results = [];
+                let totalFilled = 0;
+                let totalAttempted = 0;
+
+                for (const form of forms) {
+                    const fields = form.querySelectorAll('input, select, textarea');
+                    
+                    for (let i = 0; i < fields.length; i++) {
+                        const field = fields[i];
+                        
+                        // Skip buttons and hidden fields
+                        if (['button', 'submit', 'reset', 'hidden'].includes(field.type)) {
+                            continue;
+                        }
+
+                        const fieldType = this.detectFieldType(field);
+                        
+                        if (!fieldType) {
+                            results.push({
+                                element: field.name || field.id || `field-${i}`,
+                                status: 'skipped',
+                                reason: 'Unknown field type'
+                            });
+                            continue;
+                        }
+
+                        if (includeTypes && !includeTypes.includes(fieldType)) {
+                            continue;
+                        }
+
+                        if (excludeTypes.includes(fieldType)) {
+                            continue;
+                        }
+
+                        totalAttempted++;
+                        const sampleValue = this.getSampleValue(fieldType);
+                        
+                        if (sampleValue) {
+                            const success = await this.fillField(field, sampleValue, showAnimation);
+                            
+                            if (success) {
+                                totalFilled++;
+                                results.push({
+                                    element: field.name || field.id || `field-${i}`,
+                                    fieldType: fieldType,
+                                    value: sampleValue,
+                                    status: 'success'
+                                });
+                            } else {
+                                results.push({
+                                    element: field.name || field.id || `field-${i}`,
+                                    fieldType: fieldType,
+                                    status: 'failed',
+                                    reason: 'Fill operation failed'
+                                });
+                            }
+
+                            if (showAnimation && animationDelay > 0) {
+                                await new Promise(resolve => setTimeout(resolve, animationDelay));
+                            }
+                        } else {
+                            results.push({
+                                element: field.name || field.id || `field-${i}`,
+                                fieldType: fieldType,
+                                status: 'skipped',
+                                reason: 'No sample data available'
+                            });
+                        }
+                    }
+                }
+
+                return {
+                    success: totalFilled > 0,
+                    message: `Filled ${totalFilled} out of ${totalAttempted} fields`,
+                    totalFilled,
+                    totalAttempted,
+                    results
+                };
+            }
+        }
+
+        // Initialize the filler
+        const autoFiller = new AutoFormFiller();
+
+        // Demo functions
+        async function fillAllFields() {
+            showResults('🚀 Filling all fields...');
+            const result = await autoFiller.fillForm('#demoForm');
+            displayResults(result);
+        }
+
+        async function fillPersonalOnly() {
+            showResults('👤 Filling personal information...');
+            const result = await autoFiller.fillForm('#demoForm', {
+                includeTypes: ['firstName', 'lastName', 'fullName', 'birthDate']
+            });
+            displayResults(result);
+        }
+
+        async function fillContactOnly() {
+            showResults('📞 Filling contact information...');
+            const result = await autoFiller.fillForm('#demoForm', {
+                includeTypes: ['email', 'phone', 'address', 'city', 'state', 'zipCode']
+            });
+            displayResults(result);
+        }
+
+        function clearAllFields() {
+            const form = document.getElementById('demoForm');
+            const fields = form.querySelectorAll('input, select, textarea');
+            
+            fields.forEach(field => {
+                field.value = '';
+                field.classList.remove('filled-field', 'filling-field');
+            });
+            
+            showResults('🧹 All fields cleared!');
+        }
+
+        async function randomFill() {
+            showResults('🎲 Randomly filling some fields...');
+            const allTypes = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode', 'company', 'jobTitle', 'birthDate', 'comments'];
+            const randomTypes = allTypes.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 6) + 3);
+            
+            const result = await autoFiller.fillForm('#demoForm', {
+                includeTypes: randomTypes,
+                animationDelay: 400
+            });
+            displayResults(result);
+        }
+
+        function showResults(message) {
+            const resultsDiv = document.getElementById('results');
+            const statusDiv = document.getElementById('status');
+            
+            statusDiv.textContent = message;
+            statusDiv.className = 'status';
+            resultsDiv.style.display = 'block';
+        }
+
+        function displayResults(result) {
+            const statusDiv = document.getElementById('status');
+            
+            let output = `${result.message}\n\n`;
+            
+            if (result.results && result.results.length > 0) {
+                output += '📋 Detailed Results:\n';
+                result.results.forEach((item, index) => {
+                    const status = item.status === 'success' ? '✅' : 
+                                  item.status === 'failed' ? '❌' : '⏭️';
+                    output += `${status} ${item.element}: ${item.status}`;
+                    if (item.fieldType) output += ` (${item.fieldType})`;
+                    if (item.value) output += ` → "${item.value}"`;
+                    if (item.reason) output += ` - ${item.reason}`;
+                    output += '\n';
+                });
+            }
+            
+            statusDiv.textContent = output;
+            statusDiv.className = `status ${result.success ? 'success' : 'warning'}`;
+        }
+
+        // Auto-demo on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showResults('✨ Welcome! Click any button above to see the auto-fill magic in action!');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

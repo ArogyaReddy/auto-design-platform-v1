@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Syntax Test</title>
+</head>
+<body>
+    <div id="test-container"></div>
+    <script>
+        console.log("Testing JavaScript syntax...");
+        
+        // Test the same type of string concatenation that was causing issues
+        const testElement = document.getElementById('test-container');
+        if (testElement) {
+            testElement.innerHTML = 
+                '<style>'
+                + '    p { color: green; font-weight: bold; }'
+                + '</style>'
+                + '<p>Text: Test content</p>'
+                + '<label for="test-input">Input (test\'s label):</label>'
+                + '<input type="text" id="test-input" value="Test\'s value">'
+                + '<button id="test-button">Test\'s button</button>';
+        }
+        
+        console.log("JavaScript syntax test completed successfully!");
+    </script>
+</body>
+</html>

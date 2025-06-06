@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagination Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input, select, textarea {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pagination Test Page - Element AI Extractor</h1>
+        <p>This page contains many different types of elements to test the pagination functionality of the Element AI Extractor extension.</p>
+
+        <div class="section">
+            <h2>Navigation Links</h2>
+            <a href="#home" id="nav-home">Home</a> |
+            <a href="#about" id="nav-about">About</a> |
+            <a href="#services" id="nav-services">Services</a> |
+            <a href="#contact" id="nav-contact">Contact</a> |
+            <a href="#portfolio" id="nav-portfolio">Portfolio</a> |
+            <a href="#blog" id="nav-blog">Blog</a> |
+            <a href="#testimonials" id="nav-testimonials">Testimonials</a> |
+            <a href="#faq" id="nav-faq">FAQ</a>
+        </div>
+
+        <div class="section">
+            <h2>Action Buttons</h2>
+            <button id="btn-save">Save</button>
+            <button id="btn-cancel">Cancel</button>
+            <button id="btn-submit">Submit</button>
+            <button id="btn-reset">Reset</button>
+            <button id="btn-delete">Delete</button>
+            <button id="btn-edit">Edit</button>
+            <button id="btn-copy">Copy</button>
+            <button id="btn-paste">Paste</button>
+            <button id="btn-export">Export</button>
+            <button id="btn-import">Import</button>
+            <button id="btn-download">Download</button>
+            <button id="btn-upload">Upload</button>
+            <button id="btn-print">Print</button>
+            <button id="btn-search">Search</button>
+            <button id="btn-filter">Filter</button>
+        </div>
+
+        <div class="section">
+            <h2>Form Inputs</h2>
+            <div class="form-group">
+                <label for="input-name">Name:</label>
+                <input type="text" id="input-name" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="input-email">Email:</label>
+                <input type="email" id="input-email" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="input-phone">Phone:</label>
+                <input type="tel" id="input-phone" placeholder="Enter your phone">
+            </div>
+            <div class="form-group">
+                <label for="input-password">Password:</label>
+                <input type="password" id="input-password" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="input-date">Date:</label>
+                <input type="date" id="input-date">
+            </div>
+            <div class="form-group">
+                <label for="input-time">Time:</label>
+                <input type="time" id="input-time">
+            </div>
+            <div class="form-group">
+                <label for="input-url">Website:</label>
+                <input type="url" id="input-url" placeholder="https://example.com">
+            </div>
+            <div class="form-group">
+                <label for="input-search">Search:</label>
+                <input type="search" id="input-search" placeholder="Search...">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Selection Elements</h2>
+            <div class="form-group">
+                <label for="select-country">Country:</label>
+                <select id="select-country">
+                    <option value="">Select Country</option>
+                    <option value="us">United States</option>
+                    <option value="ca">Canada</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="au">Australia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="select-language">Language:</label>
+                <select id="select-language">
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="textarea-comments">Comments:</label>
+                <textarea id="textarea-comments" rows="4" cols="50" placeholder="Enter your comments"></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Checkboxes and Radio Buttons</h2>
+            <div class="form-group">
+                <label>Skills:</label><br>
+                <input type="checkbox" id="skill-html" name="skills" value="html">
+                <label for="skill-html">HTML</label><br>
+                <input type="checkbox" id="skill-css" name="skills" value="css">
+                <label for="skill-css">CSS</label><br>
+                <input type="checkbox" id="skill-js" name="skills" value="javascript">
+                <label for="skill-js">JavaScript</label><br>
+                <input type="checkbox" id="skill-react" name="skills" value="react">
+                <label for="skill-react">React</label><br>
+                <input type="checkbox" id="skill-node" name="skills" value="nodejs">
+                <label for="skill-node">Node.js</label>
+            </div>
+            <div class="form-group">
+                <label>Experience Level:</label><br>
+                <input type="radio" id="exp-beginner" name="experience" value="beginner">
+                <label for="exp-beginner">Beginner</label><br>
+                <input type="radio" id="exp-intermediate" name="experience" value="intermediate">
+                <label for="exp-intermediate">Intermediate</label><br>
+                <input type="radio" id="exp-advanced" name="experience" value="advanced">
+                <label for="exp-advanced">Advanced</label><br>
+                <input type="radio" id="exp-expert" name="experience" value="expert">
+                <label for="exp-expert">Expert</label>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Lists</h2>
+            <h3>Ordered List</h3>
+            <ol id="list-features">
+                <li id="feature-1">Responsive Design</li>
+                <li id="feature-2">Cross-browser Compatibility</li>
+                <li id="feature-3">SEO Optimization</li>
+                <li id="feature-4">Performance Optimization</li>
+                <li id="feature-5">Accessibility Features</li>
+            </ol>
+            
+            <h3>Unordered List</h3>
+            <ul id="list-technologies">
+                <li id="tech-1">HTML5</li>
+                <li id="tech-2">CSS3</li>
+                <li id="tech-3">JavaScript ES6+</li>
+                <li id="tech-4">React.js</li>
+                <li id="tech-5">Node.js</li>
+                <li id="tech-6">Express.js</li>
+                <li id="tech-7">MongoDB</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Images</h2>
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzNzNkYyIvPgogIDx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgMTwvdGV4dD4KICA8L3N2Zz4K" alt="Test Image 1" id="img-1">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzI4YTA3NCIvPgogIDx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgMjwvdGV4dD4KICA8L3N2Zz4K" alt="Test Image 2" id="img-2">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmNjM0NyIvPgogIDx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgMzwvdGV4dD4KICA8L3N2Zz4K" alt="Test Image 3" id="img-3">
+        </div>
+
+        <div class="section">
+            <h2>More Elements for Pagination Testing</h2>
+            <p>This section contains additional elements to ensure we have enough for pagination testing (50+ elements total).</p>
+            
+            <form id="contact-form">
+                <div class="form-group">
+                    <label for="form-title">Title:</label>
+                    <select id="form-title">
+                        <option value="mr">Mr.</option>
+                        <option value="ms">Ms.</option>
+                        <option value="dr">Dr.</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="form-firstname">First Name:</label>
+                    <input type="text" id="form-firstname" required>
+                </div>
+                <div class="form-group">
+                    <label for="form-lastname">Last Name:</label>
+                    <input type="text" id="form-lastname" required>
+                </div>
+                <div class="form-group">
+                    <label for="form-company">Company:</label>
+                    <input type="text" id="form-company">
+                </div>
+                <div class="form-group">
+                    <label for="form-message">Message:</label>
+                    <textarea id="form-message" rows="5" cols="40"></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="form-newsletter">
+                    <label for="form-newsletter">Subscribe to newsletter</label>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="form-terms">
+                    <label for="form-terms">I agree to the terms and conditions</label>
+                </div>
+                <button type="submit" id="form-submit-btn">Submit Contact Form</button>
+                <button type="reset" id="form-reset-btn">Reset Form</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Additional Interactive Elements</h2>
+            <button id="btn-modal" onclick="alert('Modal would open')">Open Modal</button>
+            <button id="btn-tooltip" title="This is a tooltip">Hover for Tooltip</button>
+            <button id="btn-dropdown" onclick="toggleDropdown()">Toggle Dropdown</button>
+            <div id="dropdown-menu" style="display: none; background: #f0f0f0; padding: 10px; margin: 5px 0;">
+                <a href="#option1" id="dropdown-option1">Option 1</a><br>
+                <a href="#option2" id="dropdown-option2">Option 2</a><br>
+                <a href="#option3" id="dropdown-option3">Option 3</a>
+            </div>
+            
+            <div class="form-group">
+                <label for="slider-range">Range Slider:</label>
+                <input type="range" id="slider-range" min="0" max="100" value="50">
+            </div>
+            
+            <div class="form-group">
+                <label for="color-picker">Color Picker:</label>
+                <input type="color" id="color-picker" value="#ff0000">
+            </div>
+            
+            <div class="form-group">
+                <label for="file-upload">File Upload:</label>
+                <input type="file" id="file-upload">
+            </div>
+        </div>
+
+        <footer class="section">
+            <h2>Footer Links</h2>
+            <a href="#privacy" id="footer-privacy">Privacy Policy</a> |
+            <a href="#terms" id="footer-terms">Terms of Service</a> |
+            <a href="#support" id="footer-support">Support</a> |
+            <a href="#sitemap" id="footer-sitemap">Sitemap</a>
+            <p>&copy; 2025 Test Company. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown-menu');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

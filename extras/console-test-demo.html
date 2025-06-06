@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Browser Console Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+            margin-bottom: 20px;
+        }
+        .code-block {
+            background: #263238;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .form-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .form-control {
+            width: 100%;
+            max-width: 300px;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Auto-Fill Console Test</h1>
+        
+        <div class="instructions">
+            <h3>🚀 How to Test Auto-Fill:</h3>
+            <ol>
+                <li><strong>Open Browser Console:</strong> Press <kbd>F12</kbd> or <kbd>Cmd+Option+I</kbd> (Mac)</li>
+                <li><strong>Copy & paste the script below</strong> into the console</li>
+                <li><strong>Press Enter</strong> to load the auto-fill functionality</li>
+                <li><strong>Use the floating control panel</strong> that appears in the top-right</li>
+                <li><strong>Or run commands directly</strong> in the console</li>
+            </ol>
+        </div>
+        
+        <h3>📋 Copy This Script:</h3>
+        <div class="code-block">// 🚀 AUTO-FILL TEST SCRIPT
+// Copy this entire block and paste into browser console
+
+(function() {
+    console.log('🚀 Starting Auto-Fill Test...');
+    
+    // Test data for form filling
+    const testData = {
+        'firstName': 'Auto John',
+        'lastName': 'Test User',
+        'email': 'john.test@autofill.demo',
+        'phone': '+1 (555) 123-4567',
+        'address': '123 Demo Street',
+        'city': 'Test City',
+        'zipCode': '12345',
+        'company': 'Auto-Fill Corp',
+        'jobTitle': 'Test Engineer'
+    };
+
+    function fillTestData() {
+        console.log('📝 Filling test data...');
+        let filled = 0;
+        
+        Object.entries(testData).forEach(([fieldId, value]) => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.value = value;
+                element.style.backgroundColor = '#e8f5e8';
+                element.style.borderColor = '#28a745';
+                
+                // Trigger events
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+                filled++;
+                console.log(`✅ Filled ${fieldId}: ${value}`);
+            } else {
+                console.log(`❌ Field not found: ${fieldId}`);
+            }
+        });
+        
+        console.log(`🎯 Filled ${filled} fields`);
+        return filled;
+    }
+    
+    function clearAll() {
+        console.log('🧹 Clearing all fields...');
+        const inputs = document.querySelectorAll('input, textarea, select');
+        let cleared = 0;
+        
+        inputs.forEach(input => {
+            if (input.value) {
+                input.value = '';
+                input.style.backgroundColor = '';
+                input.style.borderColor = '';
+                cleared++;
+            }
+        });
+        
+        console.log(`🧹 Cleared ${cleared} fields`);
+        return cleared;
+    }
+    
+    function analyzeForm() {
+        console.log('📊 Analyzing form...');
+        const inputs = document.querySelectorAll('input, textarea, select');
+        
+        console.log(`📋 Found ${inputs.length} form elements:`);
+        inputs.forEach((input, index) => {
+            console.log(`${index + 1}. ID: "${input.id}" | Name: "${input.name}" | Type: "${input.type}"`);
+        });
+        
+        return inputs.length;
+    }
+    
+    // Create floating control panel
+    const panel = document.createElement('div');
+    panel.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999999;
+            background: white;
+            border: 2px solid #007cba;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+        ">
+            <h4 style="margin: 0 0 10px 0;">🧪 Auto-Fill Test</h4>
+            <button onclick="window.autoFillTest.fill()" style="
+                display: block;
+                width: 100%;
+                margin: 5px 0;
+                padding: 8px;
+                background: #28a745;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            ">🚀 Fill Forms</button>
+            
+            <button onclick="window.autoFillTest.clear()" style="
+                display: block;
+                width: 100%;
+                margin: 5px 0;
+                padding: 8px;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            ">🧹 Clear All</button>
+            
+            <button onclick="window.autoFillTest.analyze()" style="
+                display: block;
+                width: 100%;
+                margin: 5px 0;
+                padding: 8px;
+                background: #17a2b8;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            ">📊 Analyze</button>
+            
+            <button onclick="this.parentElement.parentElement.remove()" style="
+                display: block;
+                width: 100%;
+                margin: 5px 0;
+                padding: 8px;
+                background: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            ">❌ Close</button>
+        </div>
+    `;
+    
+    document.body.appendChild(panel);
+    
+    // Make functions globally available
+    window.autoFillTest = {
+        fill: fillTestData,
+        clear: clearAll,
+        analyze: analyzeForm
+    };
+    
+    console.log(`
+🎉 Auto-Fill Test Ready!
+
+Available commands:
+• autoFillTest.fill() - Fill all forms
+• autoFillTest.clear() - Clear all forms  
+• autoFillTest.analyze() - Analyze form structure
+
+Control panel added to top-right corner.
+    `);
+    
+    // Auto-analyze
+    analyzeForm();
+})();</div>
+        
+        <h3>📋 Test Form:</h3>
+        <div class="form-section">
+            <form>
+                <div class="form-group">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" name="firstName" class="form-control" placeholder="Enter first name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" name="lastName" class="form-control" placeholder="Enter last name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone:</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="Enter phone">
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Address:</label>
+                    <input type="text" id="address" name="address" class="form-control" placeholder="Enter address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="city">City:</label>
+                    <input type="text" id="city" name="city" class="form-control" placeholder="Enter city">
+                </div>
+                
+                <div class="form-group">
+                    <label for="zipCode">ZIP Code:</label>
+                    <input type="text" id="zipCode" name="zipCode" class="form-control" placeholder="Enter ZIP">
+                </div>
+                
+                <div class="form-group">
+                    <label for="company">Company:</label>
+                    <input type="text" id="company" name="company" class="form-control" placeholder="Enter company">
+                </div>
+                
+                <div class="form-group">
+                    <label for="jobTitle">Job Title:</label>
+                    <input type="text" id="jobTitle" name="jobTitle" class="form-control" placeholder="Enter job title">
+                </div>
+            </form>
+        </div>
+        
+        <div class="instructions">
+            <h3>🔍 What You'll See:</h3>
+            <ul>
+                <li>✅ <strong>Green highlighting</strong> on filled fields</li>
+                <li>📊 <strong>Console logs</strong> showing what was filled</li>
+                <li>🎯 <strong>Success counts</strong> and field analysis</li>
+                <li>🎮 <strong>Control panel</strong> for easy testing</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

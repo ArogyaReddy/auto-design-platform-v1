@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Fill Test with Your Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007cba;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        .primary { background: #007cba; }
+        .success { background: #28a745; }
+        .warning { background: #ffc107; color: black; }
+        .danger { background: #dc3545; }
+        .info { background: #17a2b8; }
+        .results {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .iframe-container {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .iframe-container iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+        }
+        .step-indicator {
+            background: #d1ecf1;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Auto-Fill Testing with Your Inspector Test Page</h1>
+    
+    <div class="test-controls">
+        <h2>🎯 Testing Controls</h2>
+        <p>Use these buttons to test the auto-fill functionality on your test page below:</p>
+        
+        <div class="button-group">
+            <button class="test-btn primary" onclick="testBasicAutoFill()">
+                🚀 Test Basic Auto-Fill
+            </button>
+            <button class="test-btn success" onclick="testCustomAutoFill()">
+                📝 Test Custom Data Fill
+            </button>
+            <button class="test-btn warning" onclick="showFormInfo()">
+                📊 Analyze Forms
+            </button>
+            <button class="test-btn danger" onclick="clearAllForms()">
+                🧹 Clear Forms
+            </button>
+            <button class="test-btn info" onclick="testStepByStep()">
+                🔍 Step-by-Step Demo
+            </button>
+        </div>
+        
+        <div id="results" class="results" style="display: none;"></div>
+    </div>
+
+    <div class="step-indicator" id="currentStep" style="display: none;">
+        <strong>Current Step:</strong> <span id="stepText"></span>
+    </div>
+
+    <div class="iframe-container">
+        <iframe id="testFrame" src="/Users/arog/AI/START/1/apps/test-inspect-functionality.html"></iframe>
+    </div>
+
+    <!-- Load the auto-fill script -->
+    <script src="auto-fill-forms.js"></script>
+    
+    <script>
+        let testFrame;
+        let frameWindow;
+        let frameDocument;
+
+        // Wait for iframe to load
+        window.addEventListener('load', function() {
+            testFrame = document.getElementById('testFrame');
+            
+            testFrame.onload = function() {
+                frameWindow = testFrame.contentWindow;
+                frameDocument = testFrame.contentDocument;
+                
+                // Inject auto-fill script into iframe
+                injectAutoFillScript();
+                
+                showResults('✅ Test page loaded and auto-fill script injected!', 'success');
+            };
+        });
+
+        function injectAutoFillScript() {
+            if (!frameWindow || !frameDocument) return;
+            
+            // Create script element and inject our auto-fill code
+            const script = frameDocument.createElement('script');
+            script.src = 'auto-fill-forms.js';
+            script.onload = function() {
+                console.log('Auto-fill script loaded in iframe');
+            };
+            frameDocument.head.appendChild(script);
+            
+            // Also inject the script content directly for immediate use
+            const scriptContent = frameDocument.createElement('script');
+            scriptContent.textContent = `
+                // Simplified auto-fill for iframe testing
+                window.testAutoFill = function(customData = null) {
+                    const results = { filled: 0, skipped: 0, details: [] };
+                    
+                    // Sample data
+                    const sampleData = {
+                        'text-input': 'Auto-filled text input',
+                        'email-input': 'test@autofill.com',
+                        'password-input': 'SecurePass123!',
+                        'select-dropdown': 'option2',
+                        'textarea-input': 'This textarea was automatically filled with sample content for testing purposes.',
+                        'checkbox-1': true,
+                        'radio-1': true
+                    };
+                    
+                    const dataToUse = customData || sampleData;
+                    
+                    // Fill text inputs
+                    Object.keys(dataToUse).forEach(fieldId => {
+                        const element = document.getElementById(fieldId);
+                        if (element) {
+                            if (element.type === 'checkbox' || element.type === 'radio') {
+                                element.checked = dataToUse[fieldId];
+                                results.filled++;
+                                results.details.push('✅ ' + fieldId + ' checked');
+                            } else {
+                                element.value = dataToUse[fieldId];
+                                element.style.backgroundColor = '#e8f5e8';
+                                element.style.borderColor = '#28a745';
+                                results.filled++;
+                                results.details.push('✅ ' + fieldId + ' filled: ' + dataToUse[fieldId]);
+                            }
+                            
+                            // Trigger events
+                            element.dispatchEvent(new Event('input', { bubbles: true }));
+                            element.dispatchEvent(new Event('change', { bubbles: true }));
+                        } else {
+                            results.skipped++;
+                            results.details.push('⏭️ ' + fieldId + ' not found');
+                        }
+                    });
+                    
+                    return results;
+                };
+                
+                window.clearTestForms = function() {
+                    const inputs = document.querySelectorAll('input, textarea, select');
+                    let cleared = 0;
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox' || input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        input.style.backgroundColor = '';
+                        input.style.borderColor = '';
+                        cleared++;
+                    });
+                    return cleared;
+                };
+                
+                window.getTestFormInfo = function() {
+                    const forms = document.querySelectorAll('form');
+                    const inputs = document.querySelectorAll('input, textarea, select');
+                    const buttons = document.querySelectorAll('button');
+                    
+                    return {
+                        forms: forms.length,
+                        inputs: inputs.length,
+                        buttons: buttons.length,
+                        inputTypes: Array.from(inputs).map(i => ({ id: i.id, type: i.type || i.tagName, name: i.name }))
+                    };
+                };
+                
+                console.log('🤖 Auto-fill functions loaded in test page!');
+            `;
+            frameDocument.head.appendChild(scriptContent);
+        }
+
+        function testBasicAutoFill() {
+            if (!frameWindow) return;
+            
+            showStep('Testing basic auto-fill with sample data...');
+            
+            try {
+                const results = frameWindow.testAutoFill();
+                showResults(`🚀 Basic Auto-Fill Results:
+Filled: ${results.filled} fields
+Skipped: ${results.skipped} fields
+
+Details:
+${results.details.join('\\n')}`, 'success');
+            } catch (error) {
+                showResults(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testCustomAutoFill() {
+            if (!frameWindow) return;
+            
+            showStep('Testing custom data auto-fill...');
+            
+            const customData = {
+                'text-input': 'CUSTOM: John Doe',
+                'email-input': 'john.doe@customdomain.com',
+                'password-input': 'CustomPass456!',
+                'select-dropdown': 'option3',
+                'textarea-input': 'CUSTOM MESSAGE: This is a custom message that was filled automatically using specific custom data instead of the default sample data.',
+                'checkbox-1': true,
+                'radio-2': true
+            };
+            
+            try {
+                const results = frameWindow.testAutoFill(customData);
+                showResults(`📝 Custom Data Auto-Fill Results:
+Filled: ${results.filled} fields
+Skipped: ${results.skipped} fields
+
+Custom Data Used:
+${JSON.stringify(customData, null, 2)}
+
+Details:
+${results.details.join('\\n')}`, 'success');
+            } catch (error) {
+                showResults(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function showFormInfo() {
+            if (!frameWindow) return;
+            
+            showStep('Analyzing form structure...');
+            
+            try {
+                const info = frameWindow.getTestFormInfo();
+                showResults(`📊 Form Analysis Results:
+Total Forms: ${info.forms}
+Total Inputs: ${info.inputs}
+Total Buttons: ${info.buttons}
+
+Input Details:
+${info.inputTypes.map(input => 
+    \`• \${input.id || 'no-id'} (type: \${input.type}, name: \${input.name || 'no-name'})\`
+).join('\\n')}`, 'info');
+            } catch (error) {
+                showResults(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAllForms() {
+            if (!frameWindow) return;
+            
+            showStep('Clearing all form fields...');
+            
+            try {
+                const cleared = frameWindow.clearTestForms();
+                showResults(`🧹 Clear Forms Results:
+Cleared: ${cleared} fields
+
+All form fields have been reset to their default empty state.`, 'warning');
+            } catch (error) {
+                showResults(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testStepByStep() {
+            if (!frameWindow) return;
+            
+            let step = 0;
+            const steps = [
+                { text: 'Step 1: Analyzing form structure...', action: () => showFormInfo() },
+                { text: 'Step 2: Clearing existing data...', action: () => clearAllForms() },
+                { text: 'Step 3: Filling with sample data...', action: () => testBasicAutoFill() },
+                { text: 'Step 4: Clearing for custom test...', action: () => clearAllForms() },
+                { text: 'Step 5: Filling with custom data...', action: () => testCustomAutoFill() },
+                { text: 'Step 6: Demo complete!', action: () => showStep('✅ Step-by-step demo completed!') }
+            ];
+            
+            function runNextStep() {
+                if (step < steps.length) {
+                    showStep(steps[step].text);
+                    setTimeout(() => {
+                        steps[step].action();
+                        step++;
+                        if (step < steps.length) {
+                            setTimeout(runNextStep, 2000);
+                        }
+                    }, 1000);
+                }
+            }
+            
+            runNextStep();
+        }
+
+        function showResults(content, type = 'info') {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.textContent = content;
+            results.className = \`results \${type}\`;
+        }
+
+        function showStep(stepText) {
+            const stepIndicator = document.getElementById('currentStep');
+            const stepTextElement = document.getElementById('stepText');
+            stepIndicator.style.display = 'block';
+            stepTextElement.textContent = stepText;
+        }
+
+        // Initial message
+        setTimeout(() => {
+            showResults(\`🤖 Auto-Fill Testing Interface Ready!
+
+Available Tests:
+• Basic Auto-Fill: Uses predefined sample data
+• Custom Data Fill: Uses your specific data
+• Form Analysis: Shows form structure
+• Clear Forms: Resets all fields
+• Step-by-Step: Complete demo workflow
+
+The test page is loaded below. Click any button to start testing!\`, 'info');
+        }, 1000);
+    </script>
+</body>
+</html>

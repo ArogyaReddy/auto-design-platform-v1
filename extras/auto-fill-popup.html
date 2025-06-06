@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Form Filler</title>
+    <style>
+        body {
+            width: 350px;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .fill-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .primary-btn {
+            background: #007cba;
+            color: white;
+        }
+        .primary-btn:hover {
+            background: #005a8b;
+        }
+        .success-btn {
+            background: #28a745;
+            color: white;
+        }
+        .success-btn:hover {
+            background: #1e7e34;
+        }
+        .warning-btn {
+            background: #ffc107;
+            color: black;
+        }
+        .warning-btn:hover {
+            background: #e0a800;
+        }
+        .danger-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .danger-btn:hover {
+            background: #c82333;
+        }
+        .info-btn {
+            background: #17a2b8;
+            color: white;
+        }
+        .info-btn:hover {
+            background: #138496;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .custom-data-section {
+            margin: 15px 0;
+        }
+        .custom-data-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .custom-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .help-text {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .toggle-section {
+            margin: 10px 0;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #007cba;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+        }
+        .toggle-content {
+            display: none;
+            margin-top: 10px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Auto Form Filler</h1>
+    </div>
+
+    <div class="button-group">
+        <button class="fill-btn primary-btn" id="fillSample">
+            🚀 Fill with Sample Data
+        </button>
+        <button class="fill-btn success-btn" id="fillCustom">
+            📝 Fill with Custom Data
+        </button>
+        <button class="fill-btn info-btn" id="showInfo">
+            📊 Show Form Info
+        </button>
+        <button class="fill-btn warning-btn" id="clearForms">
+            🧹 Clear All Forms
+        </button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="toggle-section">
+        <button class="toggle-btn" id="toggleCustom">▼ Custom Data Settings</button>
+        <div class="toggle-content" id="customDataSection">
+            <div class="custom-data-section">
+                <h3>Custom Data (JSON Format):</h3>
+                <textarea class="custom-input" id="customData" rows="8" placeholder='{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "phone": "+1-555-123-4567",
+  "company": "Tech Corp",
+  "message": "Custom message here"
+}'></textarea>
+                <div class="help-text">
+                    Enter JSON object with field names and values. Field names should match input names, IDs, or common patterns.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Auto Form Filler v1.0<br>
+        Works on any website
+    </div>
+
+    <script>
+        // Status display function
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            status.style.display = 'block';
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        // Toggle custom data section
+        document.getElementById('toggleCustom').addEventListener('click', function() {
+            const content = document.getElementById('customDataSection');
+            const btn = this;
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                btn.textContent = '▲ Custom Data Settings';
+            } else {
+                content.style.display = 'none';
+                btn.textContent = '▼ Custom Data Settings';
+            }
+        });
+
+        // Execute script in active tab
+        async function executeInActiveTab(func, data = null) {
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                
+                if (data) {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: func,
+                        args: [data]
+                    });
+                } else {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: func
+                    });
+                }
+                return true;
+            } catch (error) {
+                console.error('Script execution error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Functions to inject into the page
+        function fillWithSampleData() {
+            if (typeof window.AutoFormFiller !== 'undefined') {
+                const results = window.AutoFormFiller.fillPageInputs();
+                console.log('Form fill results:', results);
+                
+                // Show results in console and create notification
+                if (results.totalFilled > 0) {
+                    console.log(`✅ Successfully filled ${results.totalFilled} fields`);
+                    alert(`✅ Successfully filled ${results.totalFilled} fields!`);
+                } else {
+                    console.log('❌ No forms found or filled');
+                    alert('❌ No forms found to fill on this page');
+                }
+                return results;
+            } else {
+                alert('❌ Auto Form Filler not loaded. Please refresh the page and try again.');
+                return null;
+            }
+        }
+
+        function fillWithCustomData(customData) {
+            if (typeof window.AutoFormFiller !== 'undefined') {
+                const results = window.AutoFormFiller.fillPageInputs(customData);
+                console.log('Custom form fill results:', results);
+                
+                if (results.totalFilled > 0) {
+                    console.log(`✅ Successfully filled ${results.totalFilled} fields with custom data`);
+                    alert(`✅ Successfully filled ${results.totalFilled} fields with custom data!`);
+                } else {
+                    console.log('❌ No forms found or filled');
+                    alert('❌ No forms found to fill on this page');
+                }
+                return results;
+            } else {
+                alert('❌ Auto Form Filler not loaded. Please refresh the page and try again.');
+                return null;
+            }
+        }
+
+        function clearAllForms() {
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            let cleared = 0;
+            
+            allInputs.forEach(input => {
+                if (!input.disabled && !input.readOnly) {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (input.checked) {
+                            input.checked = false;
+                            cleared++;
+                        }
+                    } else if (input.value) {
+                        input.value = '';
+                        cleared++;
+                    }
+                }
+            });
+            
+            console.log(`🧹 Cleared ${cleared} fields`);
+            alert(`🧹 Cleared ${cleared} fields`);
+            return cleared;
+        }
+
+        function getFormInfo() {
+            const forms = document.querySelectorAll('form');
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            const standaloneInputs = Array.from(allInputs).filter(input => !input.closest('form'));
+            
+            const info = {
+                totalForms: forms.length,
+                totalInputs: allInputs.length,
+                standaloneInputs: standaloneInputs.length,
+                url: window.location.href,
+                title: document.title
+            };
+            
+            console.log('📊 Form info:', info);
+            alert(`📊 Form Information:
+Forms: ${info.totalForms}
+Total Inputs: ${info.totalInputs}
+Standalone Inputs: ${info.standaloneInputs}
+Page: ${info.title}`);
+            
+            return info;
+        }
+
+        // Event listeners
+        document.getElementById('fillSample').addEventListener('click', async () => {
+            showStatus('Filling forms with sample data...', 'info');
+            const success = await executeInActiveTab(fillWithSampleData);
+            if (success) {
+                showStatus('Forms filled successfully!', 'success');
+            }
+        });
+
+        document.getElementById('fillCustom').addEventListener('click', async () => {
+            const customDataText = document.getElementById('customData').value.trim();
+            
+            if (!customDataText) {
+                showStatus('Please enter custom data in JSON format', 'error');
+                return;
+            }
+            
+            try {
+                const customData = JSON.parse(customDataText);
+                showStatus('Filling forms with custom data...', 'info');
+                const success = await executeInActiveTab(fillWithCustomData, customData);
+                if (success) {
+                    showStatus('Forms filled with custom data!', 'success');
+                }
+            } catch (error) {
+                showStatus('Invalid JSON format in custom data', 'error');
+            }
+        });
+
+        document.getElementById('clearForms').addEventListener('click', async () => {
+            showStatus('Clearing all forms...', 'info');
+            const success = await executeInActiveTab(clearAllForms);
+            if (success) {
+                showStatus('All forms cleared!', 'success');
+            }
+        });
+
+        document.getElementById('showInfo').addEventListener('click', async () => {
+            showStatus('Getting form information...', 'info');
+            await executeInActiveTab(getFormInfo);
+        });
+
+        // Load default custom data
+        document.getElementById('customData').value = `{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "+1-555-123-4567",
+  "address": "123 Main Street",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10001",
+  "company": "Tech Corporation",
+  "title": "Software Engineer",
+  "website": "https://johndoe.dev",
+  "message": "This is an auto-filled message for testing purposes."
+}`;
+    </script>
+</body>
+</html>

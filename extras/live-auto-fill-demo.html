@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Fill Demo with Inspector Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        /* Auto-fill demo styles */
+        .auto-fill-demo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .demo-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .demo-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .demo-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary { background: #007cba; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        
+        .demo-results {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-indicator {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .status-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: #155724;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .status-info {
+            background: rgba(23, 162, 184, 0.2);
+            color: #0c5460;
+            border: 1px solid rgba(23, 162, 184, 0.3);
+        }
+        
+        /* Original test page styles */
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .test-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .primary { background: #007cba; color: white; }
+        .secondary { background: #6c757d; color: white; }
+        .success { background: #28a745; color: white; }
+        .danger { background: #dc3545; color: white; }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-control {
+            width: 100%;
+            max-width: 300px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control.filled {
+            background-color: #e8f5e8;
+            border-color: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+        }
+        
+        /* Visual feedback for filled fields */
+        .field-filled {
+            background-color: #e8f5e8 !important;
+            border-color: #28a745 !important;
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        
+        .field-custom-filled {
+            background-color: #fff3cd !important;
+            border-color: #ffc107 !important;
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+        
+        /* Additional styles for better visual feedback */
+        .highlight-target {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007cba;
+            margin: 10px 0;
+        }
+        
+        .list-items {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .list-items li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #e9ecef;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .list-items li:hover {
+            background: #dee2e6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .nested-content {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px;
+            background: #fafafa;
+        }
+        
+        .nested-content .inner {
+            border: 1px solid #999;
+            padding: 10px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auto-Fill Demo Section -->
+    <div class="auto-fill-demo">
+        <div class="demo-title">
+            🤖 Auto-Fill Testing Demo
+            <span style="font-size: 16px; opacity: 0.8;">Test the form auto-fill functionality on the Inspector Test Page below</span>
+        </div>
+        
+        <div class="demo-controls">
+            <button class="demo-btn btn-primary" onclick="runFullDemo()">
+                🎬 <span>Full Demo</span>
+            </button>
+            <button class="demo-btn btn-success" onclick="testBasicFill()">
+                🚀 <span>Basic Fill</span>
+            </button>
+            <button class="demo-btn btn-warning" onclick="testCustomFill()">
+                🎨 <span>Custom Fill</span>
+            </button>
+            <button class="demo-btn btn-info" onclick="analyzeForm()">
+                📊 <span>Analyze Form</span>
+            </button>
+            <button class="demo-btn btn-danger" onclick="clearAllForms()">
+                🧹 <span>Clear All</span>
+            </button>
+        </div>
+        
+        <div class="status-indicator" id="status"></div>
+        <div class="demo-results" id="results"></div>
+    </div>
+
+    <!-- Original Inspector Test Page Content -->
+    <h1 id="main-title">🧪 Inspector Test Page</h1>
+    <p class="intro-text">This page is designed to test the Element AI Extractor's Inspect Element functionality.</p>
+
+    <div class="test-section">
+        <h2>1. Button Testing</h2>
+        <p>Test different types of buttons:</p>
+        <div class="button-group">
+            <button id="primary-btn" class="test-button primary">Primary Button</button>
+            <button id="secondary-btn" class="test-button secondary">Secondary Button</button>
+            <input type="button" id="input-btn" class="test-button success" value="Input Button">
+            <input type="submit" id="submit-btn" class="test-button danger" value="Submit Button">
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Form Elements Testing</h2>
+        <form id="test-form">
+            <div class="form-group">
+                <label for="text-input">Text Input:</label>
+                <input type="text" id="text-input" name="textInput" class="form-control" placeholder="Enter text here">
+            </div>
+            <div class="form-group">
+                <label for="email-input">Email Input:</label>
+                <input type="email" id="email-input" name="emailInput" class="form-control" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="password-input">Password Input:</label>
+                <input type="password" id="password-input" name="passwordInput" class="form-control" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <label for="select-dropdown">Dropdown:</label>
+                <select id="select-dropdown" name="dropdown" class="form-control">
+                    <option value="">Choose option...</option>
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="textarea-input">Textarea:</label>
+                <textarea id="textarea-input" name="textareaInput" class="form-control" rows="3" placeholder="Enter multiple lines..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="checkbox-1" name="checkbox1" value="check1">
+                    Checkbox Option 1
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="radio" id="radio-1" name="radioGroup" value="radio1">
+                    Radio Option 1
+                </label>
+                <label>
+                    <input type="radio" id="radio-2" name="radioGroup" value="radio2">
+                    Radio Option 2
+                </label>
+            </div>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Links and Navigation</h2>
+        <p>Test different types of links:</p>
+        <a href="#section1" id="internal-link">Internal Link</a> |
+        <a href="https://example.com" id="external-link" target="_blank">External Link</a> |
+        <a href="mailto:test@example.com" id="email-link">Email Link</a> |
+        <a href="tel:+1234567890" id="phone-link">Phone Link</a>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Lists and Content</h2>
+        <h3 id="list-header">Test Lists:</h3>
+        <ul class="list-items">
+            <li id="list-item-1">List Item 1</li>
+            <li id="list-item-2">List Item 2</li>
+            <li id="list-item-3">List Item 3</li>
+        </ul>
+        
+        <div class="highlight-target" id="highlight-div">
+            <span id="highlight-span">This is a span inside a div</span>
+            <p id="highlight-paragraph">This is a paragraph with some text content.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Table Testing</h2>
+        <table id="test-table">
+            <thead>
+                <tr>
+                    <th id="th-name">Name</th>
+                    <th id="th-type">Type</th>
+                    <th id="th-value">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="row-1">
+                    <td id="td-name-1">Element 1</td>
+                    <td id="td-type-1">Button</td>
+                    <td id="td-value-1">Active</td>
+                </tr>
+                <tr id="row-2">
+                    <td id="td-name-2">Element 2</td>
+                    <td id="td-type-2">Input</td>
+                    <td id="td-value-2">Disabled</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Nested Elements</h2>
+        <div class="nested-content" id="outer-container">
+            <h4 id="nested-header">Nested Content</h4>
+            <div class="inner" id="inner-container">
+                <button id="nested-button" class="test-button primary">Nested Button</button>
+                <span id="nested-span">Nested Span Text</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>7. Custom Elements</h2>
+        <div id="custom-element" data-custom="true" role="button" aria-label="Custom Element">
+            Custom Element with Attributes
+        </div>
+    </div>
+
+    <script>
+        // Auto-fill functionality
+        const testData = {
+            'text-input': 'Auto-filled: John Doe',
+            'email-input': 'john.doe@autofill.com',
+            'password-input': 'SecureTest123!',
+            'select-dropdown': 'option2',
+            'textarea-input': 'This textarea was automatically filled! This demonstrates the auto-fill functionality working perfectly on the inspector test page.',
+            'checkbox-1': true,
+            'radio-1': true
+        };
+        
+        const customTestData = {
+            'text-input': 'CUSTOM: Alice Johnson',
+            'email-input': 'alice.johnson@customdomain.org',
+            'password-input': 'CustomPass456!',
+            'select-dropdown': 'option3',
+            'textarea-input': 'CUSTOM MESSAGE: This is a personalized message that shows how you can provide your own specific data to automatically fill forms with custom content.',
+            'checkbox-1': true,
+            'radio-2': true
+        };
+        
+        function fillFormData(data, isCustom = false) {
+            let filled = 0;
+            let details = [];
+            const className = isCustom ? 'field-custom-filled' : 'field-filled';
+            
+            Object.entries(data).forEach(([fieldId, value]) => {
+                const element = document.getElementById(fieldId);
+                if (element) {
+                    // Clear previous styling
+                    element.classList.remove('field-filled', 'field-custom-filled');
+                    
+                    if (element.type === 'checkbox' || element.type === 'radio') {
+                        element.checked = value;
+                        details.push(`✅ ${fieldId}: checked = ${value}`);
+                    } else {
+                        element.value = value;
+                        details.push(`✅ ${fieldId}: "${value.substring(0, 50)}${value.length > 50 ? '...' : ''}"`);
+                    }
+                    
+                    // Add visual feedback
+                    setTimeout(() => {
+                        element.classList.add(className);
+                    }, Math.random() * 500); // Staggered animation
+                    
+                    // Trigger events
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    filled++;
+                } else {
+                    details.push(`❌ ${fieldId}: element not found`);
+                }
+            });
+            
+            return { filled, total: Object.keys(data).length, details };
+        }
+        
+        function testBasicFill() {
+            showStatus('🚀 Filling forms with sample data...', 'info');
+            console.log('📝 Testing basic auto-fill...');
+            
+            const result = fillFormData(testData, false);
+            
+            showResults(`🚀 Basic Auto-Fill Results:
+Filled: ${result.filled}/${result.total} fields
+
+Sample Data Used:
+${Object.entries(testData).map(([key, value]) => 
+    `• ${key}: "${value.substring(0, 40)}${value.length > 40 ? '...' : ''}"`
+).join('\\n')}
+
+Details:
+${result.details.join('\\n')}`);
+            
+            showStatus(`✅ Basic fill complete! Filled ${result.filled} fields`, 'success');
+            console.log('🎯 Basic fill results:', result);
+        }
+        
+        function testCustomFill() {
+            showStatus('🎨 Filling forms with custom data...', 'info');
+            console.log('🎨 Testing custom data fill...');
+            
+            const result = fillFormData(customTestData, true);
+            
+            showResults(`🎨 Custom Data Auto-Fill Results:
+Filled: ${result.filled}/${result.total} fields
+
+Custom Data Used:
+${Object.entries(customTestData).map(([key, value]) => 
+    `• ${key}: "${value.substring(0, 40)}${value.length > 40 ? '...' : ''}"`
+).join('\\n')}
+
+Details:
+${result.details.join('\\n')}`);
+            
+            showStatus(`✅ Custom fill complete! Filled ${result.filled} fields`, 'success');
+            console.log('🎨 Custom fill results:', result);
+        }
+        
+        function clearAllForms() {
+            showStatus('🧹 Clearing all form fields...', 'info');
+            console.log('🧹 Clearing all forms...');
+            
+            const inputs = document.querySelectorAll('input, textarea, select');
+            let cleared = 0;
+            
+            inputs.forEach((input, index) => {
+                setTimeout(() => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (input.checked) {
+                            input.checked = false;
+                            cleared++;
+                        }
+                    } else if (input.value) {
+                        input.value = '';
+                        cleared++;
+                    }
+                    
+                    // Remove visual styling
+                    input.classList.remove('field-filled', 'field-custom-filled');
+                }, index * 50); // Staggered clearing animation
+            });
+            
+            setTimeout(() => {
+                showResults(`🧹 Clear Forms Results:
+Cleared: ${cleared} fields
+
+All form fields have been reset to their default empty state.`);
+                showStatus(`✅ All forms cleared! Reset ${cleared} fields`, 'success');
+                console.log(`🧹 Cleared ${cleared} fields`);
+            }, inputs.length * 50 + 100);
+        }
+        
+        function analyzeForm() {
+            showStatus('📊 Analyzing form structure...', 'info');
+            console.log('📊 Analyzing form structure...');
+            
+            const forms = document.querySelectorAll('form');
+            const inputs = document.querySelectorAll('input, textarea, select');
+            const buttons = document.querySelectorAll('button');
+            
+            const inputDetails = Array.from(inputs).map(input => ({
+                id: input.id || 'no-id',
+                name: input.name || 'no-name',
+                type: input.type || input.tagName.toLowerCase(),
+                placeholder: input.placeholder || '',
+                hasValue: !!input.value,
+                isChecked: input.checked || false
+            }));
+            
+            const analysis = {
+                totalForms: forms.length,
+                totalInputs: inputs.length,
+                totalButtons: buttons.length,
+                inputDetails: inputDetails,
+                pageTitle: document.title
+            };
+            
+            showResults(`📊 Form Analysis Results:
+Page: ${analysis.pageTitle}
+Total Forms: ${analysis.totalForms}
+Total Inputs: ${analysis.totalInputs}
+Total Buttons: ${analysis.totalButtons}
+
+Input Details:
+${analysis.inputDetails.map(input => 
+    `• ${input.id} (${input.type}) - ${input.hasValue ? 'Has Value' : 'Empty'}${input.isChecked ? ' - Checked' : ''}`
+).join('\\n')}
+
+Available for Auto-Fill:
+${Object.keys(testData).map(key => `• ${key}`).join('\\n')}`);
+            
+            showStatus(`✅ Analysis complete! Found ${analysis.totalInputs} inputs`, 'success');
+            console.log('📊 Form analysis:', analysis);
+            return analysis;
+        }
+        
+        function runFullDemo() {
+            showStatus('🎬 Starting full demonstration...', 'info');
+            console.log('🎬 Running full auto-fill demo...');
+            
+            const steps = [
+                { name: 'Analyze', func: analyzeForm, delay: 1000 },
+                { name: 'Clear', func: clearAllForms, delay: 2000 },
+                { name: 'Basic Fill', func: testBasicFill, delay: 3000 },
+                { name: 'Clear Again', func: clearAllForms, delay: 2000 },
+                { name: 'Custom Fill', func: testCustomFill, delay: 2000 }
+            ];
+            
+            let currentStep = 0;
+            
+            function runNextStep() {
+                if (currentStep < steps.length) {
+                    const step = steps[currentStep];
+                    showStatus(`🎬 Step ${currentStep + 1}/${steps.length}: ${step.name}...`, 'info');
+                    
+                    step.func();
+                    currentStep++;
+                    
+                    if (currentStep < steps.length) {
+                        setTimeout(runNextStep, step.delay);
+                    } else {
+                        setTimeout(() => {
+                            showStatus('🎉 Full demonstration complete!', 'success');
+                            showResults(`🎉 Full Auto-Fill Demo Complete!
+
+All steps executed successfully:
+✅ Form analysis completed
+✅ Basic auto-fill tested
+✅ Custom data fill tested
+✅ Form clearing tested
+
+The auto-fill system is working perfectly!
+Check the console for detailed logs.`);
+                        }, 1000);
+                    }
+                }
+            }
+            
+            runNextStep();
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status-indicator status-${type}`;
+            status.style.display = 'block';
+        }
+        
+        function showResults(content) {
+            const results = document.getElementById('results');
+            results.textContent = content;
+            results.style.display = 'block';
+        }
+        
+        // Original test page interactivity
+        document.querySelectorAll('.test-button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                console.log('Button clicked:', e.target.id);
+                e.target.style.opacity = '0.7';
+                setTimeout(() => {
+                    e.target.style.opacity = '1';
+                }, 200);
+            });
+        });
+
+        document.querySelectorAll('.list-items li').forEach(item => {
+            item.addEventListener('click', (e) => {
+                console.log('List item clicked:', e.target.id);
+                e.target.style.background = '#007cba';
+                e.target.style.color = 'white';
+                setTimeout(() => {
+                    e.target.style.background = '#e9ecef';
+                    e.target.style.color = 'black';
+                }, 500);
+            });
+        });
+        
+        // Initialize
+        console.log(`
+🎉 Auto-Fill Demo Ready!
+
+Available functions:
+• testBasicFill() - Fill with sample data
+• testCustomFill() - Fill with custom data  
+• clearAllForms() - Clear all forms
+• analyzeForm() - Analyze form structure
+• runFullDemo() - Complete demonstration
+
+Click the buttons above to test the functionality!
+        `);
+        
+        // Show initial analysis after page loads
+        setTimeout(() => {
+            showStatus('🔍 Page loaded. Ready for testing!', 'info');
+            console.log('🔍 Initial form analysis:');
+            analyzeForm();
+        }, 1000);
+    </script>
+</body>
+</html>

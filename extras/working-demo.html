@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Working Auto-Fill Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-fill { background: #28a745; color: white; }
+        .btn-clear { background: #dc3545; color: white; }
+        .btn-analyze { background: #17a2b8; color: white; }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .form-control {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-control.filled {
+            background: #e8f5e8;
+            border-color: #28a745;
+        }
+        
+        .results {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Auto-Fill Demo</h1>
+            <p>Live demonstration working!</p>
+        </div>
+        
+        <div class="controls">
+            <button id="fillBtn" class="btn btn-fill">🚀 Fill All Fields</button>
+            <button id="clearBtn" class="btn btn-clear">🧹 Clear All</button>
+            <button id="analyzeBtn" class="btn btn-analyze">📊 Analyze</button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="form-section">
+            <h2>📋 Test Form</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" class="form-control" placeholder="Enter first name">
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" class="form-control" placeholder="Enter last name">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="+1 (555) 123-4567">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="comments">Comments</label>
+                <textarea id="comments" class="form-control" rows="4" placeholder="Comments..."></textarea>
+            </div>
+        </div>
+        
+        <div id="results" class="results"></div>
+    </div>
+    
+    <script>
+        console.log('🚀 Demo Loading...');
+        
+        const testData = {
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com',
+            phone: '+1 (555) 123-4567',
+            comments: 'Auto-filled successfully!'
+        };
+        
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            console.log('Status:', message);
+        }
+        
+        function showResults(text) {
+            const results = document.getElementById('results');
+            results.textContent = text;
+            results.style.display = 'block';
+        }
+        
+        function fillAllFields() {
+            console.log('🚀 Filling fields...');
+            showStatus('🚀 Filling fields...', 'info');
+            
+            let filled = 0;
+            Object.entries(testData).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = value;
+                    element.classList.add('filled');
+                    filled++;
+                    console.log(`✅ Filled ${id}: ${value}`);
+                }
+            });
+            
+            showResults(`✅ Successfully filled ${filled} fields!`);
+            showStatus(`✅ Filled ${filled} fields!`, 'success');
+        }
+        
+        function clearAllFields() {
+            console.log('🧹 Clearing...');
+            showStatus('🧹 Clearing...', 'info');
+            
+            let cleared = 0;
+            document.querySelectorAll('input, textarea').forEach(input => {
+                if (input.value) {
+                    input.value = '';
+                    input.classList.remove('filled');
+                    cleared++;
+                }
+            });
+            
+            showResults(`🧹 Cleared ${cleared} fields`);
+            showStatus(`🧹 Cleared ${cleared} fields`, 'success');
+        }
+        
+        function analyzeForm() {
+            console.log('📊 Analyzing...');
+            showStatus('📊 Analyzing...', 'info');
+            
+            const inputs = document.querySelectorAll('input, textarea');
+            let analysis = `📊 FORM ANALYSIS\n===============\n\n`;
+            analysis += `Total fields: ${inputs.length}\n\n`;
+            
+            inputs.forEach((input, i) => {
+                analysis += `${i+1}. ${input.id}: ${input.type} - ${input.value || 'empty'}\n`;
+            });
+            
+            showResults(analysis);
+            showStatus(`📊 Found ${inputs.length} fields`, 'success');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Demo ready!');
+            showStatus('🎉 Auto-Fill Demo Ready!', 'success');
+            
+            document.getElementById('fillBtn').onclick = fillAllFields;
+            document.getElementById('clearBtn').onclick = clearAllFields;
+            document.getElementById('analyzeBtn').onclick = analyzeForm;
+            
+            // Auto-analyze
+            setTimeout(analyzeForm, 1000);
+        });
+    </script>
+</body>
+</html>

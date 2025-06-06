@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element AI Extractor - Icon Preview</title>
+    <style>
+        body {
+            background: radial-gradient(ellipse at 70% 15%, #21264a 60%, #121327 100%);
+            color: #e4edfc;
+            font-family: 'Space Grotesk', monospace, sans-serif;
+            margin: 0;
+            padding: 40px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            background: linear-gradient(90deg, #59f9d6 20%, #18aaff 60%, #ffc366 95%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        
+        .icon-showcase {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .icon-item {
+            background: rgba(35, 40, 109, 0.3);
+            border: 1px solid rgba(57, 107, 230, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s ease;
+        }
+        
+        .icon-item:hover {
+            transform: scale(1.05);
+            border-color: #59f9d6;
+        }
+        
+        .icon-item img {
+            background: white;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        
+        .icon-label {
+            font-weight: 600;
+            color: #59f9d6;
+        }
+        
+        .usage-info {
+            background: linear-gradient(135deg, #2d3561 0%, #1e2347 100%);
+            border: 1px solid #396be6;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            text-align: left;
+        }
+        
+        .usage-info h3 {
+            color: #59f9d6;
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+        
+        .usage-info ol {
+            line-height: 1.8;
+        }
+        
+        .usage-info code {
+            background: rgba(89, 249, 214, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #59f9d6;
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .design-features {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            text-align: left;
+        }
+        
+        .design-features h3 {
+            color: #ff6b35;
+            margin-top: 0;
+        }
+        
+        .design-features ul {
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Element AI Extractor Icons</h1>
+        
+        <div class="icon-showcase">
+            <div class="icon-item">
+                <img src="icon16.png" alt="16x16 icon" width="16" height="16">
+                <div class="icon-label">16×16</div>
+            </div>
+            <div class="icon-item">
+                <img src="icon32.png" alt="32x32 icon" width="32" height="32">
+                <div class="icon-label">32×32</div>
+            </div>
+            <div class="icon-item">
+                <img src="icon48.png" alt="48x48 icon" width="48" height="48">
+                <div class="icon-label">48×48</div>
+            </div>
+            <div class="icon-item">
+                <img src="icon128.png" alt="128x128 icon" width="128" height="128">
+                <div class="icon-label">128×128</div>
+            </div>
+        </div>
+        
+        <div class="design-features">
+            <h3>🎨 Design Features</h3>
+            <ul>
+                <li><strong>AI Gradient Colors:</strong> Uses the same color scheme as your popup UI</li>
+                <li><strong>Element Extraction Theme:</strong> Browser window with highlighted elements</li>
+                <li><strong>Neural Network Pattern:</strong> Circuit/brain design representing AI intelligence</li>
+                <li><strong>Magic Elements:</strong> Sparkles and glow effects for the "magic" aspect</li>
+                <li><strong>Professional Look:</strong> Modern, clean design suitable for browser toolbar</li>
+            </ul>
+        </div>
+        
+        <div class="usage-info">
+            <h3>🚀 How to Apply the New Icons</h3>
+            <ol>
+                <li>Open Chrome and navigate to <code>chrome://extensions/</code></li>
+                <li>Make sure "Developer mode" is enabled (toggle in top-right)</li>
+                <li>Find your "Element AI Extractor" extension</li>
+                <li>Click the refresh/reload button (🔄) on the extension card</li>
+                <li>The new icon should now appear in your browser toolbar!</li>
+            </ol>
+            <p><strong>Note:</strong> If you don't see the change immediately, try:</p>
+            <ul>
+                <li>Restarting Chrome completely</li>
+                <li>Unpinning and re-pinning the extension from the toolbar</li>
+                <li>Checking if the extension is properly loaded in Developer mode</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

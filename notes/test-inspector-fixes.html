@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Fixes Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-elements {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .highlight-test {
+            background: yellow;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .instructions {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>🔍 Inspector Fixes Test Instructions</h2>
+        <ol>
+            <li><strong>Load the Extension:</strong> Make sure the Element AI Extractor extension is loaded in Chrome</li>
+            <li><strong>Test Issue Fix #1 - Popup Closing:</strong>
+                <ul>
+                    <li>Click the extension icon to open the popup</li>
+                    <li>Click "🔬 Inspect Element" button</li>
+                    <li>The popup should close (normal Chrome behavior)</li>
+                    <li>You should see an orange floating badge "🔍 AI Inspector Active" in the top-right corner</li>
+                    <li>Click on any element below - it should highlight and show data</li>
+                    <li>Re-open the popup - it should show "🔴 Stop Inspecting" (inspection state persisted!)</li>
+                </ul>
+            </li>
+            <li><strong>Test Issue Fix #2 - Inspection Stopping:</strong>
+                <ul>
+                    <li>Click "🔴 Stop Inspecting" in the popup OR click the floating badge</li>
+                    <li>Inspection should stop immediately (no more highlighting, cursor changes back)</li>
+                    <li>The floating badge should disappear</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🎯 Test Elements - Click these during inspection</h3>
+        <div class="test-elements">
+            <button id="test-btn-1">Button 1</button>
+            <button class="special-btn" data-test="button2">Button 2</button>
+            <input type="text" id="test-input" placeholder="Test input field">
+            <input type="email" name="email" placeholder="Email input">
+            <select id="test-select">
+                <option>Option 1</option>
+                <option>Option 2</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 Links and Navigation</h3>
+        <div class="test-elements">
+            <a href="#" id="test-link-1">Test Link 1</a>
+            <a href="#section2" class="nav-link">Internal Link</a>
+            <a href="https://example.com" target="_blank">External Link</a>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📝 Form Elements</h3>
+        <form id="test-form">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember">Remember me</label>
+            <input type="radio" id="option1" name="choice" value="1">
+            <label for="option1">Option 1</label>
+            <input type="radio" id="option2" name="choice" value="2">
+            <label for="option2">Option 2</label>
+            <textarea name="comments" placeholder="Comments"></textarea>
+            <button type="submit">Submit Form</button>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h3>🎨 Various Elements</h3>
+        <div class="highlight-test">
+            <p>This is a paragraph with <span id="special-span">special span</span> inside.</p>
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjUiIGN5PSIyNSIgcj0iMjAiIGZpbGw9IiNmZjZiMzUiLz4KPHN2Zz4K" alt="Test Image" id="test-image">
+            <div class="nested-container">
+                <ul id="test-list">
+                    <li>List item 1</li>
+                    <li class="important">Important list item</li>
+                    <li>List item 3</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section" id="section2">
+        <h3>✅ Expected Results</h3>
+        <ul>
+            <li>✅ Popup should close when "Inspect Element" is clicked (this is normal Chrome behavior)</li>
+            <li>✅ Orange floating badge should appear: "🔍 AI Inspector Active"</li>
+            <li>✅ Elements should highlight with orange dashed border when hovered</li>
+            <li>✅ Elements should show inspection data when clicked</li>
+            <li>✅ Re-opening popup should show "🔴 Stop Inspecting" (persistent state)</li>
+            <li>✅ Inspection should stop when clicking "Stop Inspecting" or the floating badge</li>
+            <li>✅ Cursor should change to crosshair during inspection</li>
+            <li>✅ All highlighting and badges should disappear when inspection stops</li>
+        </ul>
+    </div>
+
+    <script>
+        // Add some interactivity for testing
+        document.getElementById('test-btn-1').addEventListener('click', () => {
+            alert('Button 1 clicked! (This should be prevented during inspection)');
+        });
+
+        document.getElementById('test-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Form submitted! (This should be prevented during inspection)');
+        });
+
+        // Log console messages for debugging
+        console.log('Test page loaded - ready for Element AI Extractor testing');
+        
+        // Test element creation
+        setTimeout(() => {
+            console.log('Test elements available:', {
+                buttons: document.querySelectorAll('button').length,
+                inputs: document.querySelectorAll('input').length,
+                links: document.querySelectorAll('a').length,
+                total: document.querySelectorAll('*').length
+            });
+        }, 1000);
+    </script>
+</body>
+</html>

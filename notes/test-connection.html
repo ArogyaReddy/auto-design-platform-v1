@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Connection - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .test-elements {
+            display: grid;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #ffeb3b;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+        
+        input[type="text"], input[type="email"] {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .form-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .instructions {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #4caf50;
+        }
+        
+        .element-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .test-link {
+            color: #64b5f6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .test-link:hover {
+            color: #90caf9;
+            text-decoration: underline;
+        }
+        
+        select {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .status-indicator.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Element AI Extractor - Connection Test Page</h1>
+        
+        <div class="instructions">
+            <h3>📋 Testing Instructions</h3>
+            <p>Use this page to test the Element AI Extractor's Inspector functionality:</p>
+            <ol>
+                <li>Click the extension icon to open the popup</li>
+                <li>Click the "🔬 Inspect Element" button</li>
+                <li>Try clicking on different elements below to test the inspector</li>
+                <li>Check that element details appear correctly in the popup</li>
+            </ol>
+        </div>
+        
+        <div class="test-elements">
+            <div class="test-section">
+                <h3>🔘 Buttons & Actions</h3>
+                <div class="element-list">
+                    <button id="test-btn-1" onclick="showStatus('Primary button clicked!')">Primary Button</button>
+                    <button id="test-btn-2" onclick="showStatus('Secondary button clicked!')">Secondary Button</button>
+                    <button id="test-btn-submit" type="submit">Submit Button</button>
+                    <button id="test-btn-reset" type="reset">Reset Button</button>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>📝 Form Elements</h3>
+                <div class="form-section">
+                    <input type="text" id="test-text-input" placeholder="Text Input" />
+                    <input type="email" id="test-email-input" placeholder="Email Input" />
+                    <select id="test-select">
+                        <option value="">Select Option</option>
+                        <option value="option1">Option 1</option>
+                        <option value="option2">Option 2</option>
+                        <option value="option3">Option 3</option>
+                    </select>
+                </div>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="checkbox1" value="cb1">
+                        <label for="checkbox1">Checkbox 1</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="checkbox2" value="cb2">
+                        <label for="checkbox2">Checkbox 2</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" id="radio1" name="testRadio" value="r1">
+                        <label for="radio1">Radio 1</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" id="radio2" name="testRadio" value="r2">
+                        <label for="radio2">Radio 2</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>🔗 Links & Navigation</h3>
+                <div class="element-list">
+                    <a href="#section1" class="test-link" id="link-internal">Internal Link</a>
+                    <a href="https://example.com" class="test-link" id="link-external" target="_blank">External Link</a>
+                    <a href="mailto:test@example.com" class="test-link" id="link-email">Email Link</a>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>📊 Lists & Content</h3>
+                <ul id="test-list">
+                    <li id="list-item-1">List Item 1</li>
+                    <li id="list-item-2">List Item 2</li>
+                    <li id="list-item-3">List Item 3</li>
+                </ul>
+            </div>
+            
+            <div class="test-section">
+                <h3>🖼️ Media Elements</h3>
+                <div class="element-list">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNSIgZmlsbD0iIzRmNDZlNSIvPgo8dGV4dCB4PSIyMCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPklNRzwvdGV4dD4KPHN2Zz4K" 
+                         alt="Test Image" id="test-image" />
+                    <iframe src="about:blank" width="200" height="100" id="test-iframe" style="border: 1px solid rgba(255,255,255,0.3); border-radius: 5px;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status-indicator" id="statusIndicator"></div>
+    
+    <script>
+        function showStatus(message) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.textContent = message;
+            indicator.classList.add('show');
+            
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Add click handlers to demonstrate interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some dynamic behavior
+            const links = document.querySelectorAll('.test-link');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        showStatus(`Clicked: ${this.textContent}`);
+                    }
+                });
+            });
+            
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    showStatus(`Changed: ${this.type || 'select'} - ${this.value}`);
+                });
+            });
+        });
+        
+        // Console message for debugging
+        console.log('Element AI Extractor Test Page - Ready for inspection testing');
+    </script>
+</body>
+</html>

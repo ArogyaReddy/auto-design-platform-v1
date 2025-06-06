@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Form Filler Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .demo-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #007cba;
+        }
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .button-group {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .demo-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            background: #007cba;
+        }
+        .demo-btn:hover {
+            background: #005a8b;
+        }
+        .success-btn { background: #28a745; }
+        .warning-btn { background: #ffc107; color: black; }
+        .danger-btn { background: #dc3545; }
+        .info-btn { background: #17a2b8; }
+        
+        .results {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Auto Form Filler Demo</h1>
+    
+    <div class="demo-section">
+        <h2>Quick Demo Controls</h2>
+        <div class="button-group">
+            <button class="demo-btn" onclick="runDemo()">🚀 Fill All Forms (Sample Data)</button>
+            <button class="demo-btn success-btn" onclick="runCustomDemo()">📝 Fill With Custom Data</button>
+            <button class="demo-btn warning-btn" onclick="clearAllForms()">🧹 Clear All Forms</button>
+            <button class="demo-btn info-btn" onclick="showFormInfo()">📊 Show Form Info</button>
+        </div>
+        <div id="results" class="results" style="display: none;"></div>
+    </div>
+
+    <!-- Test Form 1: Personal Information -->
+    <div class="form-section">
+        <h3>📋 Personal Information Form</h3>
+        <form id="personal-form">
+            <div class="form-group">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" name="firstName" class="form-control" placeholder="Enter first name">
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" name="lastName" class="form-control" placeholder="Enter last name">
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" name="phone" class="form-control" placeholder="Phone number">
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" class="form-control" min="18" max="100">
+            </div>
+            <div class="form-group">
+                <label for="birthdate">Birth Date:</label>
+                <input type="date" id="birthdate" name="birthdate" class="form-control">
+            </div>
+        </form>
+    </div>
+
+    <!-- Test Form 2: Address and Contact -->
+    <div class="form-section">
+        <h3>🏠 Address Information Form</h3>
+        <form id="address-form">
+            <div class="form-group">
+                <label for="address">Street Address:</label>
+                <input type="text" id="address" name="address" class="form-control" placeholder="123 Main St">
+            </div>
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" class="form-control" placeholder="City name">
+            </div>
+            <div class="form-group">
+                <label for="state">State:</label>
+                <select id="state" name="state" class="form-control">
+                    <option value="">Select State...</option>
+                    <option value="CA">California</option>
+                    <option value="NY">New York</option>
+                    <option value="TX">Texas</option>
+                    <option value="FL">Florida</option>
+                    <option value="IL">Illinois</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="zip">ZIP Code:</label>
+                <input type="text" id="zip" name="zip" class="form-control" placeholder="12345">
+            </div>
+            <div class="form-group">
+                <label for="website">Website:</label>
+                <input type="url" id="website" name="website" class="form-control" placeholder="https://example.com">
+            </div>
+        </form>
+    </div>
+
+    <!-- Test Form 3: Preferences and Options -->
+    <div class="form-section">
+        <h3>⚙️ Preferences Form</h3>
+        <form id="preferences-form">
+            <div class="form-group">
+                <label for="company">Company:</label>
+                <input type="text" id="company" name="company" class="form-control" placeholder="Company name">
+            </div>
+            <div class="form-group">
+                <label for="title">Job Title:</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="Your job title">
+            </div>
+            <div class="form-group">
+                <label for="salary">Expected Salary:</label>
+                <input type="number" id="salary" name="salary" class="form-control" placeholder="50000">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="comments">Comments:</label>
+                <textarea id="comments" name="comments" class="form-control" rows="3" placeholder="Your comments..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Interests (checkboxes):</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="interests" value="tech"> Technology</label>
+                    <label><input type="checkbox" name="interests" value="sports"> Sports</label>
+                    <label><input type="checkbox" name="interests" value="music"> Music</label>
+                    <label><input type="checkbox" name="interests" value="travel"> Travel</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Preferred Contact Method (radio):</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="contactMethod" value="email"> Email</label>
+                    <label><input type="radio" name="contactMethod" value="phone"> Phone</label>
+                    <label><input type="radio" name="contactMethod" value="text"> Text Message</label>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Standalone Inputs (not in forms) -->
+    <div class="form-section">
+        <h3>🔗 Standalone Inputs (Not in Forms)</h3>
+        <div class="form-group">
+            <label for="standalone-name">Standalone Name:</label>
+            <input type="text" id="standalone-name" name="standaloneName" class="form-control" placeholder="Standalone input">
+        </div>
+        <div class="form-group">
+            <label for="standalone-email">Standalone Email:</label>
+            <input type="email" id="standalone-email" name="standaloneEmail" class="form-control" placeholder="standalone@email.com">
+        </div>
+        <div class="form-group">
+            <label for="standalone-select">Standalone Select:</label>
+            <select id="standalone-select" name="standaloneSelect" class="form-control">
+                <option value="">Choose...</option>
+                <option value="option1">Option 1</option>
+                <option value="option2">Option 2</option>
+                <option value="option3">Option 3</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Load the auto-fill script -->
+    <script src="auto-fill-forms.js"></script>
+    
+    <script>
+        // Demo functions
+        function runDemo() {
+            console.log('🚀 Running auto-fill demo...');
+            const results = autoFillDemo();
+            showResults('Demo Results', results);
+        }
+
+        function runCustomDemo() {
+            const customData = {
+                firstName: 'Alice',
+                lastName: 'Johnson',
+                email: 'alice.johnson@company.com',
+                phone: '+1-555-ALICE',
+                age: 28,
+                address: '456 Custom Street',
+                city: 'Demo City',
+                state: 'CA',
+                zip: '90210',
+                company: 'Custom Corp',
+                title: 'Senior Developer',
+                salary: 85000,
+                website: 'https://alice-johnson.dev',
+                password: 'CustomPass123!',
+                comments: 'This is a custom message filled automatically!',
+                contactMethod: 'email',
+                standaloneName: 'Standalone Alice',
+                standaloneEmail: 'standalone@alice.dev',
+                standaloneSelect: 'option2'
+            };
+            
+            console.log('📝 Running custom auto-fill demo...');
+            const results = autoFillWithCustomData(customData);
+            showResults('Custom Data Results', results);
+        }
+
+        function clearAllForms() {
+            // Clear all form inputs
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            allInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+            showResults('Clear Results', 'All forms have been cleared!');
+            console.log('🧹 All forms cleared');
+        }
+
+        function showFormInfo() {
+            const forms = document.querySelectorAll('form');
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            const standaloneInputs = Array.from(allInputs).filter(input => !input.closest('form'));
+            
+            const info = {
+                totalForms: forms.length,
+                totalInputs: allInputs.length,
+                standaloneInputs: standaloneInputs.length,
+                formDetails: Array.from(forms).map((form, index) => {
+                    const formInputs = form.querySelectorAll('input, textarea, select');
+                    return {
+                        id: form.id || `form-${index + 1}`,
+                        inputs: formInputs.length,
+                        types: Array.from(formInputs).map(input => input.type || input.tagName.toLowerCase())
+                    };
+                })
+            };
+            
+            showResults('Form Information', info);
+            console.log('📊 Form info:', info);
+        }
+
+        function showResults(title, data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `${title}:\n${JSON.stringify(data, null, 2)}`;
+        }
+
+        // Add some visual feedback for filled fields
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('input, textarea, select')) {
+                if (e.target.value) {
+                    e.target.style.backgroundColor = '#e8f5e8';
+                    e.target.style.borderColor = '#28a745';
+                } else {
+                    e.target.style.backgroundColor = '';
+                    e.target.style.borderColor = '#ddd';
+                }
+            }
+        });
+
+        // Add change event for checkboxes and radios
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' || e.target.type === 'radio') {
+                if (e.target.checked) {
+                    e.target.parentNode.style.backgroundColor = '#e8f5e8';
+                } else {
+                    e.target.parentNode.style.backgroundColor = '';
+                }
+            }
+        });
+
+        console.log(`
+🎯 Auto Form Filler Demo Ready!
+
+Available demo functions:
+• runDemo() - Fill with sample data
+• runCustomDemo() - Fill with custom data
+• clearAllForms() - Clear all forms
+• showFormInfo() - Show form information
+
+You can also use the main functions:
+• fillAllForms()
+• fillPageInputs()
+• autoFillDemo()
+• autoFillWithCustomData({...})
+        `);
+    </script>
+</body>
+</html>

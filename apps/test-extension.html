@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElementsExtractor Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .btn {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .primary { background: #007cba; color: white; }
+        .secondary { background: #6c757d; color: white; }
+        input, select, textarea {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="main-title">ElementsExtractor Test Page</h1>
+    <p>This page is designed to test the ElementsExtractor extension functionality.</p>
+
+    <div class="test-section">
+        <h2>Buttons Section</h2>
+        <button id="primary-btn" class="btn primary">Primary Button</button>
+        <button id="secondary-btn" class="btn secondary">Secondary Button</button>
+        <input type="button" id="input-btn" class="btn" value="Input Button" />
+        <input type="submit" id="submit-btn" class="btn primary" value="Submit Button" />
+    </div>
+
+    <div class="test-section">
+        <h2>Form Elements</h2>
+        <form id="test-form">
+            <label for="text-input">Text Input:</label>
+            <input type="text" id="text-input" name="textField" placeholder="Enter text here" />
+            
+            <label for="email-input">Email:</label>
+            <input type="email" id="email-input" name="emailField" placeholder="user@example.com" />
+            
+            <label for="password-input">Password:</label>
+            <input type="password" id="password-input" name="passwordField" />
+            
+            <label for="select-dropdown">Dropdown:</label>
+            <select id="select-dropdown" name="selectField">
+                <option value="">Select an option</option>
+                <option value="option1">Option 1</option>
+                <option value="option2">Option 2</option>
+                <option value="option3">Option 3</option>
+            </select>
+            
+            <label for="textarea-field">Textarea:</label>
+            <textarea id="textarea-field" name="textareaField" placeholder="Enter longer text here"></textarea>
+            
+            <div>
+                <input type="checkbox" id="checkbox1" name="checkbox1" />
+                <label for="checkbox1">Checkbox 1</label>
+                
+                <input type="checkbox" id="checkbox2" name="checkbox2" />
+                <label for="checkbox2">Checkbox 2</label>
+            </div>
+            
+            <div>
+                <input type="radio" id="radio1" name="radioGroup" value="radio1" />
+                <label for="radio1">Radio 1</label>
+                
+                <input type="radio" id="radio2" name="radioGroup" value="radio2" />
+                <label for="radio2">Radio 2</label>
+            </div>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>Links Section</h2>
+        <a href="#" id="internal-link">Internal Link</a>
+        <a href="https://example.com" id="external-link" target="_blank">External Link</a>
+        <a href="mailto:test@example.com" id="email-link">Email Link</a>
+    </div>
+
+    <div class="test-section">
+        <h2>Lists and Other Elements</h2>
+        <ul id="unordered-list">
+            <li>List item 1</li>
+            <li>List item 2</li>
+            <li>List item 3</li>
+        </ul>
+        
+        <ol id="ordered-list">
+            <li>Ordered item 1</li>
+            <li>Ordered item 2</li>
+        </ol>
+        
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzAwN2NiYSIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VGVzdCBJbWFnZTwvdGV4dD48L3N2Zz4=" 
+             alt="Test Image" id="test-image" style="width: 100px; height: 100px;" />
+    </div>
+
+    <div class="test-section">
+        <h2>Custom Elements with Data Attributes</h2>
+        <button data-testid="test-button" data-qa="qa-button" class="btn primary">
+            Button with Test Attributes
+        </button>
+        <div data-cy="cypress-element" role="banner">
+            Div with Cypress and Role Attributes
+        </div>
+        <span aria-label="Important Information" class="info-span">
+            Span with ARIA Label
+        </span>
+    </div>
+
+    <script>
+        // Add some interactivity to test element behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ElementsExtractor test page loaded');
+            
+            // Add click handlers for testing
+            document.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    console.log('Button clicked:', e.target.id || e.target.className);
+                });
+            });
+            
+            // Add change handlers for form elements
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('change', function(e) {
+                    console.log('Form element changed:', e.target.id, e.target.value);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

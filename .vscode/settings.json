@@ -1,0 +1,204 @@
+{
+  "workbench.colorTheme": "Monokai",
+  "workbench.iconTheme": "vscode-icons",
+  "editor.minimap.enabled": false,
+
+  //START: --- Cucumber Autocomplete ----
+  "cucumberautocomplete.steps": ["steps/**/*.js"],
+  "cucumberautocomplete.syncfeatures": "features/**/*.feature",
+  "cucumberautocomplete.strictGherkinCompletion": true,
+  "cucumberautocomplete.strictGherkinValidation": true,
+  "cucumberautocomplete.smartSnippets": true,
+  "cucumberautocomplete.stepsInvariants": true,
+  "cucumberautocomplete.skipDocStringsFormat": true,
+  "cucumberautocomplete.formatConfOverride": {
+    "And": 3,
+    "But": "relative"
+  },
+  "cucumberautocomplete.onTypeFormat": true,
+  "editor.quickSuggestions": {
+    "comments": false,
+    "strings": true,
+    "other": true
+  },
+  "cucumberautocomplete.gherkinDefinitionPart": "(Given|When|Then|And)\\(",
+  "cucumberautocomplete.stepRegExSymbol": "'",
+  //END:  --- Cucumber Autocomplete ----
+
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // If you use Prettier
+  },
+  // "eslint.validate": ["javascript"], // If you use ESLint
+
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "editor.formatOnPaste": true,
+  // "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
+  "prettier.printWidth": 999,
+  "prettier.proseWrap": "never",
+  "prettier.arrowParens": "avoid",
+  "prettier.trailingComma": "none",
+  "prettier.bracketSpacing": false,
+  "prettier.singleQuote": true,
+  // "[javascript]": {"editor.defaultFormatter": "esbenp.prettier-vscode"}
+
+  //START: --- TODO TREE ---
+  "todo-tree.tree.tags": ["TODO", "FIXME", "NOTE", "FIX", "GOOD", "BAD", "HACK", "V1:", "V2:", "FUNCTION:", "API:", "CLASS:", "USE-THIS:", "START:", "END:","ISSUE:","SOLUTION:"],
+
+  "todo-tree.highlights.customHighlight": {
+    "TODO:": {
+      "icon": "check",
+      "foreground": "#FFF",
+      "background": "#FFBD2A",
+      "iconColour": "#FFBD2A",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "FIXME:": {
+      "icon": "bug",
+      "foreground": "#FFF",
+      "background": "#f70202",
+      "iconColour": "#f70202",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "NOTE:": {
+      "icon": "note",
+      "foreground": "#000000",
+      "background": "#108bf0",
+      "iconColour": "#022139",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "FIX:": {
+      "icon": "bug",
+      "foreground": "#FFF",
+      "background": "#f70202",
+      "iconColour": "#f70202",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "GOOD:": {
+      "icon": "thumbsup",
+      "foreground": "#FFF",
+      "background": "#388E3C",
+      "iconColour": "#388E3C",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "BAD:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#D32F2F",
+      "iconColour": "#D32F2F",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "USE:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#D32F2F",
+      "iconColour": "#D32F2F",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "V1:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#b2acf0",
+      "iconColour": "#8598e6",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "V2:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#1731db",
+      "iconColour": "#2f32d3",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "FUNCTION:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#319036",
+      "iconColour": "#099127",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "CLASS:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#010416",
+      "iconColour": "#0a0b5e",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "API:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#de480c",
+      "iconColour": "#d85a16",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "USE-THIS:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#0adb1f",
+      "iconColour": "#06650b",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "START:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#d70932",
+      "iconColour": "#06650b",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "END:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#f3f308",
+      "iconColour": "#06650b",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "ISSUE:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#f30808",
+      "iconColour": "#06650b",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    },
+    "SOLUTION:": {
+      "icon": "thumbsdown",
+      "foreground": "#FFF",
+      "background": "#06b918",
+      "iconColour": "#0bb108",
+      "borderRadius": "4px",
+      "type": "tag-and-comment"
+    }
+  },
+
+  // Your existing defaultHighlight (it's good to have it)
+  "todo-tree.highlights.defaultHighlight": {
+    "foreground": "#fdfcfc",
+    "background": "#04431d",
+    "opacity": 50,
+    "type": "text-and-comment"
+  },
+
+  // It's also good to specify how the tag should be matched
+  "todo-tree.general.tags": ["TODO:", "FIXME:", "NOTE:", "FIX:", "GOOD:", "BAD:", "EXCELLENT:", "USE:", "V1:", "V2:", "FUNCTION:", "API:", "CLASS:", "USE-THIS:", "START:", "END:","ISSUE:","SOLUTION:"],
+  "todo-tree.general.matchCase": false,
+  "todo-tree.general.tagGroups": {},
+  "liveServer.settings.port": 5501
+  //END: --- TODO TREE ---
+}
