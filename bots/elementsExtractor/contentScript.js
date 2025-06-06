@@ -318,7 +318,8 @@ function generateCSSSelector(element) {
     }
     
     if (current.className) {
-      const classes = current.className.split(' ').filter(c => c.trim());
+      const classes = current.className.split(' ')
+        .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
       if (classes.length > 0) {
         selector += '.' + classes.join('.');
       }

@@ -355,9 +355,11 @@ function domExtractionFunction(filters) {
       const sameRole = document.querySelectorAll(`[role="${el.getAttribute('role')}"]`);
       if (sameRole.length === 1) return {type: 'role', locator: `[role="${el.getAttribute('role')}"]`};
     }
-
-    if (el.classList.length === 1) {
-      const className = el.classList[0];
+    // Filter out extension-specific classes for single class check
+    const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
+    console.log('DEBUG: Original classes:', Array.from(el.classList), 'Filtered classes:', filteredClasses);
+    if (filteredClasses.length === 1) {
+      const className = filteredClasses[0];
       const sameClass = document.querySelectorAll(`.${className}`);
       if (sameClass.length === 1) return {type: 'class', locator: `.${className}`};
     }
@@ -374,12 +376,22 @@ function domExtractionFunction(filters) {
     return {type: 'CSS', locator: getUniqueCssSelector(el)};
   }
 
+  //FUNCTION: Unique CSS Selector Generator (ignores extension-specific classes) ---
   function getUniqueCssSelector(el) {
     if (el.id) return `#${el.id}`;
     let path = [];
     while (el && el.nodeType === Node.ELEMENT_NODE && el !== document.body) {
       let selector = el.nodeName.toLowerCase();
-      if (el.className) selector += '.' + Array.from(el.classList).join('.');
+      // if (el.className) selector += '.' + Array.from(el.classList).join('.');
+      if (el.className) {
+        // Filter out extension-specific classes
+        const originalClasses = Array.from(el.classList);
+        const classList = originalClasses.filter(cls => !cls.startsWith('ai-extractor-'));
+        console.log('DEBUG CSS: Original classes:', originalClasses, 'Filtered classes:', classList);
+        if (classList.length > 0) {
+          selector += '.' + classList.join('.');
+        }
+      }
       let parent = el.parentNode;
       if (parent) {
         const siblings = Array.from(parent.children).filter(c => c.nodeName === el.nodeName);
@@ -1357,7 +1369,6 @@ function displayInspectedElementData(data) {
 }
 
 // ---- Storage Listener for Inspection Data ----
-// Listen for storage changes to detect new inspection data
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local' && changes.lastInspectedElement) {
     const newData = changes.lastInspectedElement.newValue;
