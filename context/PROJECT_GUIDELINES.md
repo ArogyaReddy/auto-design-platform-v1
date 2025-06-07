@@ -66,6 +66,21 @@ function doStuff(x) {
 
 ---
 
+## **Create a comprehensive Interactive Project Overview HTML Guide**
+
+### **Documentation Creation Process**
+1. Gain a comprehensive understanding of the project
+2. Understand the implementation, functions, usages, step by step flows and process flows and implementations.
+3. Create a comprehensive Interactive Project Overview HTML Guide
+-  All the .md files, guides that you create /provide - should be stored in “guides/md” folder
+-  All the supporting .html files (like test html files or so) - should be stored to “guides/html” folder
+-  All the supporting .sh files (like shell script files,  sh files or so) - should be stored to “guides/shell” folder
+-  Please add interactive guides, with images, pages, html pages, shell scripts, javascript for all the the things that we do, for all the things that are to be understood and learnt.
+- Please add code / code blocks - explaining the flow of utilization and implementations.
+- Please add images, flow charts, diagrams if needed, in “guides/files” folder
+- Please add and explain with code (project functions) / flow of code interactions using the application activities.
+- Explain the CODE, FUNCTIONS, file usages in the project
+
 ## 🎨 **USER EXPERIENCE GUIDELINES**
 
 ### **UI/UX Principles**
