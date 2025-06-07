@@ -739,8 +739,8 @@ function renderElementsTable(data) {
       <td title="${r['CSS']}">${r['CSS']}</td>
       <td title="${r['XPATH']}">${r['XPATH']}</td>
       <td>${r['In Shadow DOM'] ? `<span class="shadow-badge">Shadow</span>` : ''}</td>
-      <td><button class="copy-btn" data-copy="${r['Best Locator']}" title="Copy to clipboard">📋</button></td>
-      <td><button class="hl-btn" data-hl="${r['Best Locator']}" data-shadow="${r['In Shadow DOM'] ? '1' : '0'}" title="Highlight element">👁️</button></td>
+      <td><button class="copy-btn" data-copy="${encodeURIComponent(r['Best Locator'])}" title="Copy to clipboard">📋</button></td>
+      <td><button class="hl-btn" data-hl="${encodeURIComponent(r['Best Locator'])}" data-shadow="${r['In Shadow DOM'] ? '1' : '0'}" title="Highlight element">👁️</button></td>
     </tr>`;
   }
   previewHTML += '</table>';
@@ -804,7 +804,7 @@ function resetToFirstPage() {
 function bindTablePreviewButtons() {
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.onclick = e => {
-      let text = e.target.getAttribute('data-copy');
+      let text = decodeURIComponent(e.target.getAttribute('data-copy') || '');
       copyLocatorToClipboard(text);
       btn.textContent = '✅';
       setTimeout(() => (btn.textContent = '📋'), 600);
@@ -812,7 +812,7 @@ function bindTablePreviewButtons() {
   });
   document.querySelectorAll('.hl-btn').forEach(btn => {
     btn.onclick = async e => {
-      let locator = e.target.getAttribute('data-hl');
+      let locator = decodeURIComponent(e.target.getAttribute('data-hl') || '');
       let inShadow = e.target.getAttribute('data-shadow') === '1';
       const {tabId} = await getCurrentTabInfo();
       highlightElementOnTab(tabId, locator, inShadow);
@@ -1261,10 +1261,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         </table>
         <div style="margin-top: 12px; display: flex; gap: 8px;">
           <button class="copy-btn" 
-                  data-copy="${data['Best Locator'] || ''}" 
+                  data-copy="${encodeURIComponent(data['Best Locator'] || '')}" 
                   title="Copy best locator to clipboard">📋 Copy</button>
           <button class="hl-btn" 
-                  data-hl="${data['Best Locator'] || ''}" 
+                  data-hl="${encodeURIComponent(data['Best Locator'] || '')}" 
                   data-shadow="${isInShadow ? '1' : '0'}"
                   title="Highlight element">👁️ Highlight</button>
         </div>`;
@@ -1367,10 +1367,10 @@ function displayInspectedElementData(data) {
     </table>
     <div style="margin-top: 12px; display: flex; gap: 8px;">
       <button class="copy-btn" 
-              data-copy="${data['Best Locator'] || ''}" 
+              data-copy="${encodeURIComponent(data['Best Locator'] || '')}" 
               title="Copy best locator to clipboard">📋 Copy</button>
       <button class="hl-btn" 
-              data-hl="${data['Best Locator'] || ''}" 
+              data-hl="${encodeURIComponent(data['Best Locator'] || '')}" 
               data-shadow="${isInShadow ? '1' : '0'}"
               title="Highlight element">👁️ Highlight</button>
     </div>`;
