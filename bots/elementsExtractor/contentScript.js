@@ -1,18 +1,43 @@
 // Element AI Extractor - Content Script
 // Handles element inspection, highlighting, and data extraction
 
-// Prevent multiple script loading
+// Prevent multiple script loading with enhanced protection
 if (window.aiExtractorLoaded) {
-  console.log("Element AI Extractor: Content script already loaded, skipping");
+  console.log("Element AI Extractor: Content script already loaded, skipping duplicate injection");
+  
+  // Still respond to ping messages even if script was already loaded
+  if (!window.aiExtractorMessageListenerAdded) {
+    window.aiExtractorMessageListenerAdded = true;
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'ping') {
+        console.log("Element AI Extractor: Responding to ping from duplicate script check");
+        sendResponse({ status: 'alive', inspecting: window.aiExtractorIsInspecting || false, timestamp: Date.now() });
+        return true;
+      }
+    });
+  }
 } else {
   window.aiExtractorLoaded = true;
-  console.log("Element AI Extractor: Content script loaded");
+  window.aiExtractorMessageListenerAdded = false;
+  console.log("Element AI Extractor: Content script loaded and initializing...");
+  console.log("Element AI Extractor: Page URL:", window.location.href);
+  console.log("Element AI Extractor: Frame type:", window === window.top ? 'main frame' : 'iframe');
+  
+  // Log Chrome APIs availability
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    console.log("Element AI Extractor: Chrome runtime API available");
+  } else {
+    console.error("Element AI Extractor: Chrome runtime API not available!");
+  }
 
   // Global state for inspection mode
   let isInspecting = false;
   let currentHighlightedElement = null;
   let lastClickedElement = null;
   let storageCheckInterval = null;
+  
+  // Make inspection state globally accessible for duplicate script checking
+  window.aiExtractorIsInspecting = false;
 
 // Sync inspection state with storage periodically
 function startStorageSync() {
@@ -756,6 +781,7 @@ function startInspection() {
   
   console.log("Element AI Extractor: Starting inspection mode");
   isInspecting = true;
+  window.aiExtractorIsInspecting = true; // Update global state
   
   // Start syncing with storage
   startStorageSync();
@@ -786,6 +812,7 @@ function stopInspection() {
   
   console.log("Element AI Extractor: Stopping inspection mode");
   isInspecting = false;
+  window.aiExtractorIsInspecting = false; // Update global state
   
   // Clear storage state IMMEDIATELY to prevent sync conflicts
   try {
@@ -938,6 +965,9 @@ function handleClick(event) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Element AI Extractor: Content script received message", message);
   
+  // Mark that we have a message listener to prevent duplicates
+  window.aiExtractorMessageListenerAdded = true;
+  
   try {
     // Validate message structure
     if (!message || typeof message !== 'object') {
@@ -949,7 +979,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
       case 'ping':
         console.log("Element AI Extractor: Responding to ping");
-        sendResponse({ status: 'alive', inspecting: isInspecting, timestamp: Date.now() });
+        sendResponse({ 
+          status: 'alive', 
+          inspecting: isInspecting, 
+          timestamp: Date.now(),
+          frameType: window === window.top ? 'main' : 'iframe'
+        });
         return true; // Keep channel open
         
       case 'startInspectingAiExtractor':

@@ -85,7 +85,7 @@ function getCurrentFilters() {
 // ---- Utility: Check if URL is restricted ----
 function isRestrictedUrl(url) {
   if (!url) return true;
-  const restrictedProtocols = ['chrome:', 'chrome-extension:', 'moz-extension:', 'edge:', 'about:', 'data:', 'javascript:'];
+  const restrictedProtocols = ['chrome:', 'chrome-extension:', 'moz-extension:', 'edge:', 'about:', 'data:', 'javascript:', 'file:'];
   const restrictedPages = ['chrome.google.com/webstore', 'addons.mozilla.org', 'microsoftedge.microsoft.com'];
   
   return restrictedProtocols.some(protocol => url.startsWith(protocol)) ||
@@ -1083,8 +1083,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set a timeout for the ping
         const pingTimeoutId = setTimeout(() => {
           console.warn("Element AI Extractor: Ping timeout, assuming content script not loaded");
+          inspectorStatusDiv.textContent = '🔄 Content script not responsive, injecting...';
           injectContentScriptWithRetry(tabInfo.tabId, 3);
-        }, 2000); // Increased timeout to 2 seconds
+        }, 1500); // Reduced timeout to 1.5 seconds
         
         chrome.tabs.sendMessage(tabInfo.tabId, {
           action: "ping"
@@ -1096,14 +1097,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const errorMsg = chrome.runtime.lastError.message;
             console.warn("Element AI Extractor: Content script not responsive. Error:", errorMsg);
             
+            // Log more details for debugging
+            console.log("Element AI Extractor: Tab details:", {
+              tabId: tabInfo.tabId,
+              url: tabInfo.url,
+              hostname: tabInfo.hostname,
+              isRestricted: tabInfo.isRestricted
+            });
+            
             // Check if it's a specific connection error
             if (errorMsg.includes("Could not establish connection") || 
                 errorMsg.includes("Receiving end does not exist")) {
               console.log("Element AI Extractor: Connection error detected, attempting injection");
+              inspectorStatusDiv.textContent = '🔄 No content script found, injecting...';
               injectContentScriptWithRetry(tabInfo.tabId, 3);
             } else {
               console.error("Element AI Extractor: Unexpected error:", errorMsg);
-              inspectorStatusDiv.textContent = `❌ Error: ${errorMsg}`;
+              inspectorStatusDiv.textContent = `❌ Error: ${errorMsg.length > 50 ? errorMsg.substring(0, 50) + '...' : errorMsg}`;
               resetInspectionState();
             }
           } else if (!pingResponse || pingResponse.status !== 'alive') {
@@ -1166,7 +1176,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      console.log("Element AI Extractor: Tab URL:", tab.url);
+      console.log("Element AI Extractor: Tab details for injection:", {
+        url: tab.url,
+        title: tab.title.substring(0, 50),
+        status: tab.status
+      });
       
       // Check if URL is restricted
       if (isRestrictedUrl(tab.url)) {
@@ -1182,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         files: ['contentScript.js']
       }).then(() => {
         console.log("Element AI Extractor: Content script injection successful");
-        inspectorStatusDiv.textContent = '🔄 Content script injected, testing connection...';
+        inspectorStatusDiv.textContent = '🔄 Content script injected, initializing...';
         
         // Wait longer for script to initialize
         setTimeout(() => {
@@ -1191,7 +1205,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("Element AI Extractor: Ping timeout after injection");
             if (attemptsLeft > 1) {
               console.log("Element AI Extractor: Retrying injection...");
-              injectContentScriptWithRetry(tabId, attemptsLeft - 1);
+              setTimeout(() => {
+                injectContentScriptWithRetry(tabId, attemptsLeft - 1);
+              }, 500);
             } else {
               inspectorStatusDiv.textContent = '❌ Error: Content script not responding after injection.';
               resetInspectionState();
@@ -1202,21 +1218,25 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(timeoutId);
             
             if (chrome.runtime.lastError || !pingResponse) {
-              console.warn("Element AI Extractor: Content script still not responsive after injection, retrying...");
+              console.warn("Element AI Extractor: Content script still not responsive after injection");
+              console.log("Element AI Extractor: Ping error:", chrome.runtime.lastError?.message);
+              console.log("Element AI Extractor: Ping response:", pingResponse);
+              
               // Retry injection
               setTimeout(() => {
                 injectContentScriptWithRetry(tabId, attemptsLeft - 1);
               }, 300);
             } else {
-              console.log("Element AI Extractor: Content script is now responsive after injection");
+              console.log("Element AI Extractor: Content script is now responsive after injection", pingResponse);
+              inspectorStatusDiv.textContent = '✅ Content script ready, starting inspection...';
               startInspectionAfterInjection(tabId);
             }
           });
-        }, 500); // Wait 500ms for initialization
+        }, 750); // Increased wait time for initialization
       }).catch((error) => {
         console.error("Element AI Extractor: Content script injection failed:", error);
         
-        // If file injection fails, try a different approach - check if it's already loaded
+        // If file injection fails, check if script might already be loaded
         console.log("Element AI Extractor: File injection failed, checking if script already exists...");
         
         chrome.tabs.sendMessage(tabId, { action: "ping" }, (pingResponse) => {
@@ -1233,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           } else {
             // Script was already there, proceed
-            console.log("Element AI Extractor: Content script was already present");
+            console.log("Element AI Extractor: Content script was already present after injection failure");
             startInspectionAfterInjection(tabId);
           }
         });

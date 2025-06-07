@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Communication Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid #2196F3;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .test-elements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        iframe {
+            width: 100%;
+            height: 200px;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Extension Communication Fix Test</h1>
+        <p>This page tests the fixes for "Could not establish connection. Receiving end does not exist" error.</p>
+        
+        <div class="test-section">
+            <h2>📋 Test Instructions</h2>
+            <ol>
+                <li>Load the Element AI Extractor extension in Chrome</li>
+                <li>Open this test page</li>
+                <li>Click the extension icon to open the popup</li>
+                <li>Click "Start Inspecting" - should work without connection errors</li>
+                <li>Try inspecting different elements on this page</li>
+                <li>Test page reload scenarios</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Test Elements</h2>
+            <div class="test-elements">
+                <div class="card">
+                    <h3>Login Form</h3>
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" placeholder="Enter username" data-testid="username-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter password" data-testid="password-input">
+                    </div>
+                    <button type="button" id="login-btn" class="login-button" data-testid="login-button">Login</button>
+                </div>
+
+                <div class="card">
+                    <h3>Product Selection</h3>
+                    <div class="form-group">
+                        <label for="product">Product:</label>
+                        <select id="product" name="product" data-testid="product-select">
+                            <option value="">Select a product</option>
+                            <option value="laptop">Laptop</option>
+                            <option value="phone">Phone</option>
+                            <option value="tablet">Tablet</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" data-testid="quantity-input">
+                    </div>
+                    <button type="button" id="add-cart" data-testid="add-to-cart">Add to Cart</button>
+                </div>
+
+                <div class="card">
+                    <h3>Complex Elements</h3>
+                    <div class="nested-element" data-complex="true">
+                        <span class="label">Dynamic Content:</span>
+                        <div class="dynamic-content" id="dynamic-123">
+                            <p class="text-content">This is dynamically generated content</p>
+                            <button class="btn btn-primary" data-action="submit">Submit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Feedback Form</h3>
+                    <div class="form-group">
+                        <label for="feedback">Feedback:</label>
+                        <textarea id="feedback" name="feedback" rows="4" placeholder="Enter your feedback here..." data-testid="feedback-textarea"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="rating">Rating:</label>
+                        <select id="rating" name="rating" data-testid="rating-select">
+                            <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ Good</option>
+                            <option value="3">⭐⭐⭐ Average</option>
+                            <option value="2">⭐⭐ Poor</option>
+                            <option value="1">⭐ Very Poor</option>
+                        </select>
+                    </div>
+                    <button type="button" id="submit-feedback" data-testid="submit-feedback">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔄 Dynamic Content Test</h2>
+            <button type="button" id="add-element">Add New Element</button>
+            <button type="button" id="remove-element">Remove Element</button>
+            <button type="button" id="reload-page">Reload Page</button>
+            <div id="dynamic-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🖼️ Iframe Test</h2>
+            <p>Test content script injection in iframes:</p>
+            <iframe src="data:text/html,<html><body><h3>Iframe Content</h3><button id='iframe-btn'>Iframe Button</button><input type='text' placeholder='Iframe Input' id='iframe-input'></body></html>"></iframe>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Extension Status</h2>
+            <div id="extension-status" class="status info">
+                Click "Test Connection" to check extension communication
+            </div>
+            <button type="button" id="test-connection">Test Connection</button>
+            <button type="button" id="test-ping">Test Ping</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Test Results Log</h2>
+            <div id="test-log"></div>
+            <button type="button" id="clear-log">Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        let elementCounter = 0;
+        
+        // Test dynamic element addition
+        document.getElementById('add-element').addEventListener('click', function() {
+            elementCounter++;
+            const container = document.getElementById('dynamic-container');
+            const newElement = document.createElement('div');
+            newElement.className = 'card';
+            newElement.id = `dynamic-element-${elementCounter}`;
+            newElement.innerHTML = `
+                <h4>Dynamic Element ${elementCounter}</h4>
+                <input type="text" placeholder="Dynamic input ${elementCounter}" id="dynamic-input-${elementCounter}">
+                <button data-testid="dynamic-btn-${elementCounter}">Dynamic Button ${elementCounter}</button>
+            `;
+            container.appendChild(newElement);
+            logTest(`Added dynamic element ${elementCounter}`);
+        });
+
+        // Test element removal
+        document.getElementById('remove-element').addEventListener('click', function() {
+            const container = document.getElementById('dynamic-container');
+            if (container.children.length > 0) {
+                const removed = container.removeChild(container.lastElementChild);
+                logTest(`Removed element: ${removed.id}`);
+            }
+        });
+
+        // Test page reload
+        document.getElementById('reload-page').addEventListener('click', function() {
+            logTest('Reloading page to test content script re-injection');
+            setTimeout(() => location.reload(), 1000);
+        });
+
+        // Test extension connection
+        document.getElementById('test-connection').addEventListener('click', function() {
+            testExtensionConnection();
+        });
+
+        // Test ping functionality
+        document.getElementById('test-ping').addEventListener('click', function() {
+            testExtensionPing();
+        });
+
+        // Clear test log
+        document.getElementById('clear-log').addEventListener('click', function() {
+            document.getElementById('test-log').innerHTML = '';
+        });
+
+        function logTest(message, type = 'info') {
+            const log = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `status ${type}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('extension-status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        async function testExtensionConnection() {
+            logTest('Testing extension connection...', 'info');
+            updateStatus('Testing connection...', 'info');
+            
+            try {
+                // Check if content script is loaded
+                if (window.aiExtractorLoaded) {
+                    logTest('✅ Content script detected', 'success');
+                    updateStatus('Content script loaded successfully', 'success');
+                } else {
+                    logTest('❌ Content script not detected', 'error');
+                    updateStatus('Content script not loaded', 'error');
+                }
+
+                // Check for message listener
+                if (window.aiExtractorMessageListenerAdded) {
+                    logTest('✅ Message listener active', 'success');
+                } else {
+                    logTest('⚠️ Message listener status unknown', 'error');
+                }
+
+                // Test console for any errors
+                logTest('Check browser console for any extension errors', 'info');
+                
+            } catch (error) {
+                logTest(`❌ Connection test failed: ${error.message}`, 'error');
+                updateStatus(`Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testExtensionPing() {
+            logTest('Testing ping functionality...', 'info');
+            
+            try {
+                // This simulates what the popup does
+                const response = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Ping timeout'));
+                    }, 1500);
+
+                    chrome.runtime.sendMessage({
+                        action: 'ping'
+                    }, (response) => {
+                        clearTimeout(timeout);
+                        if (chrome.runtime.lastError) {
+                            reject(new Error(chrome.runtime.lastError.message));
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                });
+
+                logTest(`✅ Ping successful: ${JSON.stringify(response)}`, 'success');
+                
+            } catch (error) {
+                logTest(`❌ Ping failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Log when page loads
+        window.addEventListener('load', function() {
+            logTest('🚀 Test page loaded', 'success');
+            
+            // Check for content script after a short delay
+            setTimeout(() => {
+                if (window.aiExtractorLoaded) {
+                    logTest('✅ Content script auto-loaded', 'success');
+                } else {
+                    logTest('⚠️ Content script not auto-loaded', 'error');
+                }
+            }, 1000);
+        });
+
+        // Add click handlers to test elements
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                logTest(`Clicked: ${e.target.tagName} with id="${e.target.id}" class="${e.target.className}"`, 'info');
+            }
+        });
+    </script>
+</body>
+</html>
