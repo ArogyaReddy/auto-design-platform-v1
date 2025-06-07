@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element AI Extractor - Test Fixes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-element {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+        }
+        .single-class {
+            background: lightblue;
+        }
+        .multiple-classes {
+            background: lightgreen;
+            color: darkgreen;
+        }
+        .no-classes {
+            background: lightyellow;
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Element AI Extractor - Fix Validation Test</h1>
+    
+    <h2>Test Cases</h2>
+    
+    <div class="test-element single-class" id="element-with-single-class">
+        <strong>Element with Single Class</strong>
+        <p>This element has only one original class. The extension should NOT include ai-extractor-highlight in the CSS selector.</p>
+    </div>
+    
+    <div class="test-element multiple-classes important-element" id="element-with-multiple-classes">
+        <strong>Element with Multiple Classes</strong>
+        <p>This element has multiple classes. The extension should filter out ai-extractor-* classes.</p>
+    </div>
+    
+    <div class="test-element no-classes" id="element-with-no-classes">
+        <strong>Element with No Original Classes</strong>
+        <p>This element has classes only from CSS styling, no inline classes.</p>
+    </div>
+    
+    <h4 id="header-element">Header Element for Testing</h4>
+    
+    <button id="test-button" class="btn-primary">Test Button</button>
+    
+    <input type="text" id="test-input" class="form-control" placeholder="Test input field">
+    
+    <div id="object-with-classname">
+        <!-- This div will have its className property modified to test the TypeError fix -->
+    </div>
+    
+    <h2>Instructions for Manual Testing</h2>
+    <ol>
+        <li><strong>Open the Element AI Extractor extension</strong></li>
+        <li><strong>Extract elements</strong> from this page</li>
+        <li><strong>Check the CSS Selector column</strong> - it should NOT contain ".ai-extractor-highlight" or any ".ai-extractor-*" classes</li>
+        <li><strong>Check the Best Locator column</strong> - it should NOT contain ".ai-extractor-highlight" or any ".ai-extractor-*" classes</li>
+        <li><strong>Try highlighting elements</strong> - they should highlight correctly without errors</li>
+        <li><strong>Enable inspector mode</strong> and click on elements - it should work without connection errors</li>
+    </ol>
+    
+    <div class="test-results">
+        <h3>Expected Results</h3>
+        <ul>
+            <li>✅ No ".ai-extractor-highlight" in CSS selectors</li>
+            <li>✅ No ".ai-extractor-*" classes in Best Locators</li>
+            <li>✅ Highlighting works correctly</li>
+            <li>✅ Inspector mode works without connection errors</li>
+            <li>✅ No "className.split" TypeError in console</li>
+        </ul>
+    </div>
+
+    <script>
+        // Test the className.split TypeError fix by creating an element with non-string className
+        window.addEventListener('load', function() {
+            const testDiv = document.getElementById('object-with-classname');
+            
+            // This will test the fix for the className.split TypeError
+            // by creating a scenario where className might not be a string
+            try {
+                // Simulate edge cases that could cause className to be non-string
+                Object.defineProperty(testDiv, 'className', {
+                    get: function() {
+                        // Return different types to test robustness
+                        return Math.random() > 0.5 ? 'test-class' : null;
+                    },
+                    set: function(value) {
+                        this._className = value;
+                    }
+                });
+                
+                console.log('Test setup complete - className property modified for testing');
+            } catch (e) {
+                console.log('Could not modify className property for testing:', e);
+            }
+        });
+    </script>
+</body>
+</html>

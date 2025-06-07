@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Button Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Button Click Test</h1>
+    
+    <button class="test-button badge-copy-btn">📋 Copy Test</button>
+    <button class="test-button badge-highlight-btn">👁️ Highlight Test</button>
+    
+    <div id="test-result"></div>
+    
+    <script>
+        // Simple test to verify button clicking works
+        document.addEventListener('click', function(e) {
+            const result = document.getElementById('test-result');
+            
+            if (e.target.classList.contains('badge-copy-btn')) {
+                result.innerHTML = '<p style="color: green;">✅ Copy button clicked!</p>';
+                e.target.textContent = '✅ Copied';
+                setTimeout(() => {
+                    e.target.textContent = '📋 Copy Test';
+                }, 1500);
+            }
+            
+            if (e.target.classList.contains('badge-highlight-btn')) {
+                result.innerHTML = '<p style="color: blue;">✅ Highlight button clicked!</p>';
+                e.target.textContent = '✨ Highlighted';
+                setTimeout(() => {
+                    e.target.textContent = '👁️ Highlight Test';
+                }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>

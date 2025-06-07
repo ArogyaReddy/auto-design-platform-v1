@@ -11,6 +11,8 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Element AI Extractor: Background script initialized');
 });
 
+
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'aiExtractorMenu') {
     // Inject content script and then send message

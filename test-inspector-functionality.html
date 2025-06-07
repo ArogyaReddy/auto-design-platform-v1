@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-element {
+            background: #f0f0f0;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+        .button-test {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .input-test {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .test-results {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .console-instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 AI Inspector Test Page</h1>
+    
+    <div class="console-instructions">
+        <h3>📋 Testing Instructions</h3>
+        <ol>
+            <li><strong>Open Chrome DevTools</strong> (F12) and go to the <strong>Console</strong> tab</li>
+            <li><strong>Open the Element AI Extractor extension</strong></li>
+            <li><strong>Click "Start Inspecting"</strong> to activate the AI Inspector</li>
+            <li><strong>Click on any element below</strong> - you should see detailed logs in the console</li>
+            <li><strong>In the AI Inspector Active window</strong>, try clicking the Copy and Highlight buttons</li>
+            <li><strong>Watch the console</strong> for debugging information</li>
+        </ol>
+    </div>
+
+    <div class="test-element" id="test-div-1">
+        <h3>Test Element 1 - Div with ID</h3>
+        <p>This div has an ID and should be easy to inspect. Click on me!</p>
+    </div>
+
+    <div class="test-element button-container">
+        <h3>Test Element 2 - Buttons</h3>
+        <button class="button-test" id="primary-btn">Primary Button</button>
+        <button class="button-test" data-test="secondary">Secondary Button</button>
+    </div>
+
+    <div class="test-element">
+        <h3>Test Element 3 - Form Inputs</h3>
+        <input type="text" class="input-test" id="username" placeholder="Username">
+        <input type="email" class="input-test" name="email" placeholder="Email">
+        <input type="password" class="input-test" placeholder="Password">
+    </div>
+
+    <div class="test-element no-special-attributes">
+        <h3>Test Element 4 - Generic Element</h3>
+        <p>This element has no ID or special attributes - should use CSS class selectors.</p>
+        <span>Nested span element</span>
+    </div>
+
+    <div class="test-results">
+        <h3>✅ Expected Results</h3>
+        <ul>
+            <li><strong>Console logs</strong> should show detailed debugging information</li>
+            <li><strong>AI Inspector Active window</strong> should appear when clicking elements</li>
+            <li><strong>Copy button</strong> should copy the locator to clipboard and show "✅ Copied"</li>
+            <li><strong>Highlight button</strong> should re-highlight the element and show "✨ Highlighted"</li>
+            <li><strong>Element details</strong> should be displayed in the inspector window</li>
+            <li><strong>No errors</strong> should appear in the console</li>
+        </ul>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px;">
+        <h3>🐛 Debugging Info</h3>
+        <p><strong>Current URL:</strong> <span id="current-url"></span></p>
+        <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+        <p><strong>Clipboard API Available:</strong> <span id="clipboard-available"></span></p>
+    </div>
+
+    <script>
+        // Display debugging information
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('clipboard-available').textContent = 
+            navigator.clipboard ? 'Yes' : 'No (will use fallback)';
+
+        // Add some test event listeners to verify elements are working
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') {
+                console.log('Test Page: Button clicked:', e.target.textContent);
+            }
+        });
+
+        // Test clipboard functionality independent of extension
+        function testClipboard() {
+            const testText = 'Test clipboard functionality';
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(testText).then(() => {
+                    console.log('Test Page: Clipboard test successful');
+                }).catch(err => {
+                    console.error('Test Page: Clipboard test failed:', err);
+                });
+            } else {
+                console.log('Test Page: Clipboard API not available');
+            }
+        }
+
+        // Run clipboard test after page loads
+        window.addEventListener('load', testClipboard);
+    </script>
+</body>
+</html>

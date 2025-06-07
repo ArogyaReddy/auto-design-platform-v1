@@ -357,7 +357,6 @@ function domExtractionFunction(filters) {
     }
     // Filter out extension-specific classes for single class check
     const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
-    console.log('DEBUG: Original classes:', Array.from(el.classList), 'Filtered classes:', filteredClasses);
     if (filteredClasses.length === 1) {
       const className = filteredClasses[0];
       const sameClass = document.querySelectorAll(`.${className}`);
@@ -387,7 +386,6 @@ function domExtractionFunction(filters) {
         // Filter out extension-specific classes
         const originalClasses = Array.from(el.classList);
         const classList = originalClasses.filter(cls => !cls.startsWith('ai-extractor-'));
-        console.log('DEBUG CSS: Original classes:', originalClasses, 'Filtered classes:', classList);
         if (classList.length > 0) {
           selector += '.' + classList.join('.');
         }
@@ -1021,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pingTimeoutId = setTimeout(() => {
           console.warn("Element AI Extractor: Ping timeout, assuming content script not loaded");
           injectContentScriptWithRetry(tabInfo.tabId, 3);
-        }, 1500); // 1.5 second timeout
+        }, 2000); // Increased timeout to 2 seconds
         
         chrome.tabs.sendMessage(tabInfo.tabId, {
           action: "ping"
@@ -1029,10 +1027,22 @@ document.addEventListener('DOMContentLoaded', () => {
           clearTimeout(pingTimeoutId);
           console.log("Element AI Extractor: Ping response:", pingResponse, "Error:", chrome.runtime.lastError);
           
-          if (chrome.runtime.lastError || !pingResponse) {
-            console.warn("Element AI Extractor: Content script not responsive. Attempting to inject. Error:", chrome.runtime.lastError?.message);
+          if (chrome.runtime.lastError) {
+            const errorMsg = chrome.runtime.lastError.message;
+            console.warn("Element AI Extractor: Content script not responsive. Error:", errorMsg);
             
-            // Try to inject the content script manually with retries
+            // Check if it's a specific connection error
+            if (errorMsg.includes("Could not establish connection") || 
+                errorMsg.includes("Receiving end does not exist")) {
+              console.log("Element AI Extractor: Connection error detected, attempting injection");
+              injectContentScriptWithRetry(tabInfo.tabId, 3);
+            } else {
+              console.error("Element AI Extractor: Unexpected error:", errorMsg);
+              inspectorStatusDiv.textContent = `❌ Error: ${errorMsg}`;
+              resetInspectionState();
+            }
+          } else if (!pingResponse || pingResponse.status !== 'alive') {
+            console.warn("Element AI Extractor: Invalid ping response, attempting to inject");
             injectContentScriptWithRetry(tabInfo.tabId, 3);
           } else {
             console.log("Element AI Extractor: Content script is responsive, proceeding with inspection");
@@ -1340,7 +1350,10 @@ function displayInspectedElementData(data) {
   const isInShadow = data['In Shadow DOM'] === 'Yes';
   
   inspectedElementDetailsDiv.innerHTML = `
-    <h4>🔍 Inspected Element Details</h4>
+    <div class="inspected-header">
+      <h4>🔍 Inspected Element Details</h4>
+      <button class="details-close-btn" title="Close details">✕</button>
+    </div>
     <table>
       <tr><td>Element Name:</td><td>${data['Element Name'] || 'N/A'}</td></tr>
       <tr><td>Element Type:</td><td><span class="el-badge">${data['Element Type'] || 'N/A'}</span></td></tr>
@@ -1363,6 +1376,14 @@ function displayInspectedElementData(data) {
     </div>`;
   
   inspectedElementDetailsDiv.style.display = 'block';
+  
+  // Add close button event handler
+  const closeBtn = inspectedElementDetailsDiv.querySelector('.details-close-btn');
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      inspectedElementDetailsDiv.style.display = 'none';
+    };
+  }
   
   // Re-bind buttons
   requestAnimationFrame(() => bindTablePreviewButtons());

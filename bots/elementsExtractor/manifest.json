@@ -25,7 +25,8 @@
     "scripting",
     "storage",
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "clipboardWrite"
   ],
   "host_permissions": [
     "<all_urls>"

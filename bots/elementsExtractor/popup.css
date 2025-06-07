@@ -723,6 +723,46 @@ body {
     gap: 8px;
 }
 
+.inspected-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.inspected-header h4 {
+    margin: 0;
+    color: #59f9d6;
+    font-size: 1.1em;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.details-close-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.details-close-btn:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    transform: scale(1.1);
+}
+
 .inspected-element-details table {
     width: 100%;
     border-collapse: collapse;
@@ -759,8 +799,193 @@ body {
     cursor: crosshair !important;
 }
 
-.inspect-highlight {
-    outline: 3px dashed #ff6b35 !important;
-    outline-offset: 2px !important;
-    background: rgba(255, 107, 53, 0.1) !important;
+/* Enhanced Inspector Badge Styling */
+.ai-extractor-inspector-badge {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: #ffffff !important;
+    color: #333 !important;
+    border-radius: 12px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    z-index: 2147483647 !important;
+    border: 2px solid #e55100 !important;
+    user-select: none !important;
+    max-width: 320px !important;
+    min-width: 280px !important;
+    animation: ai-extractor-pulse 2s infinite !important;
+    overflow: hidden !important;
 }
+
+.ai-extractor-inspector-badge .badge-header {
+    background: #ff6b35 !important;
+    color: white !important;
+    padding: 10px 12px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-weight: bold !important;
+    border-bottom: 1px solid #e55100 !important;
+}
+
+.ai-extractor-inspector-badge .badge-close {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+    color: white !important;
+}
+
+.ai-extractor-inspector-badge .badge-close:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    transform: scale(1.1) !important;
+}
+
+.ai-extractor-inspector-badge .badge-status {
+    padding: 8px 12px !important;
+    background: #e55100 !important;
+    color: white !important;
+    font-size: 12px !important;
+    text-align: center !important;
+    border-bottom: 1px solid #d04600 !important;
+}
+
+.ai-extractor-inspector-badge .badge-content {
+    background: #f8f9fa !important;
+    color: #333 !important;
+}
+
+.ai-extractor-inspector-badge .badge-results {
+    padding: 12px !important;
+    display: none !important;
+}
+
+.ai-extractor-inspector-badge .badge-element-info {
+    margin-bottom: 12px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #e9ecef !important;
+}
+
+.ai-extractor-inspector-badge .badge-element-name {
+    font-weight: bold !important;
+    color: #2d3748 !important;
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+    word-break: break-word !important;
+}
+
+.ai-extractor-inspector-badge .badge-element-type {
+    background: #38a169 !important;
+    color: white !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    display: inline-block !important;
+    font-weight: bold !important;
+}
+
+.ai-extractor-inspector-badge .badge-locators {
+    margin-bottom: 12px !important;
+}
+
+.ai-extractor-inspector-badge .badge-locator-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 4px 0 !important;
+    padding: 4px 0 !important;
+}
+
+.ai-extractor-inspector-badge .badge-locator-label {
+    font-weight: 600 !important;
+    color: #4a5568 !important;
+    min-width: 60px !important;
+    font-size: 11px !important;
+}
+
+.ai-extractor-inspector-badge .badge-locator-value {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace !important;
+    font-size: 11px !important;
+    color: #2b6cb0 !important;
+    flex: 1 !important;
+    text-align: right !important;
+    word-break: break-all !important;
+    max-width: 180px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.ai-extractor-inspector-badge .badge-locator-type {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace !important;
+    font-size: 11px !important;
+    color: #2b6cb0 !important;
+    text-align: right !important;
+}
+
+.ai-extractor-inspector-badge .badge-locator-strength {
+    font-size: 11px !important;
+    font-weight: bold !important;
+    text-align: right !important;
+    color: #38a169 !important;
+}
+
+.ai-extractor-inspector-badge .badge-actions {
+    display: flex !important;
+    gap: 6px !important;
+    justify-content: center !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+    position: relative !important;
+}
+
+.ai-extractor-inspector-badge .badge-copy-btn,
+.ai-extractor-inspector-badge .badge-highlight-btn {
+    background: #ff6b35 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    flex: 1 !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+    position: relative !important;
+    user-select: none !important;
+    min-height: 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ai-extractor-inspector-badge .badge-copy-btn:hover,
+.ai-extractor-inspector-badge .badge-highlight-btn:hover {
+    background: #e55100 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+@keyframes ai-extractor-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.9; }
+    100% { opacity: 1; }
+}
+
+.ai-extractor-inspector-badge:hover {
+    transform: scale(1.02) !important;
+    animation: none !important;
+}
+
+/* Inspector highlight styling */
