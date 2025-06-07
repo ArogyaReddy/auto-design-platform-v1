@@ -16,6 +16,11 @@ if (window.aiExtractorLoaded) {
 
 // Sync inspection state with storage periodically
 function startStorageSync() {
+  // Only run storage sync in the top-level frame
+  if (window !== window.top) {
+    return;
+  }
+  
   if (storageCheckInterval) {
     clearInterval(storageCheckInterval);
   }
@@ -186,6 +191,11 @@ let inspectorBadge = null;
 
 // Create floating inspector badge with enhanced functionality
 function createInspectorBadge() {
+  // Only create badge in the top-level frame to prevent duplicates
+  if (window !== window.top) {
+    return;
+  }
+  
   if (inspectorBadge) {
     return;
   }
@@ -311,9 +321,16 @@ function createInspectorBadge() {
         console.log("Element AI Extractor: Direct copy button click");
         e.stopPropagation();
         e.preventDefault();
-        // Trigger the main handler
-        const event = new Event('click', { bubbles: true });
-        e.target.dispatchEvent(event);
+        // Handle copy functionality directly instead of triggering recursion
+        const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
+        if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
+          const textToCopy = locatorValue.title || locatorValue.textContent;
+          copyToClipboard(textToCopy);
+          e.target.textContent = '✅ Copied';
+          setTimeout(() => {
+            e.target.textContent = '📋 Copy';
+          }, 1500);
+        }
       });
     }
     
@@ -322,9 +339,14 @@ function createInspectorBadge() {
         console.log("Element AI Extractor: Direct highlight button click");
         e.stopPropagation();
         e.preventDefault();
-        // Trigger the main handler
-        const event = new Event('click', { bubbles: true });
-        e.target.dispatchEvent(event);
+        // Handle highlight functionality directly instead of triggering recursion
+        if (lastClickedElement) {
+          highlightElement(lastClickedElement);
+          e.target.textContent = '✨ Highlighted';
+          setTimeout(() => {
+            e.target.textContent = '👁️ Highlight';
+          }, 1500);
+        }
       });
     }
   }, 100);
@@ -698,6 +720,11 @@ function isInShadowDOM(element) {
 
 // Start inspection mode
 function startInspection() {
+  // Only allow inspection to start in the top-level frame
+  if (window !== window.top) {
+    return { status: 'ignored_frame' };
+  }
+  
   if (isInspecting) {
     console.log("Element AI Extractor: Already in inspection mode");
     return { status: 'listening' };
