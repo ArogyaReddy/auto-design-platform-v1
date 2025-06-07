@@ -46,6 +46,21 @@
             <label class="filter-btn"><input type="checkbox" id="filterCustom">Custom Elements</label>
         </div>
 
+        <div class="quick-actions">
+            <button class="action-btn" id="selectAll" title="Select All Elements">
+                <span>🎯</span> All
+            </button>
+            <button class="action-btn" id="selectInteractive" title="Select Interactive Elements Only">
+                <span>⚡</span> Interactive
+            </button>
+            <button class="action-btn" id="clearFilters" title="Clear All Filters">
+                <span>🧹</span> Clear
+            </button>
+            <button class="action-btn" id="refreshExtraction" title="Refresh Extraction">
+                <span>🔄</span> Refresh
+            </button>
+        </div>
+
         <div class="toggle-row">
             <span class="switch-label">Visible Only</span>
             <label class="switch">
@@ -76,13 +91,13 @@
         <div id="inspected-element-details" class="inspected-element-details" style="display: none;"></div>
 
         <div class="export-controls">
-            <select id="exportFormat" class="format-select">
+            <select id="exportFormat" class="format-select" title="Choose export format for extracted elements">
                 <option value="table" selected>Table</option>
                 <option value="csv">CSV Format</option>
                 <option value="json">JSON Format</option>
                 <option value="excel">Excel Format</option>
             </select>
-            <button class="extract-btn" id="extract">
+            <button class="extract-btn" id="extract" title="Extract elements from the current page based on selected filters">
                 <span class="rocket">🚀</span> Extract Elements
             </button>
         </div>
@@ -104,21 +119,6 @@
         <div class="stats-bar" id="stats">
             <span id="elementCount">0 elements found</span>
             <span id="visibilityStats">0 visible • 0 hidden</span>
-        </div>
-
-        <div class="quick-actions">
-            <button class="action-btn" id="selectAll" title="Select All Elements">
-                <span>🎯</span> All
-            </button>
-            <button class="action-btn" id="selectInteractive" title="Select Interactive Elements Only">
-                <span>⚡</span> Interactive
-            </button>
-            <button class="action-btn" id="clearFilters" title="Clear All Filters">
-                <span>🧹</span> Clear
-            </button>
-            <button class="action-btn" id="refreshExtraction" title="Refresh Extraction">
-                <span>🔄</span> Refresh
-            </button>
         </div>
 
         <div class="footer">
