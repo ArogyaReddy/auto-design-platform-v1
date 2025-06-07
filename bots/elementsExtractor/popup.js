@@ -1,7 +1,65 @@
 // === Element AI Extractor - popup.js ===
 
 // ---- AI Tip List ----
-const aiTips = ['Did you know? [role] and [aria-label] improve accessibility and test stability.', 'AI Tip: Interactable (clickable) elements are best for automation.', 'Pro tip: Prefer visible elements for automation—hidden ones may change.', 'AI Tip: IDs are the most stable selectors—use them if available!', 'AI Tip: XPath lets you select by text, attribute, or position.', 'AI Tip: Use CSS selectors for faster automation scripts.', 'AI Tip: Filter by element type for faster locator selection.', 'Pro tip: Combine CSS classes for more unique selectors.'];
+const aiTips = [
+  // Element Selection Best Practices
+  'IDs are the most stable selectors—use them if available! They rarely change and provide unique identification.',
+  'The [role] and [aria-label] attributes improve accessibility and test stability across browser updates.',
+  'Interactable elements (buttons, links, inputs) are best for automation—they\'re designed to be clicked.',
+  'Prefer visible elements for automation—hidden elements may change behavior or disappear unexpectedly.',
+  'Combine multiple CSS classes for more unique selectors: .btn.primary.large targets very specific elements.',
+  
+  // Selector Strategy Tips
+  'Use data-testid attributes in your apps—they\'re specifically designed for testing and automation.',
+  'XPath lets you select by text content: //button[contains(text(), "Submit")] finds buttons with "Submit" text.',
+  'CSS selectors are faster than XPath—use them when possible for better performance.',
+  'Avoid selectors based on position (nth-child) unless absolutely necessary—they break when content changes.',
+  'Parent-child relationships in selectors add stability: .form .submit-btn is more reliable than just .submit-btn.',
+  
+  // Advanced Selection Techniques
+  'Use attribute contains for partial matches: [class*="btn"] finds elements with "btn" anywhere in class name.',
+  'Combine multiple attributes for uniqueness: input[type="email"][required] is more specific than just input.',
+  'XPath axes help navigate relationships: //div[@class="user"]//following-sibling::button finds related elements.',
+  'Use :not() pseudo-selector to exclude elements: button:not(.disabled) avoids non-clickable buttons.',
+  'Filter by element state: input:enabled, :visible, :checked help find elements in the right condition.',
+  
+  // Dynamic Content Handling
+  'For dynamic content, use stable attributes like data-id rather than generated class names.',
+  'Text-based selectors work well for stable UI text: [aria-label="Close dialog"] is reliable.',
+  'Avoid selecting by style attributes—they change frequently and break automation.',
+  'Use partial text matching for dynamic content: [title*="User Profile"] handles changing user names.',
+  'Shadow DOM elements require special handling—look for ::shadow or /deep/ selectors.',
+  
+  // Troubleshooting & Debugging
+  'If an element isn\'t clickable, check for overlapping elements or CSS pointer-events: none.',
+  'Elements inside iframes need frame switching—standard selectors won\'t work across frame boundaries.',
+  'Timing matters: wait for elements to be both present AND visible before interacting.',
+  'Check the element\'s computed style—display:none or visibility:hidden elements can\'t be clicked.',
+  'Use browser dev tools to test selectors: $("your-selector") in console shows what you\'ll get.',
+  
+  // Performance & Reliability
+  'Shorter selector paths are faster and less likely to break when UI structure changes.',
+  'Avoid deep nesting in selectors—3-4 levels max keeps them maintainable.',
+  'Test selectors in different browsers—some CSS features have varying support.',
+  'Use semantic HTML elements when possible—<button> is better than <div role="button">.',
+  'Form labels improve selector reliability: label[for="email"] or input#email both work well.',
+  
+  // Modern Web App Tips
+  'Single Page Apps (SPAs) may reload content—wait for elements to be stable before selecting.',
+  'React/Vue components often have data attributes—use them for reliable selection.',
+  'CSS-in-JS generates unique class names—prefer data attributes or aria labels instead.',
+  'Use intersection observer patterns to detect when elements are truly visible to users.',
+  'Progressive Web Apps may lazy-load content—ensure elements exist before attempting selection.',
+  
+  // Cross-Browser Compatibility
+  'Test critical selectors across Chrome, Firefox, and Safari—behavior can vary.',
+  'Some CSS4 selectors aren\'t supported everywhere—stick to CSS3 for better compatibility.',
+  'XPath support varies between browsers—CSS selectors are more universally supported.',
+  'Mobile browsers may handle touch differently—test automation on actual devices.',
+  'Flexbox and Grid layouts can change element positions—use logical selectors, not positional ones.'
+];
+
+// const aiTips = ['Did you know? [role] and [aria-label] improve accessibility and test stability.', 'AI Tip: Interactable (clickable) elements are best for automation.', 'Pro tip: Prefer visible elements for automation—hidden ones may change.', 'AI Tip: IDs are the most stable selectors—use them if available!', 'AI Tip: XPath lets you select by text, attribute, or position.', 'AI Tip: Use CSS selectors for faster automation scripts.', 'AI Tip: Filter by element type for faster locator selection.', 'Pro tip: Combine CSS classes for more unique selectors.'];
 
 // ---- Element Inspector State ----
 let isInspectingGlobal = false; // Tracks if inspect mode is active
@@ -15,8 +73,11 @@ let allOriginalData = []; // Store the complete dataset
 
 // ---- On Load: Setup UI, Restore Table ----
 document.addEventListener('DOMContentLoaded', () => {
-  // Show random tip at top
-  document.getElementById('ai-tip').textContent = aiTips[Math.floor(Math.random() * aiTips.length)];
+  // Show random tip at top - target the content div to preserve the sidebar structure
+  const aiTipContent = document.querySelector('.ai-tip-content');
+  if (aiTipContent) {
+    aiTipContent.innerHTML = `<strong>Pro Tip:</strong> ${aiTips[Math.floor(Math.random() * aiTips.length)]}`;
+  }
 
   // Make only "All Elements" checked initially; others unchecked
   document.getElementById('filterAll').checked = true;
