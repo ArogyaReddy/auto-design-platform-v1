@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Reload Test - Complex IDs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .test-element {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Extension Reload Test - Complex ID Fix Verification</h1>
+    
+    <div class="status info">
+        <strong>Instructions:</strong>
+        <ol>
+            <li>First, reload the Chrome extension (go to chrome://extensions, find Element AI Extractor, click the reload button)</li>
+            <li>Open the extension popup and click "🔍 Start AI Inspector"</li>
+            <li>Click on the button below with the complex ID</li>
+            <li>Check if the locator shows the correct format: <code>[id="complex-id"]</code> instead of <code>#complex-id</code></li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🎯 Test Element with Complex ID</h3>
+        <p>This button has a complex ID with special characters that break CSS selectors:</p>
+        
+        <button 
+            id="add-to-cart-test.allthethings()-t-shirt-(red)" 
+            class="test-element"
+            onclick="showClickResult(this)"
+        >
+            Click Me! (Complex ID Test)
+        </button>
+        
+        <div id="click-result" style="margin-top: 15px;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Expected Results</h3>
+        <div class="status success">
+            <strong>✅ FIXED:</strong> The AI Inspector should show:<br>
+            <code>[id="add-to-cart-test.allthethings()-t-shirt-(red)"]</code>
+        </div>
+        <div class="status error">
+            <strong>❌ BROKEN:</strong> If still broken, it would show:<br>
+            <code>#add-to-cart-test.allthethings()-t-shirt-(red)</code>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Manual Test Steps</h3>
+        <ol>
+            <li><strong>Extension Popup Test:</strong>
+                <ul>
+                    <li>Open Element AI Extractor popup</li>
+                    <li>Click "Extract Elements" button</li>
+                    <li>Check if the "Best Locator" column shows <code>[id="..."]</code> format for complex IDs</li>
+                </ul>
+            </li>
+            <li><strong>AI Inspector Test:</strong>
+                <ul>
+                    <li>Click "🔍 Start AI Inspector" in popup</li>
+                    <li>Click on the button above</li>
+                    <li>Check the floating inspector badge for the correct locator format</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <script>
+        function showClickResult(element) {
+            const resultDiv = document.getElementById('click-result');
+            const elementId = element.id;
+            
+            resultDiv.innerHTML = `
+                <div class="status info">
+                    <strong>Element Clicked:</strong><br>
+                    ID: <code>${elementId}</code><br>
+                    Expected Locator: <code>[id="${elementId}"]</code><br>
+                    <small>Check the AI Inspector badge for the actual result!</small>
+                </div>
+            `;
+        }
+
+        // Auto-highlight the element when page loads
+        window.addEventListener('load', function() {
+            const testButton = document.getElementById('add-to-cart-test.allthethings()-t-shirt-(red)');
+            if (testButton) {
+                testButton.style.outline = '3px dashed #ff6b35';
+                testButton.style.outlineOffset = '2px';
+                setTimeout(() => {
+                    testButton.style.outline = '';
+                    testButton.style.outlineOffset = '';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

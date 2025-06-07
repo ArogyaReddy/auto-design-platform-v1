@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex ID Test - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+        }
+        .test-button:hover {
+            background: #005a8a;
+        }
+        .highlight-target {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007cba;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Complex ID Test Page</h1>
+    <p>This page contains elements with complex IDs that contain special CSS characters like dots, parentheses, brackets, etc.</p>
+
+    <div class="test-section">
+        <h2>🎯 Test Cases for Complex IDs</h2>
+        
+        <!-- Test case 1: ID with dots and parentheses (like the failing case) -->
+        <button id="add-to-cart-test.allthethings()-t-shirt-(red)" class="test-button">
+            Add to Cart (Complex ID with dots and parentheses)
+        </button>
+        
+        <!-- Test case 2: ID with brackets and special chars -->
+        <button id="btn[special]@chars#test" class="test-button">
+            Button with Brackets and Special Chars
+        </button>
+        
+        <!-- Test case 3: ID with spaces and colons -->
+        <button id="my button:with spaces" class="test-button">
+            Button with Spaces and Colons
+        </button>
+        
+        <!-- Test case 4: ID with multiple dots -->
+        <button id="com.example.test.button.v2" class="test-button">
+            Button with Multiple Dots
+        </button>
+        
+        <!-- Test case 5: ID with CSS function-like syntax -->
+        <button id="calc(100%-20px)" class="test-button">
+            Button with CSS Function Syntax
+        </button>
+        
+        <!-- Test case 6: Normal simple ID (should still work) -->
+        <button id="simple-id" class="test-button">
+            Simple ID (should work normally)
+        </button>
+        
+        <!-- Test case 7: ID with quotes -->
+        <button id='id-with"quotes' class="test-button">
+            ID with Quotes
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Manual Test Instructions</h2>
+        <div class="highlight-target">
+            <h3>Test Process:</h3>
+            <ol>
+                <li><strong>Open Extension:</strong> Click the Element AI Extractor extension icon</li>
+                <li><strong>Extract Elements:</strong> Click "Extract Elements" button</li>
+                <li><strong>Find Complex IDs:</strong> Look for buttons with complex IDs in the results</li>
+                <li><strong>Test Highlighting:</strong> Click the "👁️" highlight button for each complex ID</li>
+                <li><strong>Verify Copy:</strong> Click "📋" to copy the locator and test it in DevTools</li>
+            </ol>
+        </div>
+        
+        <div class="highlight-target">
+            <h3>Expected Results:</h3>
+            <ul>
+                <li>✅ All buttons should be highlighted correctly when using the highlight button</li>
+                <li>✅ Copied locators should work in DevTools Console (e.g., <code>document.querySelector('[id="add-to-cart-test.allthethings()-t-shirt-(red)"]')</code>)</li>
+                <li>✅ Complex IDs should generate <code>[id="complex-id"]</code> format locators</li>
+                <li>✅ Simple IDs should still generate <code>#simple-id</code> format locators</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 DevTools Test Commands</h2>
+        <div class="highlight-target">
+            <p><strong>Test these commands in DevTools Console:</strong></p>
+            <pre>
+// Should work (new format for complex IDs):
+document.querySelector('[id="add-to-cart-test.allthethings()-t-shirt-(red)"]')
+
+// Should fail (old format for complex IDs):
+document.querySelector('#add-to-cart-test.allthethings()-t-shirt-(red)')
+
+// Should work (simple ID):
+document.querySelector('#simple-id')
+
+// Should work (attribute format also works for simple IDs):
+document.querySelector('[id="simple-id"]')
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        // Add click handlers to show which button was clicked
+        document.querySelectorAll('.test-button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const originalText = this.textContent;
+                this.textContent = '✅ Clicked!';
+                this.style.background = '#28a745';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.background = '#007cba';
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>

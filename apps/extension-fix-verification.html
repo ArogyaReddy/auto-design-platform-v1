@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Extension Fix Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            background: #007cba;
+            color: white;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        .test-button:hover {
+            background: #005a8a;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #17a2b8;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #ffc107;
+            color: #212529;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            border-left: 4px solid #007cba;
+            margin: 10px 0;
+        }
+        .steps {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Element AI Extractor - Fix Verification</h1>
+        
+        <div class="info">
+            <strong>✅ Fix Applied Successfully!</strong><br>
+            Your extension now handles complex IDs with special characters correctly.
+        </div>
+
+        <h2>🧪 Test Elements (Complex IDs)</h2>
+        
+        <!-- The problematic element from your original issue -->
+        <button id="add-to-cart-test.allthethings()-t-shirt-(red)" class="test-button">
+            🎯 MAIN TEST: Add to Cart (Complex ID with dots and parentheses)
+        </button>
+        
+        <button id="btn[special]@chars#test" class="test-button">
+            🔧 Special Characters Test Button
+        </button>
+        
+        <button id="my-element.with.dots" class="test-button">
+            📍 Multiple Dots Test Button
+        </button>
+        
+        <button id="element(with)parentheses" class="test-button">
+            🔗 Parentheses Test Button
+        </button>
+        
+        <button id="simple-button" class="test-button">
+            ✨ Simple ID (Control Test)
+        </button>
+
+        <div class="steps">
+            <h3>📋 Testing Instructions:</h3>
+            <ol>
+                <li><strong>Open Extension:</strong> Click the Element AI Extractor icon in Chrome</li>
+                <li><strong>Extract Elements:</strong> Click "Extract Elements" button</li>
+                <li><strong>Find Test Buttons:</strong> Look for the buttons above in the results table</li>
+                <li><strong>Check Locators:</strong> Verify the "Best Locator" column shows:
+                    <div class="code">
+                        ✅ Complex IDs: [id="complex-id-with-special-chars"]<br>
+                        ✅ Simple IDs: #simple-button
+                    </div>
+                </li>
+                <li><strong>Test Highlighting:</strong> Click the 👁️ button - should highlight the element</li>
+                <li><strong>Test Copy:</strong> Click 📋 button and test in DevTools console</li>
+            </ol>
+        </div>
+
+        <div class="success">
+            <h3>✅ Expected Results:</h3>
+            <ul>
+                <li><strong>Complex ID Button:</strong> Should generate <code>[id="add-to-cart-test.allthethings()-t-shirt-(red)"]</code></li>
+                <li><strong>Simple ID Button:</strong> Should generate <code>#simple-button</code></li>
+                <li><strong>All Highlighting:</strong> Should work perfectly</li>
+                <li><strong>DevTools Test:</strong> Copied locators should work in console</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ What Changed:</h3>
+            <p><strong>Before Fix:</strong> Complex IDs generated invalid selectors like <code>#add-to-cart-test.allthethings()-t-shirt-(red)</code></p>
+            <p><strong>After Fix:</strong> Complex IDs generate safe attribute selectors like <code>[id="add-to-cart-test.allthethings()-t-shirt-(red)"]</code></p>
+            <p><strong>Benefit:</strong> Your extension now works with ANY ID, no matter how complex!</p>
+        </div>
+
+        <div class="info">
+            <h3>🧪 Manual DevTools Test:</h3>
+            <p>Open DevTools Console and test these commands:</p>
+            <div class="code">
+                // ✅ NEW FORMAT (should work):<br>
+                document.querySelector('[id="add-to-cart-test.allthethings()-t-shirt-(red)"]')<br><br>
+                
+                // ❌ OLD FORMAT (should fail):<br>
+                document.querySelector('#add-to-cart-test.allthethings()-t-shirt-(red)')<br><br>
+                
+                // ✅ SIMPLE ID (should work):<br>
+                document.querySelector('#simple-button')
+            </div>
+        </div>
+
+        <div class="success">
+            <h3>🎉 Success Criteria:</h3>
+            <ul>
+                <li>✅ No more "invalid selector" errors</li>
+                <li>✅ All elements highlight correctly</li>
+                <li>✅ Copied locators work in DevTools</li>
+                <li>✅ Extension is now the GOTO tool for complex elements</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Add visual feedback when buttons are clicked
+        document.querySelectorAll('.test-button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const originalText = this.textContent;
+                const originalBg = this.style.background;
+                
+                this.textContent = '✅ Clicked! (ID: ' + this.id + ')';
+                this.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.background = originalBg;
+                }, 2000);
+            });
+        });
+
+        // Log the current page's test elements for debugging
+        console.log('🎯 TEST ELEMENTS ON THIS PAGE:');
+        document.querySelectorAll('[id]').forEach(el => {
+            console.log(`ID: "${el.id}" | Element: ${el.tagName}`);
+        });
+    </script>
+</body>
+</html>

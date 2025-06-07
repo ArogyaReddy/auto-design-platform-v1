@@ -575,11 +575,21 @@ function getElementType(element) {
 
 // Generate different locator strategies
 function generateLocators(element) {
+  // Helper function to check if ID contains special CSS characters
+  function hasSpecialCssChars(id) {
+    return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
+  }
+  
   const locators = {};
   
   // ID selector
   if (element.id) {
-    locators.id = `#${element.id}`;
+    // Use attribute selector for complex IDs with special characters
+    if (hasSpecialCssChars(element.id)) {
+      locators.id = `[id="${element.id}"]`;
+    } else {
+      locators.id = `#${element.id}`;
+    }
   }
   
   // CSS selector
@@ -603,7 +613,16 @@ function generateLocators(element) {
 
 // Generate CSS selector
 function generateCSSSelector(element) {
+  // Helper function to check if ID contains special CSS characters
+  function hasSpecialCssChars(id) {
+    return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
+  }
+  
   if (element.id) {
+    // Use attribute selector for complex IDs with special characters
+    if (hasSpecialCssChars(element.id)) {
+      return `[id="${element.id}"]`;
+    }
     return `#${element.id}`;
   }
   
@@ -614,7 +633,12 @@ function generateCSSSelector(element) {
     let selector = current.tagName.toLowerCase();
     
     if (current.id) {
-      selector += `#${current.id}`;
+      // Use attribute selector for complex IDs with special characters
+      if (hasSpecialCssChars(current.id)) {
+        selector = `[id="${current.id}"]`;
+      } else {
+        selector += `#${current.id}`;
+      }
       parts.unshift(selector);
       break;
     }

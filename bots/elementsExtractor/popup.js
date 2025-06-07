@@ -340,66 +340,131 @@ function domExtractionFunction(filters) {
     return style && style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
   }
 
-  // --- NEW: Get the best, most stable, human-friendly locator for the element ---
+  // --- Get the best, most stable locator for the element (aligned with contentScript.js) ---
   function getBestLocator(el) {
-    if (el.id && !el.id.match(/^[0-9]+$/)) return {type: 'ID', locator: `#${el.id}`};
-
-    for (const attr of ['data-testid', 'data-qa', 'data-cy']) {
-      if (el.hasAttribute(attr)) return {type: attr, locator: `[${attr}="${el.getAttribute(attr)}"]`};
+    // Priority order: ID > Test attributes > Aria attributes > Role > CSS > XPath
+    
+    // Helper function to check if ID contains special CSS characters
+    function hasSpecialCssChars(id) {
+      // Characters that have special meaning in CSS selectors
+      return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
+    }
+    
+    // 1. ID selector (most reliable)
+    if (el.id && !el.id.match(/^[0-9]+$/)) {
+      // Use attribute selector for complex IDs with special characters
+      if (hasSpecialCssChars(el.id)) {
+        return {type: 'ID', locator: `[id="${el.id}"]`};
+      }
+      return {type: 'ID', locator: `#${el.id}`};
     }
 
-    if (el.hasAttribute('aria-label')) return {type: 'aria-label', locator: `[aria-label="${el.getAttribute('aria-label')}"]`};
-    if (el.hasAttribute('aria-labelledby')) return {type: 'aria-labelledby', locator: `[aria-labelledby="${el.getAttribute('aria-labelledby')}"]`};
+    // 2. Test attributes (very reliable for automation)
+    for (const attr of ['data-testid', 'data-qa', 'data-cy']) {
+      if (el.hasAttribute(attr)) {
+        return {type: attr, locator: `[${attr}="${el.getAttribute(attr)}"]`};
+      }
+    }
 
+    // 3. Name attribute (reliable for form elements)
+    if (el.name) {
+      return {type: 'name', locator: `[name="${el.name}"]`};
+    }
+
+    // 4. Aria attributes (good for accessibility)
+    if (el.hasAttribute('aria-label')) {
+      return {type: 'aria-label', locator: `[aria-label="${el.getAttribute('aria-label')}"]`};
+    }
+
+    // 5. Role attribute (good for semantic elements)
     if (el.hasAttribute('role')) {
       const sameRole = document.querySelectorAll(`[role="${el.getAttribute('role')}"]`);
-      if (sameRole.length === 1) return {type: 'role', locator: `[role="${el.getAttribute('role')}"]`};
+      if (sameRole.length === 1) {
+        return {type: 'role', locator: `[role="${el.getAttribute('role')}"]`};
+      }
     }
-    // Filter out extension-specific classes for single class check
+    
+    // 6. Single class (if unique)
     const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
     if (filteredClasses.length === 1) {
       const className = filteredClasses[0];
       const sameClass = document.querySelectorAll(`.${className}`);
-      if (sameClass.length === 1) return {type: 'class', locator: `.${className}`};
+      if (sameClass.length === 1) {
+        return {type: 'class', locator: `.${className}`};
+      }
     }
 
-    if (el.innerText && el.innerText.trim().length < 32) {
-      const tag = el.tagName;
-      const text = el.innerText.trim();
-      const allWithText = Array.from(document.querySelectorAll(tag))
-        .filter(e => e.innerText.trim() === text);
-      if (allWithText.length === 1) return {type: 'text', locator: `${tag}:contains("${text}")`};
+    // 7. CSS selector (generated)
+    const cssSelector = getUniqueCssSelector(el);
+    if (cssSelector && cssSelector.length < 100) {
+      return {type: 'CSS', locator: cssSelector};
     }
 
-    // Fallback: Short CSS
-    return {type: 'CSS', locator: getUniqueCssSelector(el)};
+    // 8. XPath as fallback
+    const xpathSelector = getXPath(el);
+    if (xpathSelector && xpathSelector.length < 150) {
+      return {type: 'XPath', locator: xpathSelector};
+    }
+
+    // Final fallback to CSS even if long
+    return {type: 'CSS', locator: cssSelector || el.tagName.toLowerCase()};
   }
 
-  //FUNCTION: Unique CSS Selector Generator (ignores extension-specific classes) ---
+  //FUNCTION: Unique CSS Selector Generator (aligned with contentScript.js) ---
   function getUniqueCssSelector(el) {
-    if (el.id) return `#${el.id}`;
-    let path = [];
-    while (el && el.nodeType === Node.ELEMENT_NODE && el !== document.body) {
-      let selector = el.nodeName.toLowerCase();
-      // if (el.className) selector += '.' + Array.from(el.classList).join('.');
-      if (el.className) {
-        // Filter out extension-specific classes
-        const originalClasses = Array.from(el.classList);
-        const classList = originalClasses.filter(cls => !cls.startsWith('ai-extractor-'));
-        if (classList.length > 0) {
-          selector += '.' + classList.join('.');
+    // Helper function to check if ID contains special CSS characters
+    function hasSpecialCssChars(id) {
+      return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
+    }
+    
+    if (el.id) {
+      // Use attribute selector for complex IDs with special characters
+      if (hasSpecialCssChars(el.id)) {
+        return `[id="${el.id}"]`;
+      }
+      return `#${el.id}`;
+    }
+    
+    const parts = [];
+    let current = el;
+    
+    while (current && current !== document.body) {
+      let selector = current.tagName.toLowerCase();
+      
+      if (current.id) {
+        // Use attribute selector for complex IDs with special characters
+        if (hasSpecialCssChars(current.id)) {
+          selector = `[id="${current.id}"]`;
+        } else {
+          selector += `#${current.id}`;
+        }
+        parts.unshift(selector);
+        break;
+      }
+      
+      if (current.className && typeof current.className === 'string') {
+        const classes = current.className.split(' ')
+          .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
+        if (classes.length > 0) {
+          selector += '.' + classes.join('.');
         }
       }
-      let parent = el.parentNode;
-      if (parent) {
-        const siblings = Array.from(parent.children).filter(c => c.nodeName === el.nodeName);
-        if (siblings.length > 1)
-          selector += `:nth-child(${Array.from(parent.children).indexOf(el) + 1})`;
+      
+      // Add nth-child if needed for uniqueness
+      const siblings = Array.from(current.parentNode?.children || [])
+        .filter(child => child.tagName === current.tagName);
+      if (siblings.length > 1) {
+        const index = siblings.indexOf(current) + 1;
+        selector += `:nth-child(${index})`;
       }
-      path.unshift(selector);
-      el = el.parentNode;
+      
+      parts.unshift(selector);
+      current = current.parentElement;
+      
+      if (parts.length > 5) break; // Limit depth for performance
     }
-    return path.join(' > ');
+    
+    return parts.join(' > ');
   }
 
   function getXPath(el) {

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Locator Generation Test</title>
+</head>
+<body>
+    <button id="add-to-cart-test.allthethings()-t-shirt-(red)">Complex ID Button</button>
+    <button id="simple-id">Simple ID Button</button>
+    <button id="btn[special]@chars#test">Special Chars Button</button>
+
+    <script>
+        // Test the locator generation logic
+        function hasSpecialCssChars(id) {
+            return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
+        }
+
+        function getBestLocatorForId(id) {
+            if (hasSpecialCssChars(id)) {
+                return `[id="${id}"]`;
+            }
+            return `#${id}`;
+        }
+
+        // Test cases
+        const testCases = [
+            'add-to-cart-test.allthethings()-t-shirt-(red)',
+            'simple-id',
+            'btn[special]@chars#test',
+            'my button:with spaces',
+            'com.example.test.button.v2'
+        ];
+
+        console.log('=== Locator Generation Test ===');
+        testCases.forEach(id => {
+            const locator = getBestLocatorForId(id);
+            console.log(`ID: "${id}"`);
+            console.log(`Generated: ${locator}`);
+            console.log(`Has special chars: ${hasSpecialCssChars(id)}`);
+            
+            // Test if the locator actually works
+            try {
+                const element = document.querySelector(locator);
+                console.log(`✅ Locator works: ${element ? 'Found element' : 'No element found'}`);
+            } catch (e) {
+                console.log(`❌ Locator failed: ${e.message}`);
+            }
+            console.log('---');
+        });
+
+        // Test the old vs new approach for the problematic ID
+        const problematicId = 'add-to-cart-test.allthethings()-t-shirt-(red)';
+        console.log('\n=== 🎯 CRITICAL COMPARISON: Old vs New Approach ===');
+        console.log(`Testing ID: "${problematicId}"`);
+        console.log('');
+        
+        const oldLocator = `#${problematicId}`;
+        const newLocator = `[id="${problematicId}"]`;
+        
+        console.log(`🔴 OLD FORMAT (BROKEN): ${oldLocator}`);
+        try {
+            const oldResult = document.querySelector(oldLocator);
+            console.log(`   Result: ✅ Found element: ${oldResult ? 'YES' : 'NO'}`);
+        } catch (e) {
+            console.log(`   Result: ❌ FAILED - ${e.message}`);
+            console.log(`   ☝️ This proves why our fix was needed!`);
+        }
+        console.log('');
+        
+        console.log(`🟢 NEW FORMAT (FIXED): ${newLocator}`);
+        try {
+            const newResult = document.querySelector(newLocator);
+            console.log(`   Result: ✅ Found element: ${newResult ? 'YES' : 'NO'}`);
+            console.log(`   ☝️ This is what our extension now generates!`);
+        } catch (e) {
+            console.log(`   Result: ❌ FAILED - ${e.message}`);
+        }
+        
+        console.log('\n🎉 CONCLUSION:');
+        console.log('The error you saw above is EXPECTED and PROVES our fix works!');
+        console.log('Our extension now generates the working format automatically.');
+    </script>
+</body>
+</html>
