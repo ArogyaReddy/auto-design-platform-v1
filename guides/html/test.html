@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page for Elements Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Page for Elements Extractor Extension</h1>
+    
+    <div class="test-section">
+        <h2>Test Buttons</h2>
+        <button class="test-button">Button 1</button>
+        <button class="test-button">Button 2</button>
+        <button class="test-button">Button 3</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Form Elements</h2>
+        <form>
+            <input type="text" class="test-input" placeholder="Name" />
+            <input type="email" class="test-input" placeholder="Email" />
+            <input type="password" class="test-input" placeholder="Password" />
+            <select class="test-input">
+                <option>Option 1</option>
+                <option>Option 2</option>
+                <option>Option 3</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Links</h2>
+        <a href="#link1">Test Link 1</a><br>
+        <a href="#link2">Test Link 2</a><br>
+        <a href="#link3">Test Link 3</a>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>John Doe</td>
+                    <td>30</td>
+                    <td>New York</td>
+                </tr>
+                <tr>
+                    <td>Jane Smith</td>
+                    <td>25</td>
+                    <td>Los Angeles</td>
+                </tr>
+                <tr>
+                    <td>Bob Johnson</td>
+                    <td>35</td>
+                    <td>Chicago</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Instructions</h2>
+        <p>1. Right-click on any element on this page</p>
+        <p>2. Select "Inspect Element" from the context menu</p>
+        <p>3. The Elements Extractor popup should open</p>
+        <p>4. Verify that all bottom elements are visible:</p>
+        <ul>
+            <li>Export format dropdown</li>
+            <li>Extract Elements button</li>
+            <li>Pagination controls (if any)</li>
+            <li>Stats bar</li>
+            <li>Footer</li>
+        </ul>
+    </div>
+</body>
+</html>

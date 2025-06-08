@@ -4,24 +4,24 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     margin: 0;
     min-width: 360px;
-    min-height: 600px;
+    min-height: 650px;
 }
 
 .popup-root {
     max-width: 390px;
     margin: 0 auto;
-    padding: 18px 18px 0 18px;
+    padding: 12px 18px 18px 18px;
     border-radius: 26px;
     background: rgba(24, 26, 57, 0.98);
     box-shadow: 0 4px 22px 0 #12132790, 0 0 0 2px #396be6a0;
-    min-height: 580px;
+    min-height: 630px;
 }
 
 .header-row {
     display: flex;
     align-items: center;
-    font-size: 1.42rem;
-    margin-bottom: 8px;
+    font-size: 1.38rem;
+    margin-bottom: 6px;
     font-weight: 700;
     gap: 7px;
 }
@@ -48,10 +48,10 @@ body {
 .ai-tip {
     background: linear-gradient(95deg, #23286d 70%, #1d255b 100%);
     color: #ffe682;
-    font-size: 1.11rem;
+    font-size: 1.08rem;
     font-style: italic;
-    margin-bottom: 12px;
-    margin-top: 4px;
+    margin-bottom: 10px;
+    margin-top: 2px;
     border-radius: 10px;
     padding: 0;
     animation: fadein 1.2s cubic-bezier(.22, 1, .36, 1);
@@ -70,7 +70,7 @@ body {
 }
 
 .ai-tip-content {
-    padding: 11px 16px 11px 14px;
+    padding: 10px 16px 10px 14px;
     flex: 1;
     display: flex;
     align-items: center;
@@ -100,7 +100,7 @@ body {
     background: #16182a;
     border-radius: 9px;
     padding: 5px 8px 4px 8px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     box-shadow: 0 0 0 2px #2e347a30;
     font-size: 1.06rem;
     position: relative;
@@ -163,7 +163,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 7px 8px;
-    margin: 6px 0 2px 0;
+    margin: 4px 0 2px 0;
 }
 
 .filter-btn {
@@ -198,7 +198,7 @@ body {
 .toggle-row {
     display: flex;
     align-items: center;
-    margin: 10px 0 10px 0;
+    margin: 8px 0 8px 0;
     gap: 7px;
 }
 
@@ -292,7 +292,7 @@ body {
 }
 
 .status-row {
-    margin: 12px 0 5px 0;
+    margin: 8px 0 5px 0;
     min-height: 18px;
     font-size: 1.08em;
     color: #ffe682;
@@ -386,7 +386,7 @@ body {
 }
 
 .footer {
-    margin: 32px 0 14px 0;
+    margin: 20px 0 10px 0;
     color: #b3d4ef;
     text-align: center;
     font-size: 1.09em;
@@ -430,7 +430,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 20px 0;
+    margin: 16px 0 20px 0;
 }
 
 .format-select {
@@ -473,7 +473,7 @@ body {
     border: 1px solid rgba(57, 107, 230, 0.3);
     border-radius: 8px;
     padding: 8px 12px;
-    margin: 12px 0;
+    margin: 8px 0 10px 0;
     font-size: 0.85rem;
     color: #b8c5d6;
 }
@@ -491,7 +491,7 @@ body {
 .quick-actions {
     display: flex;
     gap: 8px;
-    margin: 12px 0;
+    margin: 10px 0;
     flex-wrap: wrap;
 }
 
@@ -556,7 +556,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 16px 0 12px 0;
+    margin: 12px 0 8px 0;
     padding: 12px 16px;
     background: rgba(35, 40, 109, 0.3);
     border: 1px solid rgba(57, 107, 230, 0.3);
@@ -639,21 +639,21 @@ body {
 
 /* Inspector Section Styles */
 .inspector-section {
-    margin: 20px 0 12px 0;
+    margin: 16px 0 8px 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .inspect-btn {
     width: 100%;
-    padding: 17px 0 13px 0;
+    padding: 12px 0 10px 0;
     border-radius: 17px;
     border: 2px solid #ff6b35;
     background: linear-gradient(135deg, #ff6b35 0%, #e55100 100%);
     color: #fff;
     font-family: inherit;
-    font-size: 1.21em;
+    font-size: 1.15em;
     font-weight: 700;
     letter-spacing: 0.8px;
     cursor: pointer;
