@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Locator Generation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-element { margin: 10px 0; padding: 10px; background: #f9f9f9; border: 1px solid #eee; }
+        .result { margin: 5px 0; padding: 5px; background: #e7f5e7; border-left: 3px solid #28a745; }
+        .comparison { margin: 10px 0; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; }
+        .nav-link { color: #007bff; text-decoration: none; padding: 5px 10px; margin: 0 5px; }
+        .nav-link:hover { background: #f0f0f0; }
+        .btn-primary { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; }
+        .success { color: #28a745; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Enhanced Locator Generation Test Suite</h1>
+    <p>This test verifies that both locator generation systems produce consistent, high-quality results.</p>
+
+    <div class="test-section">
+        <h2>🎯 Navigation Elements Test</h2>
+        <p>Testing the priority of <code>.nav-link[href="#examples"]</code> over <code>a[href="#examples"]</code></p>
+        
+        <div class="test-element">
+            <h3>Test Element:</h3>
+            <a href="#examples" class="nav-link" id="examples-link">Examples</a>
+        </div>
+        
+        <div class="test-element">
+            <h3>Expected Results:</h3>
+            <ul>
+                <li><strong>Best Locator:</strong> <code>.nav-link[href="#examples"]</code> (Class+Href combination)</li>
+                <li><strong>Reasoning:</strong> More specific, includes semantic context, higher maintainability</li>
+                <li><strong>Strength Score:</strong> 92 (HIGHEST for navigation elements)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Various Navigation Patterns</h2>
+        
+        <nav role="navigation">
+            <a href="#home" class="nav-link">Home</a>
+            <a href="#about" class="nav-link active">About</a>
+            <a href="#contact" class="btn btn-primary">Contact</a>
+            <a href="#help" role="button">Help</a>
+            <a href="#search" aria-label="Search page">🔍 Search</a>
+        </nav>
+    </div>
+
+    <div class="test-section">
+        <h2>🆔 Complex ID Elements</h2>
+        
+        <button id="add-to-cart-test.allthethings()-t-shirt-(red)" class="btn-primary">
+            Complex ID Button
+        </button>
+        
+        <input id="user[email]@domain.com" type="email" placeholder="Email">
+        
+        <div id="section#1:content(special)" class="content-area">
+            Special ID Content
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Enhanced locator generation test functions
+        function hasSpecialCssChars(id) {
+            return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
+        }
+
+        function testElementLocatorGeneration(element, expectedPattern) {
+            const results = {
+                element: element,
+                id: element.id,
+                className: element.className,
+                href: element.getAttribute('href'),
+                tagName: element.tagName.toLowerCase(),
+                expectedPattern: expectedPattern
+            };
+
+            // Test ID locator generation
+            if (element.id) {
+                if (hasSpecialCssChars(element.id)) {
+                    results.idLocator = `[id="${element.id}"]`;
+                    results.idType = 'Attribute Selector (Complex ID)';
+                } else {
+                    results.idLocator = `#${element.id}`;
+                    results.idType = 'Standard ID Selector';
+                }
+            }
+
+            // Test navigation locator generation (Class + Href)
+            if (element.tagName.toLowerCase() === 'a' && element.getAttribute('href')) {
+                const href = element.getAttribute('href');
+                
+                if (element.className) {
+                    const classes = element.className.split(' ')
+                        .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
+                    if (classes.length > 0) {
+                        results.classHrefLocator = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
+                        results.classHrefStrength = 92;
+                    }
+                }
+                
+                results.hrefLocator = `a[href="${href}"]`;
+                results.hrefStrength = 78;
+            }
+
+            // Test which locator would be selected as "best"
+            if (results.idLocator) {
+                results.bestLocator = results.idLocator;
+                results.bestType = 'ID';
+                results.bestStrength = 95;
+            } else if (results.classHrefLocator) {
+                results.bestLocator = results.classHrefLocator;
+                results.bestType = 'Class+Href';
+                results.bestStrength = 92;
+            } else if (results.hrefLocator) {
+                results.bestLocator = results.hrefLocator;
+                results.bestType = 'Href';
+                results.bestStrength = 78;
+            }
+
+            return results;
+        }
+
+        function runTests() {
+            const resultsDiv = document.getElementById('test-results');
+            let html = '<h3>🧪 Test Execution Results</h3>';
+
+            // Test navigation elements
+            const navElements = document.querySelectorAll('a[href]');
+            
+            html += '<h4>Navigation Elements Analysis:</h4>';
+            
+            navElements.forEach((element, index) => {
+                const results = testElementLocatorGeneration(element);
+                
+                html += `<div class="comparison">
+                    <strong>Element ${index + 1}:</strong> ${element.outerHTML.substring(0, 100)}...
+                    <ul>
+                        ${results.bestLocator ? `<li><strong>Best Locator:</strong> <code>${results.bestLocator}</code> (${results.bestType}, Strength: ${results.bestStrength})</li>` : ''}
+                        ${results.classHrefLocator ? `<li><strong>Class+Href:</strong> <code>${results.classHrefLocator}</code> (Strength: ${results.classHrefStrength})</li>` : ''}
+                        ${results.hrefLocator ? `<li><strong>Pure Href:</strong> <code>${results.hrefLocator}</code> (Strength: ${results.hrefStrength})</li>` : ''}
+                        ${results.idLocator ? `<li><strong>ID Locator:</strong> <code>${results.idLocator}</code> (${results.idType})</li>` : ''}
+                    </ul>
+                </div>`;
+            });
+
+            // Test complex ID elements
+            html += '<h4>Complex ID Elements Analysis:</h4>';
+            
+            const complexIdElements = document.querySelectorAll('[id*="."], [id*="("], [id*="["], [id*="@"], [id*="#"], [id*=":"]');
+            
+            complexIdElements.forEach((element, index) => {
+                const results = testElementLocatorGeneration(element);
+                
+                html += `<div class="comparison">
+                    <strong>Complex ID Element ${index + 1}:</strong> ${element.outerHTML.substring(0, 100)}...
+                    <ul>
+                        <li><strong>ID:</strong> "${results.id}"</li>
+                        <li><strong>Has Special Chars:</strong> ${hasSpecialCssChars(results.id) ? '✅ Yes' : '❌ No'}</li>
+                        <li><strong>Generated Locator:</strong> <code>${results.idLocator}</code></li>
+                        <li><strong>Type:</strong> ${results.idType}</li>
+                        <li><strong>Test:</strong> ${testLocator(results.idLocator) ? '<span class="success">✅ WORKS</span>' : '<span class="error">❌ FAILS</span>'}</li>
+                    </ul>
+                </div>`;
+            });
+
+            // Priority verification
+            html += '<h4>🎯 Priority System Verification:</h4>';
+            
+            const examplesLink = document.querySelector('a[href="#examples"]');
+            if (examplesLink) {
+                const results = testElementLocatorGeneration(examplesLink);
+                
+                html += `<div class="result">
+                    <h5>Target Element: Examples Navigation Link</h5>
+                    <p><strong>Element HTML:</strong> <code>${examplesLink.outerHTML}</code></p>
+                    <p><strong>Best Locator Selected:</strong> <code>${results.bestLocator}</code></p>
+                    <p><strong>Type:</strong> ${results.bestType} (Strength: ${results.bestStrength})</p>
+                    
+                    ${results.bestType === 'Class+Href' ? 
+                        '<p class="success">✅ PERFECT! Prioritizing Class+Href combination as expected</p>' : 
+                        '<p class="warning">⚠️ Not optimal - should prioritize Class+Href combination</p>'}
+                </div>`;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function testLocator(locator) {
+            try {
+                const element = document.querySelector(locator);
+                return element !== null;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>

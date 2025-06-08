@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Href Locator Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .nav-link { color: blue; text-decoration: none; display: block; margin: 10px 0; }
+        .nav-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Test Href Locator Fix</h1>
+    
+    <nav class="sidebar">
+        <a href="#architecture" class="nav-link">Code Architecture</a>
+        <a href="#implementation" class="nav-link">Implementation</a>
+        <a href="#testing" class="nav-link">Testing</a>
+        <a href="#deployment" class="nav-link">Deployment</a>
+    </nav>
+    
+    <div>
+        <p>This page tests the href locator generation fix.</p>
+        <p>The expected locator for "Code Architecture" should be: <strong>.nav-link[href="#architecture"]</strong></p>
+        <p>Not the long path-based selector.</p>
+    </div>
+
+    <script>
+        // Test function to verify locator generation
+        function testLocatorGeneration() {
+            console.log('=== Testing Locator Generation ===');
+            
+            const archLink = document.querySelector('a[href="#architecture"]');
+            if (archLink) {
+                console.log('Found element:', archLink);
+                console.log('Manual locator (.nav-link[href="#architecture"]) works:', 
+                    document.querySelector('.nav-link[href="#architecture"]') ? 'YES' : 'NO');
+                
+                // Test uniqueness
+                const allNavLinks = document.querySelectorAll('.nav-link[href="#architecture"]');
+                console.log('Unique .nav-link[href="#architecture"]:', allNavLinks.length === 1 ? 'YES' : 'NO');
+                
+                const allHrefArch = document.querySelectorAll('a[href="#architecture"]');
+                console.log('Unique a[href="#architecture"]:', allHrefArch.length === 1 ? 'YES' : 'NO');
+            }
+        }
+        
+        // Run test after page loads
+        window.addEventListener('load', testLocatorGeneration);
+    </script>
+</body>
+</html>

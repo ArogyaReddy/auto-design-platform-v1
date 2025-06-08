@@ -3,11 +3,28 @@
 
 // Enhanced loading protection - prevent duplicate script execution
 if (window.aiExtractorLoaded) {
-  console.log("Element AI Extractor: Content script already loaded, skipping initialization");
-  // Script already loaded, exit early to prevent conflicts
-  // The existing message listener is already active
-  // Script already loaded, exit early to prevent conflicts
-  // The existing message listener is already active
+  console.log("Element AI Extractor: Content script already loaded, skipping duplicate initialization");
+  
+  // Send ready signal immediately for duplicate loads
+  try {
+    chrome.runtime.sendMessage({ 
+      action: 'contentScriptReady', 
+      url: window.location.href,
+      timestamp: Date.now(),
+      duplicate: true,
+      frameType: window === window.top ? 'main' : 'iframe'
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.log("Element AI Extractor: Could not notify background of ready state (expected if background not available)");
+      } else {
+        console.log("Element AI Extractor: Successfully notified of duplicate load");
+      }
+    });
+  } catch (error) {
+    console.log("Element AI Extractor: Error sending duplicate load notification:", error);
+  }
+  
+  // Exit early to prevent duplicate initialization
 } else {
   window.aiExtractorLoaded = true;
   window.aiExtractorMessageListenerAdded = true; // Mark as added
@@ -697,6 +714,34 @@ function generateLocators(element) {
     locators.ariaLabel = `[aria-label="${element.getAttribute('aria-label')}"]`;
   }
   
+  // ULTIMATE Href locator strategies for navigation elements
+  if (element.tagName.toLowerCase() === 'a' && element.getAttribute('href')) {
+    const href = element.getAttribute('href');
+    
+    // Strategy 1: Class + href combination (BEST for navigation)
+    if (element.className && typeof element.className === 'string') {
+      const classes = element.className.split(' ')
+        .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
+      if (classes.length > 0) {
+        locators.classHref = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
+      }
+    }
+    
+    // Strategy 2: Pure href (fallback)
+    locators.href = `a[href="${href}"]`;
+    
+    // Strategy 3: Text + href for unique navigation items
+    const linkText = element.textContent?.trim();
+    if (linkText && linkText.length < 50) {
+      locators.textHref = `a[href="${href}"]:has-text("${linkText}")`;
+    }
+    
+    // Strategy 4: Role-based navigation locator
+    if (element.getAttribute('role')) {
+      locators.roleHref = `[role="${element.getAttribute('role')}"][href="${href}"]`;
+    }
+  }
+  
   return locators;
 }
 
@@ -792,15 +837,35 @@ function generateXPath(element) {
   return '//' + parts.join('/');
 }
 
-// Determine best locator based on reliability
+// Determine best locator based on ULTIMATE reliability for the BEST tool
 function getBestLocator(locators) {
-  // Priority order: ID > Name > Aria-label > CSS > XPath
+  // ULTIMATE Priority order: ID > Name > Class+Href > Role+Href > Href > Text+Href > Aria-label > CSS > XPath
   if (locators.id) {
     return { locator: locators.id, type: 'ID', strength: 95 };
   }
   
   if (locators.name) {
     return { locator: locators.name, type: 'Name', strength: 85 };
+  }
+  
+  // BEST for navigation: Class + Href combination (semantic + functional)
+  if (locators.classHref) {
+    return { locator: locators.classHref, type: 'Class+Href', strength: 92 };
+  }
+  
+  // Role-based navigation (excellent for accessibility)
+  if (locators.roleHref) {
+    return { locator: locators.roleHref, type: 'Role+Href', strength: 88 };
+  }
+  
+  // Pure href (good for navigation)
+  if (locators.href) {
+    return { locator: locators.href, type: 'Href', strength: 78 };
+  }
+  
+  // Text-based navigation (good for unique content)
+  if (locators.textHref) {
+    return { locator: locators.textHref, type: 'Text+Href', strength: 75 };
   }
   
   if (locators.ariaLabel) {
@@ -1164,57 +1229,73 @@ function handleClick(event) {
 }
 
 // Message listener for communication with popup
-console.log("Element AI Extractor: Setting up message listener");
+console.log("Element AI Extractor: Setting up enhanced message listener");
 
-// Test the message listener setup
-setTimeout(() => {
-  console.log("Element AI Extractor: Message listener should be active now");
-  console.log("Element AI Extractor: chrome.runtime available:", !!chrome.runtime);
-  console.log("Element AI Extractor: chrome.runtime.onMessage available:", !!chrome.runtime?.onMessage);
-}, 100);
+// Remove any existing listeners to prevent duplicates
+if (window.aiExtractorMessageListener) {
+  try {
+    chrome.runtime.onMessage.removeListener(window.aiExtractorMessageListener);
+    console.log("Element AI Extractor: Removed existing message listener");
+  } catch (error) {
+    console.log("Element AI Extractor: Error removing existing listener:", error);
+  }
+}
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Element AI Extractor: Content script received message", message);
-    console.log("Element AI Extractor: Sender:", sender);
-    console.log("Element AI Extractor: Will send response via sendResponse function");
-    
-    try {
-      // Validate message structure
-      if (!message || typeof message !== 'object') {
-        console.warn("Element AI Extractor: Invalid message received", message);
+// Create robust message listener
+window.aiExtractorMessageListener = (message, sender, sendResponse) => {
+  console.log("Element AI Extractor: Content script received message", message);
+  console.log("Element AI Extractor: Sender:", sender);
+  
+  try {
+    // Validate message structure
+    if (!message || typeof message !== 'object') {
+      console.warn("Element AI Extractor: Invalid message received", message);
+      try {
         sendResponse({ status: 'error', message: 'Invalid message format' });
-        return true;      }
+      } catch (responseError) {
+        console.error("Element AI Extractor: Error sending invalid message response:", responseError);
+      }
+      return true;
+    }
 
-      switch (message.action) {
-        case 'ping':
-          console.log("Element AI Extractor: Responding to ping with alive status");
-          const response = { 
-            status: 'alive', 
-            inspecting: window.aiExtractorIsInspecting || false, 
-            timestamp: Date.now(),
-            frameType: window === window.top ? 'main' : 'iframe',
-            url: window.location.href,
-            readyState: document.readyState,
-            scriptLoaded: window.aiExtractorLoaded || false,
-            contentScriptVersion: '1.0.1'
-          };
-          console.log("Element AI Extractor: Ping response:", response);
-          // Ensure immediate response
-          try {
-            sendResponse(response);
-          } catch (responseError) {
-            console.error("Element AI Extractor: Error sending ping response:", responseError);
-          }
-          return true; // Keep channel open
+    switch (message.action) {
+      case 'ping':
+        console.log("Element AI Extractor: Responding to ping with enhanced status");
+        const response = { 
+          status: 'alive', 
+          inspecting: window.aiExtractorIsInspecting || false, 
+          timestamp: Date.now(),
+          frameType: window === window.top ? 'main' : 'iframe',
+          url: window.location.href,
+          readyState: document.readyState,
+          scriptLoaded: window.aiExtractorLoaded || false,
+          contentScriptVersion: '1.0.2',
+          messageListenerActive: true
+        };
+        console.log("Element AI Extractor: Ping response:", response);
         
+        // Immediate response with error handling
+        try {
+          sendResponse(response);
+          console.log("Element AI Extractor: Ping response sent successfully");
+        } catch (responseError) {
+          console.error("Element AI Extractor: Error sending ping response:", responseError);
+        }
+        return true; // Keep channel open
+      
       case 'startInspectingAiExtractor':
         console.log("Element AI Extractor: Starting inspection");
         try {
           const startResult = startInspection();
           sendResponse(startResult);
+          console.log("Element AI Extractor: Start inspection response sent:", startResult);
         } catch (error) {
           console.error("Element AI Extractor: Error starting inspection:", error);
-          sendResponse({ status: 'error', message: 'Failed to start inspection: ' + error.message });
+          try {
+            sendResponse({ status: 'error', message: 'Failed to start inspection: ' + error.message });
+          } catch (responseError) {
+            console.error("Element AI Extractor: Error sending start inspection error response:", responseError);
+          }
         }
         return true; // Keep channel open
         
@@ -1223,15 +1304,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         try {
           const stopResult = stopInspection();
           sendResponse(stopResult);
+          console.log("Element AI Extractor: Stop inspection response sent:", stopResult);
         } catch (error) {
           console.error("Element AI Extractor: Error stopping inspection:", error);
-          sendResponse({ status: 'error', message: 'Failed to stop inspection: ' + error.message });
+          try {
+            sendResponse({ status: 'error', message: 'Failed to stop inspection: ' + error.message });
+          } catch (responseError) {
+            console.error("Element AI Extractor: Error sending stop inspection error response:", responseError);
+          }
         }
         return true; // Keep channel open
         
       default:
         console.log("Element AI Extractor: Unknown message action", message.action);
-        sendResponse({ status: 'error', message: 'Unknown action: ' + (message.action || 'undefined') });
+        try {
+          sendResponse({ status: 'error', message: 'Unknown action: ' + (message.action || 'undefined') });
+        } catch (responseError) {
+          console.error("Element AI Extractor: Error sending unknown action response:", responseError);
+        }
         return true; // Keep channel open
     }
   } catch (error) {
@@ -1243,7 +1333,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     return true; // Keep channel open
   }
-});
+};
+
+// Add the message listener
+chrome.runtime.onMessage.addListener(window.aiExtractorMessageListener);
+
+// Test the message listener setup
+setTimeout(() => {
+  console.log("Element AI Extractor: Message listener should be active now");
+  console.log("Element AI Extractor: chrome.runtime available:", !!chrome.runtime);
+  console.log("Element AI Extractor: chrome.runtime.onMessage available:", !!chrome.runtime?.onMessage);
+}, 100);
 
 // Cleanup when page unloads
 window.addEventListener('beforeunload', () => {

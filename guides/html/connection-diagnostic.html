@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elements Extractor Connection Diagnostic</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            background: #fafafa;
+        }
+        .test-section h3 { margin-top: 0; color: #333; }
+        
+        button { 
+            background: #007acc; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px; 
+            font-size: 14px;
+        }
+        button:hover { background: #005999; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        code { 
+            background: #f0f0f0; 
+            padding: 2px 6px; 
+            border-radius: 3px; 
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log-output { 
+            background: #2d2d2d; 
+            color: #f0f0f0; 
+            padding: 15px; 
+            border-radius: 4px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        
+        .sidebar { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin: 20px 0; 
+            background: #f9f9f9; 
+            border-radius: 4px;
+        }
+        .nav-link { 
+            color: #007acc; 
+            text-decoration: none; 
+            display: block; 
+            padding: 8px; 
+            margin: 5px 0; 
+            border-left: 3px solid #007acc; 
+            background: white;
+            border-radius: 0 4px 4px 0;
+        }
+        .nav-link:hover { background: #f0f8ff; }
+        
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .diagnostic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Elements Extractor Connection Diagnostic</h1>
+        <p><strong>Purpose:</strong> Diagnose the "Content script not responsive" error and test the connection between popup and content script.</p>
+        
+        <div class="status info" id="overall-status">
+            🔄 Diagnostic not started yet - Click "Run Full Diagnostic" to begin
+        </div>
+
+        <div class="diagnostic-grid">
+            <div class="test-section">
+                <h3>📋 Manual Tests</h3>
+                <button onclick="runContentScriptCheck()">Check Content Script</button>
+                <button onclick="runChromeAPITest()">Test Chrome APIs</button>
+                <button onclick="runMessageTest()">Test Messaging</button>
+                <button onclick="runExtensionPingTest()">Test Extension Ping</button>
+                <button onclick="runFullDiagnostic()">Run Full Diagnostic</button>
+            </div>
+
+            <div class="test-section">
+                <h3>🎯 Test Targets</h3>
+                <div class="sidebar">
+                    <h4>Navigation Links (For Locator Testing)</h4>
+                    <a href="#architecture" class="nav-link" id="target-link">Code Architecture</a>
+                    <a href="#implementation" class="nav-link">Implementation Details</a>
+                    <a href="#testing" class="nav-link">Testing Framework</a>
+                    <a href="#deployment" class="nav-link">Deployment Guide</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Diagnostic Results</h3>
+            <div id="results-container">
+                <p>Results will appear here after running tests...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📜 Console Log Output</h3>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <button onclick="exportLogs()">Export Logs</button>
+            <div id="log-output" class="log-output">Logs will appear here...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Chrome DevTools Instructions</h3>
+            <ol>
+                <li>Open Chrome DevTools (F12)</li>
+                <li>Go to the <strong>Console</strong> tab</li>
+                <li>Look for any <code>Element AI Extractor</code> messages</li>
+                <li>Check for error messages like <code>"Could not establish connection"</code></li>
+                <li>Try opening the extension popup and watch for connection errors</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let logBuffer = [];
+        
+        function log(message, type = 'info', includeTimestamp = true) {
+            const timestamp = includeTimestamp ? `[${new Date().toISOString()}] ` : '';
+            const logMessage = `${timestamp}${message}`;
+            
+            logBuffer.push(logMessage);
+            
+            const logOutput = document.getElementById('log-output');
+            logOutput.textContent += logMessage + '\n';
+            logOutput.scrollTop = logOutput.scrollHeight;
+            
+            // Also log to browser console with appropriate level
+            switch(type) {
+                case 'error':
+                    console.error(message);
+                    break;
+                case 'warning':
+                    console.warn(message);
+                    break;
+                case 'success':
+                    console.log('✅ ' + message);
+                    break;
+                default:
+                    console.log(message);
+            }
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('overall-status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        function updateResults(content) {
+            document.getElementById('results-container').innerHTML = content;
+        }
+        
+        function clearLogs() {
+            document.getElementById('log-output').textContent = '';
+            logBuffer = [];
+            log('=== Logs Cleared ===');
+        }
+        
+        function exportLogs() {
+            const blob = new Blob([logBuffer.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `extension-diagnostic-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            log('Logs exported to file');
+        }
+        
+        // Test 1: Check if content script is loaded
+        function runContentScriptCheck() {
+            log('=== Content Script Check ===');
+            updateStatus('🔄 Checking content script...', 'info');
+            
+            const checks = {
+                aiExtractorLoaded: typeof window.aiExtractorLoaded !== 'undefined',
+                messageListenerAdded: typeof window.aiExtractorMessageListenerAdded !== 'undefined',
+                isInspecting: typeof window.aiExtractorIsInspecting !== 'undefined'
+            };
+            
+            log(`Content script loaded flag: ${checks.aiExtractorLoaded ? '✅ Found' : '❌ Missing'}`);
+            log(`Message listener flag: ${checks.messageListenerAdded ? '✅ Found' : '❌ Missing'}`);
+            log(`Inspection state flag: ${checks.isInspecting ? '✅ Found' : '❌ Missing'}`);
+            
+            if (checks.aiExtractorLoaded) {
+                log('SUCCESS: Content script appears to be loaded', 'success');
+                updateStatus('✅ Content script is loaded', 'success');
+                return true;
+            } else {
+                log('ERROR: Content script not detected', 'error');
+                updateStatus('❌ Content script not found', 'error');
+                return false;
+            }
+        }
+        
+        // Test 2: Check Chrome API availability
+        function runChromeAPITest() {
+            log('=== Chrome API Test ===');
+            updateStatus('🔄 Testing Chrome APIs...', 'info');
+            
+            const checks = {
+                chrome: typeof chrome !== 'undefined',
+                runtime: typeof chrome !== 'undefined' && !!chrome.runtime,
+                sendMessage: typeof chrome !== 'undefined' && !!chrome.runtime?.sendMessage,
+                extensionId: typeof chrome !== 'undefined' && chrome.runtime?.id
+            };
+            
+            log(`Chrome object: ${checks.chrome ? '✅ Available' : '❌ Missing'}`);
+            log(`Chrome.runtime: ${checks.runtime ? '✅ Available' : '❌ Missing'}`);
+            log(`Chrome.runtime.sendMessage: ${checks.sendMessage ? '✅ Available' : '❌ Missing'}`);
+            log(`Extension ID: ${checks.extensionId ? `✅ ${checks.extensionId}` : '❌ Missing'}`);
+            
+            if (checks.chrome && checks.runtime && checks.sendMessage) {
+                log('SUCCESS: Chrome APIs are available', 'success');
+                updateStatus('✅ Chrome APIs available', 'success');
+                return true;
+            } else {
+                log('ERROR: Chrome APIs not fully available', 'error');
+                updateStatus('❌ Chrome APIs missing', 'error');
+                return false;
+            }
+        }
+        
+        // Test 3: Test message communication
+        async function runMessageTest() {
+            log('=== Message Communication Test ===');
+            updateStatus('🔄 Testing message communication...', 'info');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                log('ERROR: Chrome runtime not available for message test', 'error');
+                updateStatus('❌ Chrome runtime unavailable', 'error');
+                return false;
+            }
+            
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Message timeout after 3 seconds'));
+                    }, 3000);
+                    
+                    chrome.runtime.sendMessage({
+                        action: 'ping',
+                        source: 'diagnostic-test',
+                        timestamp: Date.now()
+                    }, (response) => {
+                        clearTimeout(timeout);
+                        if (chrome.runtime.lastError) {
+                            reject(new Error(chrome.runtime.lastError.message));
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                });
+                
+                log(`SUCCESS: Message communication works - Response: ${JSON.stringify(response)}`, 'success');
+                updateStatus('✅ Message communication successful', 'success');
+                return true;
+                
+            } catch (error) {
+                log(`ERROR: Message communication failed - ${error.message}`, 'error');
+                
+                // Check if it's the specific "receiving end does not exist" error
+                if (error.message.includes('Could not establish connection') || 
+                    error.message.includes('Receiving end does not exist')) {
+                    log('This is the exact error shown in the popup.js:1509 issue!', 'error');
+                    updateStatus('❌ "Receiving end does not exist" error detected', 'error');
+                } else {
+                    updateStatus('❌ Message communication failed', 'error');
+                }
+                return false;
+            }
+        }
+        
+        // Test 4: Test extension ping specifically
+        async function runExtensionPingTest() {
+            log('=== Extension Ping Test ===');
+            updateStatus('🔄 Testing extension ping...', 'info');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                log('ERROR: Chrome runtime not available for ping test', 'error');
+                return false;
+            }
+            
+            // Test multiple ping attempts
+            const pingAttempts = 3;
+            let successCount = 0;
+            
+            for (let i = 1; i <= pingAttempts; i++) {
+                try {
+                    log(`Ping attempt ${i}/${pingAttempts}...`);
+                    
+                    const response = await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            reject(new Error(`Ping timeout on attempt ${i}`));
+                        }, 2000);
+                        
+                        chrome.runtime.sendMessage({
+                            action: 'ping'
+                        }, (response) => {
+                            clearTimeout(timeout);
+                            if (chrome.runtime.lastError) {
+                                reject(new Error(chrome.runtime.lastError.message));
+                            } else {
+                                resolve(response);
+                            }
+                        });
+                    });
+                    
+                    log(`✅ Ping ${i} successful: ${JSON.stringify(response)}`);
+                    successCount++;
+                    
+                } catch (error) {
+                    log(`❌ Ping ${i} failed: ${error.message}`, 'error');
+                }
+                
+                // Small delay between attempts
+                if (i < pingAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+            
+            log(`Ping test complete: ${successCount}/${pingAttempts} successful`);
+            
+            if (successCount > 0) {
+                updateStatus(`✅ Ping test: ${successCount}/${pingAttempts} successful`, 'success');
+                return true;
+            } else {
+                updateStatus(`❌ Ping test: All ${pingAttempts} attempts failed`, 'error');
+                return false;
+            }
+        }
+        
+        // Run full diagnostic
+        async function runFullDiagnostic() {
+            log('========================================');
+            log('=== FULL DIAGNOSTIC STARTING ===');
+            log('========================================');
+            updateStatus('🔄 Running full diagnostic...', 'info');
+            
+            const results = {
+                contentScript: false,
+                chromeAPIs: false,
+                messaging: false,
+                ping: false
+            };
+            
+            // Run all tests
+            results.contentScript = runContentScriptCheck();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            results.chromeAPIs = runChromeAPITest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            results.messaging = await runMessageTest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            results.ping = await runExtensionPingTest();
+            
+            // Generate summary
+            const passedTests = Object.values(results).filter(r => r).length;
+            const totalTests = Object.keys(results).length;
+            
+            log('========================================');
+            log('=== DIAGNOSTIC SUMMARY ===');
+            log('========================================');
+            log(`Tests passed: ${passedTests}/${totalTests}`);
+            
+            for (const [test, passed] of Object.entries(results)) {
+                log(`${test}: ${passed ? '✅ PASS' : '❌ FAIL'}`);
+            }
+            
+            // Update UI with results
+            const resultsHTML = `
+                <h4>Diagnostic Summary (${passedTests}/${totalTests} tests passed)</h4>
+                <div class="status ${passedTests === totalTests ? 'success' : 'error'}">
+                    Overall Status: ${passedTests === totalTests ? '✅ All tests passed' : `❌ ${totalTests - passedTests} test(s) failed`}
+                </div>
+                <ul>
+                    <li>Content Script Check: <span class="${results.contentScript ? 'success' : 'error'}">${results.contentScript ? '✅ PASS' : '❌ FAIL'}</span></li>
+                    <li>Chrome APIs Test: <span class="${results.chromeAPIs ? 'success' : 'error'}">${results.chromeAPIs ? '✅ PASS' : '❌ FAIL'}</span></li>
+                    <li>Message Communication: <span class="${results.messaging ? 'success' : 'error'}">${results.messaging ? '✅ PASS' : '❌ FAIL'}</span></li>
+                    <li>Extension Ping Test: <span class="${results.ping ? 'success' : 'error'}">${results.ping ? '✅ PASS' : '❌ FAIL'}</span></li>
+                </ul>
+                
+                <h4>Recommendations:</h4>
+                <ul>
+                    ${!results.contentScript ? '<li>Content script not loaded - check if extension is properly installed and enabled</li>' : ''}
+                    ${!results.chromeAPIs ? '<li>Chrome APIs missing - ensure this page is loaded in a Chrome extension context</li>' : ''}
+                    ${!results.messaging ? '<li>Message communication failing - this is the core issue causing "Receiving end does not exist" errors</li>' : ''}
+                    ${!results.ping ? '<li>Extension ping failing - background script or popup might not be responding</li>' : ''}
+                    ${passedTests === totalTests ? '<li>All tests passed - extension connectivity appears to be working correctly</li>' : ''}
+                </ul>
+            `;
+            
+            updateResults(resultsHTML);
+            
+            if (passedTests === totalTests) {
+                updateStatus('✅ All diagnostic tests passed', 'success');
+                log('SUCCESS: Extension appears to be working correctly', 'success');
+            } else {
+                updateStatus(`❌ ${totalTests - passedTests} diagnostic test(s) failed`, 'error');
+                log('ERROR: Extension has connectivity issues that need to be resolved', 'error');
+            }
+            
+            log('=== DIAGNOSTIC COMPLETE ===');
+        }
+        
+        // Auto-run basic checks on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('=== Auto-running basic diagnostic checks ===');
+                runContentScriptCheck();
+                setTimeout(() => runChromeAPITest(), 1000);
+            }, 1000);
+        });
+        
+        // Listen for extension messages (if content script is working)
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            try {
+                chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                    log(`Received message from extension: ${JSON.stringify(message)}`);
+                    sendResponse({ status: 'diagnostic-page-received', timestamp: Date.now() });
+                    return true;
+                });
+                log('Message listener set up for diagnostic page');
+            } catch (error) {
+                log(`Error setting up message listener: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

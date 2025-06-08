@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element AI Extractor - Connection Fix Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f5f7fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+        
+        .test-elements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .test-element {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: white;
+        }
+        
+        .test-element:hover {
+            border-color: #2196F3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        
+        .test-button {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+        }
+        
+        .test-input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .test-input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        .status-indicator {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .connection-test {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .test-results {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+        
+        .complex-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Element AI Extractor - Connection Fix Test</h1>
+        <p>Test page to verify the connection fixes work properly</p>
+        <div id="extension-status" class="status-info">
+            Checking extension status...
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 Testing Instructions:</h3>
+        <ol>
+            <li><strong>Reload the extension</strong> in Chrome (chrome://extensions/)</li>
+            <li><strong>Open Chrome DevTools</strong> (F12) and check the Console tab</li>
+            <li><strong>Click the extension icon</strong> in the toolbar</li>
+            <li><strong>Click "Inspect Element"</strong> in the popup</li>
+            <li><strong>Look for connection errors</strong> - there should be NONE!</li>
+            <li><strong>Test element inspection</strong> by hovering and clicking elements below</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Connection Status Test</h2>
+        <div class="connection-test">
+            <button id="test-connection-btn" class="test-button">🔍 Test Extension Connection</button>
+            <div id="connection-results" class="test-results">
+                Click the button above to test extension connectivity...
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔘 Basic Interactive Elements</h2>
+        <div class="test-elements">
+            <button id="btn-primary" class="test-button">Primary Button</button>
+            <button id="btn-secondary" class="test-button" style="background: #6c757d;">Secondary Button</button>
+            <button id="btn-success" class="test-button" style="background: #28a745;">Success Button</button>
+            <button id="btn-danger" class="test-button" style="background: #dc3545;">Danger Button</button>
+        </div>
+        
+        <div class="test-elements">
+            <input id="input-text" type="text" class="test-input" placeholder="Text Input">
+            <input id="input-email" type="email" class="test-input" placeholder="Email Input">
+            <input id="input-password" type="password" class="test-input" placeholder="Password Input">
+            <input id="input-number" type="number" class="test-input" placeholder="Number Input">
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 Styled Elements</h2>
+        <div class="test-elements">
+            <div class="test-element" id="div-card">Card Element</div>
+            <div class="test-element" id="div-panel" style="background: #e9ecef;">Panel Element</div>
+            <a href="#test" id="link-test" class="test-element" style="text-decoration: none; color: #007bff;">Test Link</a>
+            <span id="span-badge" class="test-element" style="background: #28a745; color: white; padding: 8px 16px; border-radius: 20px;">Badge Span</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Complex Form</h2>
+        <div class="complex-form">
+            <div class="form-row">
+                <input id="firstName" type="text" class="test-input" placeholder="First Name" required>
+                <input id="lastName" type="text" class="test-input" placeholder="Last Name" required>
+            </div>
+            <div class="form-row">
+                <input id="userEmail" type="email" class="test-input" placeholder="Email Address" required>
+                <input id="userPhone" type="tel" class="test-input" placeholder="Phone Number">
+            </div>
+            <div class="form-row">
+                <select id="userCountry" class="test-input">
+                    <option value="">Select Country</option>
+                    <option value="us">United States</option>
+                    <option value="ca">Canada</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="de">Germany</option>
+                </select>
+                <select id="userRole" class="test-input">
+                    <option value="">Select Role</option>
+                    <option value="admin">Administrator</option>
+                    <option value="user">User</option>
+                    <option value="guest">Guest</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <textarea id="userMessage" class="test-input" rows="3" placeholder="Message or Comments"></textarea>
+            </div>
+            <div class="form-row">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input id="newsletter" type="checkbox"> Subscribe to newsletter
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input id="terms" type="checkbox" required> I agree to terms and conditions
+                </label>
+            </div>
+            <button id="submit-form" type="submit" class="test-button" style="width: 100%; margin-top: 15px;">
+                Submit Form
+            </button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✨ Enhanced Features Test</h2>
+        <div class="feature-list">
+            <div class="feature-item">
+                <h4>🚀 Robust Connection</h4>
+                <p>Multiple retry strategies with intelligent fallbacks</p>
+            </div>
+            <div class="feature-item">
+                <h4>🔄 Duplicate Prevention</h4>
+                <p>Prevents multiple script loading conflicts</p>
+            </div>
+            <div class="feature-item">
+                <h4>⚡ Fast Response</h4>
+                <p>Quick ping testing with extended fallback</p>
+            </div>
+            <div class="feature-item">
+                <h4>🛡️ Error Recovery</h4>
+                <p>Automatic recovery from connection issues</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test extension connection
+        document.getElementById('test-connection-btn').addEventListener('click', testExtensionConnection);
+        
+        // Log all interactions for testing
+        document.addEventListener('click', function(e) {
+            if (e.target.id) {
+                console.log(`Clicked element: ${e.target.id} (${e.target.tagName})`);
+            }
+        });
+        
+        // Status checking
+        function updateExtensionStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('extension-status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-${type}`;
+        }
+        
+        function logResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('connection-results');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            resultsDiv.textContent += logEntry;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        async function testExtensionConnection() {
+            logResult('🔍 Starting connection test...', 'info');
+            
+            // Test 1: Check Chrome APIs
+            if (typeof chrome === 'undefined') {
+                logResult('❌ Chrome APIs not available', 'error');
+                updateExtensionStatus('❌ Chrome APIs not available', 'error');
+                return;
+            }
+            
+            logResult('✅ Chrome APIs available', 'success');
+            
+            if (!chrome.runtime) {
+                logResult('❌ Chrome runtime not available', 'error');
+                updateExtensionStatus('❌ Chrome runtime not available', 'error');
+                return;
+            }
+            
+            logResult('✅ Chrome runtime available', 'success');
+            
+            // Test 2: Check content script flags
+            if (window.aiExtractorLoaded) {
+                logResult('✅ Content script loaded flag found', 'success');
+            } else {
+                logResult('⚠️ Content script loaded flag not found', 'error');
+            }
+            
+            if (window.aiExtractorMessageListenerAdded) {
+                logResult('✅ Message listener flag found', 'success');
+            } else {
+                logResult('⚠️ Message listener flag not found', 'error');
+            }
+            
+            // Test 3: Ping test
+            try {
+                logResult('🏓 Testing ping response...', 'info');
+                
+                const response = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Ping timeout (2 seconds)'));
+                    }, 2000);
+                    
+                    chrome.runtime.sendMessage({
+                        action: 'ping'
+                    }, (response) => {
+                        clearTimeout(timeout);
+                        if (chrome.runtime.lastError) {
+                            reject(new Error(chrome.runtime.lastError.message));
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                });
+                
+                logResult(`✅ Ping successful: ${JSON.stringify(response)}`, 'success');
+                updateExtensionStatus('✅ Extension connected and working!', 'success');
+                
+            } catch (error) {
+                logResult(`❌ Ping failed: ${error.message}`, 'error');
+                updateExtensionStatus(`❌ Connection failed: ${error.message}`, 'error');
+            }
+            
+            logResult('🎯 Connection test completed', 'info');
+        }
+        
+        // Auto-check on page load
+        window.addEventListener('load', () => {
+            updateExtensionStatus('🔄 Checking extension status...', 'info');
+            
+            setTimeout(() => {
+                if (window.aiExtractorLoaded) {
+                    updateExtensionStatus('✅ Extension loaded successfully', 'success');
+                } else {
+                    updateExtensionStatus('⚠️ Extension not detected - reload and try again', 'error');
+                }
+            }, 1000);
+        });
+        
+        // Page info
+        console.log('🧪 Connection Fix Test Page Loaded');
+        console.log('📍 URL:', window.location.href);
+        console.log('🕐 Timestamp:', new Date().toISOString());
+        console.log('🔧 Ready for Element AI Extractor testing!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Fix Test - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .status {
+            font-weight: bold;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .test-element {
+            padding: 15px;
+            margin: 10px;
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-element:hover {
+            background: #bbdefb;
+            transform: scale(1.02);
+        }
+        .instructions {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Extension Connection Fix Test</h1>
+        
+        <div class="instructions">
+            <h2>📋 Test Instructions</h2>
+            <ol>
+                <li><strong>Open this page</strong> in a browser tab</li>
+                <li><strong>Click the Element AI Extractor extension icon</strong> in the toolbar</li>
+                <li><strong>Click "Inspect Element"</strong> in the popup</li>
+                <li><strong>Verify NO connection errors occur</strong></li>
+                <li><strong>Click on any element below</strong> to test inspection</li>
+                <li><strong>Repeat multiple times</strong> to verify reliability</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Test Elements for Inspection</h2>
+            <p>Click the "Inspect Element" button in the extension popup, then click on any of these elements:</p>
+            
+            <div class="test-element" id="test-element-1">
+                <h3>Test Element 1</h3>
+                <p>Simple element with ID for testing locator generation.</p>
+                <button onclick="alert('Button 1 clicked!')">Test Button 1</button>
+            </div>
+            
+            <div class="test-element" data-testid="special-element" class="special-class">
+                <h3>Test Element 2</h3>
+                <p>Element with data-testid and class attributes.</p>
+                <input type="text" placeholder="Test input field" value="Sample text" />
+            </div>
+            
+            <div class="test-element">
+                <h3>Test Element 3 (Complex)</h3>
+                <p>Element without ID - tests CSS selector generation.</p>
+                <select>
+                    <option value="1">Option 1</option>
+                    <option value="2" selected>Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+            </div>
+            
+            <form class="test-element">
+                <h3>Form Test Element</h3>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="test@example.com" />
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" value="secret123" />
+                <button type="button">Submit Button</button>
+            </form>
+            
+            <div class="test-element">
+                <h3>Nested Element Test</h3>
+                <div class="nested-container">
+                    <div class="nested-item">
+                        <span class="nested-text">Deep nested text element</span>
+                        <a href="#test" class="nested-link">Test Link</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>✅ Expected Results</h2>
+            <div class="status success">
+                <strong>✅ SUCCESS CRITERIA:</strong>
+                <ul>
+                    <li>NO "Element AI Extractor: Content script not responsive" errors</li>
+                    <li>NO "Could not establish connection" errors</li>
+                    <li>NO "Receiving end does not exist" errors</li>
+                    <li>Extension responds immediately when clicking "Inspect Element"</li>
+                    <li>Elements highlight properly when hovered</li>
+                    <li>Element details appear when clicked</li>
+                    <li>Works consistently on repeated attempts</li>
+                </ul>
+            </div>
+            
+            <div class="status warning">
+                <strong>⚠️ If you see ANY connection errors:</strong>
+                <ul>
+                    <li>The fix needs further refinement</li>
+                    <li>Check browser console for detailed error messages</li>
+                    <li>Try refreshing the page and testing again</li>
+                    <li>Test in different types of pages (simple HTML, complex web apps)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 Stress Test</h2>
+            <p>To thoroughly test the connection reliability:</p>
+            <button onclick="stressTest()">Run Stress Test</button>
+            <div id="stressTestResults" class="status info">Click the button to run a stress test...</div>
+        </div>
+    </div>
+
+    <script>
+        console.log("Connection Fix Test Page Loaded");
+        console.log("Chrome extension APIs available:", typeof chrome !== 'undefined');
+        console.log("Extension ID:", chrome?.runtime?.id || 'Not available');
+        
+        function stressTest() {
+            const resultsDiv = document.getElementById('stressTestResults');
+            resultsDiv.innerHTML = "🔄 Running stress test...<br>Please repeatedly click 'Inspect Element' in the extension popup and test different elements.";
+            resultsDiv.className = 'status warning';
+            
+            let testCount = 0;
+            const maxTests = 10;
+            
+            const interval = setInterval(() => {
+                testCount++;
+                resultsDiv.innerHTML = `🔄 Stress test in progress... (${testCount}/${maxTests})<br>Keep using the extension to test reliability!`;
+                
+                if (testCount >= maxTests) {
+                    clearInterval(interval);
+                    resultsDiv.innerHTML = "✅ Stress test completed! If no connection errors occurred, the fix is working!";
+                    resultsDiv.className = 'status success';
+                }
+            }, 2000);
+        }
+        
+        // Monitor for any errors
+        window.addEventListener('error', (event) => {
+            console.error('Page error:', event.error);
+        });
+        
+        // Add click listeners to test elements for logging
+        document.querySelectorAll('.test-element').forEach((element, index) => {
+            element.addEventListener('click', () => {
+                console.log(`Test element ${index + 1} clicked:`, element);
+            });
+        });
+        
+        console.log("Test page ready - you can now test the extension!");
+    </script>
+</body>
+</html>

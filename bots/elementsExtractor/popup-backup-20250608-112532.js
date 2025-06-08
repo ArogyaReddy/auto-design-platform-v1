@@ -1494,8 +1494,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Element AI Extractor: Ensuring content script is loaded and ready...");
         inspectorStatusDiv.textContent = '🔄 Initializing...';
         
-        // TEST: Simple approach - inject and start directly
-        bulletproofStartInspection(tabInfo.tabId);
+        // Always inject and wait for content script to be ready
+        ensureContentScriptReady(tabInfo.tabId);
       } else {
         // Clear inspection state from storage FIRST
         chrome.storage.local.set({ isInspecting: false });
@@ -1602,6 +1602,113 @@ document.addEventListener('DOMContentLoaded', () => {
         resolve(false);
       }
     });
+  }
+    const maxAttempts = 3;
+    const inspectorStatusDiv = document.getElementById('inspector-status');
+    
+    console.log(`Element AI Extractor: Connection attempt ${attemptNumber}/${maxAttempts}`);
+    inspectorStatusDiv.textContent = `🔄 Testing connection (${attemptNumber}/${maxAttempts})...`;
+    
+    // First try: Quick ping test
+    const quickPingPromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Quick ping timeout'));
+      }, 1000);
+      
+      chrome.tabs.sendMessage(tabId, { action: "ping" }, (response) => {
+        clearTimeout(timeout);
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else if (response && response.status === 'alive') {
+          resolve(response);
+        } else {
+          reject(new Error('Invalid ping response'));
+        }
+      });
+    });
+    
+    // Second try: Extended ping test (for slower pages)
+    const extendedPingPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Extended ping timeout'));
+        }, 2000);
+        
+        chrome.tabs.sendMessage(tabId, { action: "ping" }, (response) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (response && response.status === 'alive') {
+            resolve(response);
+          } else {
+            reject(new Error('Invalid extended ping response'));
+          }
+        });
+      }, 500); // Wait 500ms before trying extended ping
+    });
+    
+    // Try quick ping first
+    quickPingPromise
+      .then(response => {
+        console.log("Element AI Extractor: Quick ping successful", response);
+        inspectorStatusDiv.textContent = '✅ Connected! Starting inspection...';
+        startInspectionDirectly(tabId);
+      })
+      .catch(quickError => {
+        console.log("Element AI Extractor: Quick ping failed:", quickError.message);
+        
+        // Try extended ping
+        extendedPingPromise
+          .then(response => {
+            console.log("Element AI Extractor: Extended ping successful", response);
+            inspectorStatusDiv.textContent = '✅ Connected! Starting inspection...';
+            startInspectionDirectly(tabId);
+          })
+          .catch(extendedError => {
+            console.log("Element AI Extractor: Extended ping failed:", extendedError.message);
+            
+            // Check if it's a connection error
+            if (extendedError.message.includes("Could not establish connection") || 
+                extendedError.message.includes("Receiving end does not exist")) {
+              
+              if (attemptNumber < maxAttempts) {
+                // Try to inject content script
+                console.log("Element AI Extractor: Attempting content script injection...");
+                inspectorStatusDiv.textContent = `🔄 Injecting content script (${attemptNumber}/${maxAttempts})...`;
+                
+                injectContentScriptSafely(tabId)
+                  .then(() => {
+                    // Wait for script to initialize, then retry connection
+                    setTimeout(() => {
+                      testContentScriptConnection(tabId, attemptNumber + 1);
+                    }, 1500);
+                  })
+                  .catch(injectionError => {
+                    console.error("Element AI Extractor: Injection failed:", injectionError);
+                    if (attemptNumber < maxAttempts) {
+                      // Retry after a delay
+                      setTimeout(() => {
+                        testContentScriptConnection(tabId, attemptNumber + 1);
+                      }, 2000);
+                    } else {
+                      // Final failure
+                      inspectorStatusDiv.textContent = '❌ Failed to establish connection. Please reload the page and try again.';
+                      resetInspectionState();
+                    }
+                  });
+              } else {
+                // All attempts failed
+                inspectorStatusDiv.textContent = '❌ Connection failed after multiple attempts. Please reload the page and try again.';
+                resetInspectionState();
+              }
+            } else {
+              // Different type of error
+              console.error("Element AI Extractor: Unexpected connection error:", extendedError);
+              inspectorStatusDiv.textContent = '❌ Connection error. Please check the page and try again.';
+              resetInspectionState();
+            }
+          });
+      });
   }
 
   // Safe content script injection with duplicate prevention
@@ -1991,40 +2098,3 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     }
   }
 });
-
-// BULLETPROOF connection fix - eliminates "Receiving end does not exist" errors
-async function bulletproofStartInspection(tabId) {
-  const inspectorStatusDiv = document.getElementById('inspector-status');
-  
-  try {
-    console.log("Element AI Extractor: BULLETPROOF - Starting reliable inspection...");
-    inspectorStatusDiv.textContent = '🔄 Loading...';
-    
-    // ALWAYS inject content script first - this eliminates connection errors
-    console.log("Element AI Extractor: BULLETPROOF - Injecting content script...");
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['contentScript.js']
-    });
-    
-    console.log("Element AI Extractor: BULLETPROOF - Content script loaded, waiting for initialization...");
-    inspectorStatusDiv.textContent = '🔄 Initializing...';
-    
-    // Wait for content script to initialize properly
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Start inspection directly without complex testing
-    console.log("Element AI Extractor: BULLETPROOF - Starting inspection");
-    inspectorStatusDiv.textContent = '✅ Ready! Click an element to inspect...';
-    
-    // Call the existing startInspectionDirectly function
-    startInspectionDirectly(tabId);
-    
-    console.log("Element AI Extractor: BULLETPROOF - Inspection started successfully");
-    
-  } catch (error) {
-    console.error("Element AI Extractor: BULLETPROOF - Error:", error);
-    inspectorStatusDiv.textContent = '❌ Failed to start. Please reload and try again.';
-    resetInspectionState();
-  }
-}

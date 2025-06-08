@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elements Extractor - Unified Locator Test</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px; 
+            line-height: 1.6; 
+        }
+        .test-section { 
+            margin: 30px 0; 
+            padding: 20px; 
+            border: 2px solid #e0e6ed; 
+            border-radius: 12px; 
+            background: #f8f9fa;
+        }
+        .nav-link { 
+            color: #007bff; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            margin: 0 8px; 
+            border-radius: 6px;
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            display: inline-block;
+        }
+        .nav-link:hover { 
+            background: #b8daff; 
+            text-decoration: none;
+        }
+        .nav-link.active {
+            background: #007bff;
+            color: white;
+        }
+        .btn { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn-primary { 
+            background: #007bff; 
+            color: white; 
+        }
+        .btn-success { 
+            background: #28a745; 
+            color: white; 
+        }
+        .btn-warning { 
+            background: #ffc107; 
+            color: #212529; 
+        }
+        .card { 
+            background: white; 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .badge { 
+            background: #6c757d; 
+            color: white; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+        .badge.new { background: #28a745; }
+        .badge.improved { background: #17a2b8; }
+        .highlight-expected { 
+            background: #d4edda; 
+            border: 2px solid #28a745; 
+            padding: 4px 8px; 
+            border-radius: 4px;
+        }
+        .instruction { 
+            background: #fff3cd; 
+            border: 1px solid #ffeaa7; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 15px 0;
+        }
+        code { 
+            background: #f8f9fa; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: #e83e8c;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .old-approach { background: #f8d7da; }
+        .new-approach { background: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Elements Extractor - Unified Locator Generation Test</h1>
+    <p><strong>Goal:</strong> Verify that both "Elements Extractor Locator" and "Inspect Element Locator" now generate the <em>same superior locators</em>.</p>
+
+    <div class="instruction">
+        <h3>🧪 Testing Instructions</h3>
+        <ol>
+            <li><strong>Open Elements Extractor extension</strong> (click the extension icon)</li>
+            <li><strong>Test "Elements Extractor Locator":</strong> Click "Extract Elements" and check the locators in the table</li>
+            <li><strong>Test "Inspect Element Locator":</strong> Click "Start Inspecting" and click on elements to see the locators</li>
+            <li><strong>Compare results:</strong> Both should now generate the same high-quality locators</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Navigation Links Test (Primary Test Case)</h2>
+        <p>These elements should generate <code>.nav-link[href="#examples"]</code> instead of <code>a[href="#examples"]</code></p>
+        
+        <nav role="navigation" style="margin: 20px 0;">
+            <a href="#examples" class="nav-link">
+                <span class="highlight-expected">Examples</span>
+                <span class="badge improved">PRIORITY TEST</span>
+            </a>
+            <a href="#docs" class="nav-link">Documentation</a>
+            <a href="#api" class="nav-link active">API Reference</a>
+            <a href="#guides" class="nav-link">Guides</a>
+        </nav>
+
+        <div class="card">
+            <h4>Expected Results:</h4>
+            <table class="comparison-table">
+                <tr>
+                    <th>Locator Type</th>
+                    <th>Old Approach</th>
+                    <th>New Approach (Enhanced)</th>
+                    <th>Strength</th>
+                </tr>
+                <tr>
+                    <td><strong>Examples Link</strong></td>
+                    <td class="old-approach"><code>a[href="#examples"]</code></td>
+                    <td class="new-approach"><code>.nav-link[href="#examples"]</code></td>
+                    <td>92 (HIGHEST)</td>
+                </tr>
+                <tr>
+                    <td><strong>API Link</strong></td>
+                    <td class="old-approach"><code>a[href="#api"]</code></td>
+                    <td class="new-approach"><code>.nav-link.active[href="#api"]</code></td>
+                    <td>92 (HIGHEST)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🆔 Complex ID Elements Test</h2>
+        <p>These should use attribute selectors for complex IDs</p>
+        
+        <div class="card">
+            <button id="add-to-cart-test.allthethings()-t-shirt-(red)" class="btn btn-primary">
+                Complex ID Button
+                <span class="badge new">SPECIAL CHARS</span>
+            </button>
+            
+            <input id="user[email]@domain.com" type="email" placeholder="Email with complex ID">
+            
+            <div id="section#1:content(special)" class="card">
+                Element with Special Characters in ID
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Expected ID Locator Format:</h4>
+            <ul>
+                <li><code>[id="add-to-cart-test.allthethings()-t-shirt-(red)"]</code> ✅</li>
+                <li><code>[id="user[email]@domain.com"]</code> ✅</li>
+                <li><code>[id="section#1:content(special)"]</code> ✅</li>
+            </ul>
+            <p><strong>NOT:</strong> <code>#add-to-cart-test.allthethings()-t-shirt-(red)</code> ❌ (would break)</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔘 Form Elements Test</h2>
+        
+        <form class="card">
+            <div style="margin: 10px 0;">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" class="form-control">
+            </div>
+            
+            <div style="margin: 10px 0;">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" class="form-control">
+            </div>
+            
+            <div style="margin: 10px 0;">
+                <button type="submit" class="btn btn-success">Submit Form</button>
+                <button type="button" class="btn btn-warning" onclick="alert('Test button clicked!')">Test Action</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>🌟 Advanced Elements Test</h2>
+        
+        <div class="card">
+            <h4>Accessibility Elements:</h4>
+            <button aria-label="Close dialog" class="btn">✕</button>
+            <div role="alert" aria-live="polite">Status message</div>
+            <nav role="navigation" aria-label="Main navigation">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#about" class="nav-link">About</a>
+            </nav>
+        </div>
+
+        <div class="card">
+            <h4>Test Automation Attributes:</h4>
+            <button data-testid="login-button" class="btn btn-primary">Login</button>
+            <input data-qa="search-input" type="text" placeholder="Search...">
+            <div data-cy="result-count">42 results</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Success Criteria</h2>
+        
+        <div class="card">
+            <h4>The Enhanced System Should:</h4>
+            <ul>
+                <li>✅ Generate <code>.nav-link[href="#examples"]</code> for navigation links (Class+Href combination)</li>
+                <li>✅ Use <code>[id="complex-id"]</code> format for IDs with special characters</li>
+                <li>✅ Prioritize test attributes (data-testid, data-qa, data-cy) when available</li>
+                <li>✅ Prefer accessibility attributes (aria-label, role) over generic CSS</li>
+                <li>✅ Show consistent results between both extraction methods</li>
+                <li>✅ Assign higher strength scores (92) to Class+Href combinations</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h4>Both Systems Should Now Be Unified:</h4>
+            <p><strong>"Elements Extractor Locator"</strong> (bulk extraction) and <strong>"Inspect Element Locator"</strong> (individual inspection) should generate the same locators for the same elements.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add visual feedback for testing
+        console.log('🧪 Enhanced Locator Test Page Loaded');
+        console.log('Ready for Elements Extractor testing...');
+        
+        // Add click handlers for demonstration
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log(`Clicked navigation link: ${this.textContent} -> ${this.href}`);
+                console.log(`Expected locator: .nav-link[href="${this.getAttribute('href')}"]`);
+            });
+        });
+        
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (this.id) {
+                    console.log(`Clicked button with ID: ${this.id}`);
+                    console.log(`Expected locator: [id="${this.id}"]`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -11,14 +11,32 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Element AI Extractor: Background script initialized');
 });
 
-// Add message listener to help debug connections
+// Add comprehensive message listener to help debug connections
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('Element AI Extractor: Background received message:', message);
+  console.log('Element AI Extractor: Message sender:', sender);
+  
   if (message.action === 'contentScriptLoaded') {
     console.log('Element AI Extractor: Content script loaded in tab', sender.tab?.id, 'URL:', message.url);
+    console.log('Element AI Extractor: Frame type:', message.frameType);
+    sendResponse({ status: 'acknowledged', timestamp: Date.now() });
   }
+  
   if (message.action === 'contentScriptReady') {
     console.log('Element AI Extractor: Content script ready in tab', sender.tab?.id, 'URL:', message.url);
+    if (message.duplicate) {
+      console.log('Element AI Extractor: This was a duplicate script load attempt');
+    }
+    sendResponse({ status: 'acknowledged', timestamp: Date.now() });
   }
+  
+  if (message.action === 'inspectionStoppedFromBadge') {
+    console.log('Element AI Extractor: Inspection stopped from badge in tab', sender.tab?.id);
+    sendResponse({ status: 'acknowledged' });
+  }
+  
+  // Always return true to keep the message channel open
+  return true;
 });
 
 

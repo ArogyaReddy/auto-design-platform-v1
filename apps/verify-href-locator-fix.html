@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Href Locator Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .nav-link { color: #007acc; text-decoration: none; display: block; padding: 8px; margin: 5px 0; border-left: 3px solid #007acc; }
+        .nav-link:hover { background: #f0f8ff; }
+        .test-results { background: #f8f9fa; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Href Locator Fix Verification</h1>
+        
+        <h2>Test Navigation Links</h2>
+        <nav class="sidebar">
+            <a href="#architecture" class="nav-link">Code Architecture</a>
+            <a href="#implementation" class="nav-link">Implementation Details</a>
+            <a href="#testing" class="nav-link">Testing Framework</a>
+            <a href="#deployment" class="nav-link">Deployment Guide</a>
+        </nav>
+        
+        <div class="test-results">
+            <h3>Manual Verification Tests</h3>
+            <p><strong>Expected Result:</strong> The Elements Extractor should now generate:<br>
+            <code class="success">.nav-link[href="#architecture"]</code></p>
+            
+            <p><strong>Previous (Broken) Result:</strong><br>
+            <code class="error">div.container:nth-child(1) > nav.sidebar > a.nav-link:nth-child(1)</code></p>
+            
+            <div id="test-output"></div>
+        </div>
+        
+        <h2>Instructions for Testing</h2>
+        <ol>
+            <li>Open the Element AI Extractor extension popup</li>
+            <li>Click "Extract Elements" to scan this page</li>
+            <li>Look for the "Code Architecture" link in the results</li>
+            <li>Check that the "Best Locator" is <code>.nav-link[href="#architecture"]</code></li>
+            <li>Try the Inspector mode to click on the "Code Architecture" link</li>
+            <li>Verify the generated locator matches the expected result</li>
+        </ol>
+        
+        <h2>Locator Priority Test Results</h2>
+        <div id="locator-tests"></div>
+    </div>
+
+    <script>
+        // Test functions to verify the fix
+        function runLocatorTests() {
+            console.log('🔧 Running Href Locator Fix Tests...');
+            
+            const testOutput = document.getElementById('test-output');
+            const locatorTests = document.getElementById('locator-tests');
+            
+            // Test 1: Verify manual locators work
+            const tests = [
+                {
+                    name: 'Class + Href Locator',
+                    selector: '.nav-link[href="#architecture"]',
+                    expected: 1
+                },
+                {
+                    name: 'Href Only Locator', 
+                    selector: 'a[href="#architecture"]',
+                    expected: 1
+                },
+                {
+                    name: 'Old Path-based Locator',
+                    selector: 'div.container:nth-child(1) > nav.sidebar > a.nav-link:nth-child(1)',
+                    expected: 1
+                }
+            ];
+            
+            let resultsHtml = '<h4>Locator Test Results:</h4>';
+            
+            tests.forEach(test => {
+                try {
+                    const elements = document.querySelectorAll(test.selector);
+                    const found = elements.length;
+                    const success = found === test.expected;
+                    
+                    resultsHtml += `
+                        <div style="margin: 10px 0; padding: 10px; border: 1px solid ${success ? '#28a745' : '#dc3545'}; border-radius: 3px;">
+                            <strong>${test.name}:</strong><br>
+                            <code>${test.selector}</code><br>
+                            <span class="${success ? 'success' : 'error'}">
+                                Found: ${found} elements (Expected: ${test.expected}) 
+                                ${success ? '✅ PASS' : '❌ FAIL'}
+                            </span>
+                        </div>
+                    `;
+                    
+                    console.log(`${test.name}: ${success ? 'PASS' : 'FAIL'} - Found ${found}, Expected ${test.expected}`);
+                } catch (e) {
+                    resultsHtml += `
+                        <div style="margin: 10px 0; padding: 10px; border: 1px solid #dc3545; border-radius: 3px;">
+                            <strong>${test.name}:</strong><br>
+                            <code>${test.selector}</code><br>
+                            <span class="error">❌ ERROR: ${e.message}</span>
+                        </div>
+                    `;
+                    console.error(`${test.name}: ERROR - ${e.message}`);
+                }
+            });
+            
+            locatorTests.innerHTML = resultsHtml;
+            
+            // Test 2: Verify that our priority works
+            const archLink = document.querySelector('a[href="#architecture"]');
+            if (archLink) {
+                let statusHtml = '<h4>Element Analysis:</h4>';
+                statusHtml += `<p><strong>Element found:</strong> ${archLink.tagName}.${archLink.className}</p>`;
+                statusHtml += `<p><strong>Has href:</strong> ${archLink.getAttribute('href')}</p>`;
+                statusHtml += `<p><strong>Has class:</strong> ${archLink.className}</p>`;
+                statusHtml += `<p><strong>Unique by class+href:</strong> ${document.querySelectorAll('.nav-link[href="#architecture"]').length === 1 ? 'YES' : 'NO'}</p>`;
+                
+                testOutput.innerHTML = statusHtml;
+                
+                console.log('✅ Element analysis completed');
+                console.log('Element:', archLink);
+                console.log('Classes:', archLink.className);
+                console.log('Href:', archLink.getAttribute('href'));
+            } else {
+                testOutput.innerHTML = '<p class="error">❌ Could not find test element</p>';
+                console.error('❌ Test element not found');
+            }
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runLocatorTests, 500);
+        });
+        
+        // Make functions available globally for console testing
+        window.runLocatorTests = runLocatorTests;
+    </script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Connection Debugging Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .status {
+            font-weight: bold;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .test-element {
+            padding: 15px;
+            margin: 10px;
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-element:hover {
+            background: #bbdefb;
+            transform: scale(1.02);
+        }
+        .log-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Extension Connection Debug Test</h1>
+        <p>This page will help us test and debug the Element AI Extractor extension connection issues.</p>
+        
+        <div class="test-section">
+            <h2>🧪 Connection Tests</h2>
+            <button onclick="testExtensionConnection()">Test Extension Connection</button>
+            <button onclick="simulateRepeatedClicks()">Simulate Repeated Clicks</button>
+            <button onclick="testAfterPageReload()">Test After Reload</button>
+            <button onclick="clearLogs()">Clear Logs</button>
+            
+            <div id="connectionStatus" class="status info">Ready to test...</div>
+            
+            <h3>Debug Log:</h3>
+            <div id="debugLog" class="log-output">Waiting for tests...\n</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Test Elements</h2>
+            <p>Use these elements to test the inspection functionality:</p>
+            
+            <div class="test-element" id="test-element-1">
+                <h3>Test Element 1</h3>
+                <p>This is a simple test element with an ID.</p>
+                <button onclick="alert('Button 1 clicked!')">Click Me</button>
+            </div>
+            
+            <div class="test-element" data-testid="special-element">
+                <h3>Test Element 2</h3>
+                <p>This element has a data-testid attribute.</p>
+                <input type="text" placeholder="Test input field" />
+            </div>
+            
+            <div class="test-element">
+                <h3>Test Element 3 (No ID)</h3>
+                <p>This element has no ID - tests complex selector generation.</p>
+                <select>
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+            
+            <form class="test-element">
+                <h3>Form Test Element</h3>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" />
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" />
+                <button type="button">Submit</button>
+            </form>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 Extension Status Monitor</h2>
+            <div id="extensionInfo" class="status info">Extension info will appear here...</div>
+            <button onclick="checkExtensionStatus()">Check Extension Status</button>
+            <button onclick="monitorConnectionHealth()">Monitor Connection (30s)</button>
+        </div>
+    </div>
+
+    <script>
+        let logContainer = document.getElementById('debugLog');
+        let statusDiv = document.getElementById('connectionStatus');
+        let extensionInfoDiv = document.getElementById('extensionInfo');
+        let testCount = 0;
+        let monitoringInterval = null;
+
+        function log(message, level = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}\n`;
+            logContainer.textContent += logMessage;
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(logMessage.trim());
+        }
+
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            log(`Status: ${message}`, type);
+        }
+
+        function clearLogs() {
+            logContainer.textContent = 'Logs cleared...\n';
+            updateStatus('Ready for new tests...', 'info');
+        }
+
+        async function testExtensionConnection() {
+            testCount++;
+            log(`Starting connection test #${testCount}`, 'info');
+            updateStatus('Testing extension connection...', 'warning');
+            
+            try {
+                // Test if extension API is available
+                if (typeof chrome === 'undefined' || !chrome.runtime) {
+                    throw new Error('Chrome extension APIs not available');
+                }
+                
+                log('Chrome extension APIs are available', 'success');
+                log(`Extension ID: ${chrome.runtime.id}`, 'info');
+                
+                // Try to send a message to the extension
+                const testMessage = { action: 'ping', timestamp: Date.now(), test: testCount };
+                log(`Sending ping message: ${JSON.stringify(testMessage)}`, 'info');
+                
+                chrome.runtime.sendMessage(testMessage, (response) => {
+                    if (chrome.runtime.lastError) {
+                        log(`Extension communication error: ${chrome.runtime.lastError.message}`, 'error');
+                        updateStatus(`Connection failed: ${chrome.runtime.lastError.message}`, 'error');
+                    } else {
+                        log(`Extension responded: ${JSON.stringify(response)}`, 'success');
+                        updateStatus('Connection successful!', 'success');
+                    }
+                });
+                
+            } catch (error) {
+                log(`Connection test failed: ${error.message}`, 'error');
+                updateStatus(`Test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateRepeatedClicks() {
+            log('Starting repeated click simulation...', 'info');
+            updateStatus('Simulating repeated extension usage...', 'warning');
+            
+            for (let i = 1; i <= 5; i++) {
+                log(`Repeated test iteration ${i}/5`, 'info');
+                
+                try {
+                    chrome.runtime.sendMessage({ 
+                        action: 'ping', 
+                        iteration: i, 
+                        timestamp: Date.now() 
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            log(`Iteration ${i} failed: ${chrome.runtime.lastError.message}`, 'error');
+                        } else {
+                            log(`Iteration ${i} success: ${JSON.stringify(response)}`, 'success');
+                        }
+                    });
+                } catch (error) {
+                    log(`Iteration ${i} exception: ${error.message}`, 'error');
+                }
+                
+                // Wait between attempts
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            updateStatus('Repeated click simulation completed', 'info');
+        }
+
+        function testAfterPageReload() {
+            log('Preparing for page reload test...', 'info');
+            updateStatus('Page will reload in 3 seconds...', 'warning');
+            
+            // Store test state
+            sessionStorage.setItem('extensionTestAfterReload', 'true');
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }
+
+        function checkExtensionStatus() {
+            log('Checking detailed extension status...', 'info');
+            
+            try {
+                const status = {
+                    chromeAvailable: typeof chrome !== 'undefined',
+                    runtimeAvailable: !!(chrome && chrome.runtime),
+                    extensionId: chrome?.runtime?.id || 'N/A',
+                    userAgent: navigator.userAgent.substring(0, 100),
+                    url: window.location.href,
+                    timestamp: new Date().toISOString()
+                };
+                
+                extensionInfoDiv.innerHTML = `
+                    <strong>Extension Status:</strong><br>
+                    Chrome Available: ${status.chromeAvailable ? '✅' : '❌'}<br>
+                    Runtime Available: ${status.runtimeAvailable ? '✅' : '❌'}<br>
+                    Extension ID: ${status.extensionId}<br>
+                    Current URL: ${status.url}<br>
+                    Timestamp: ${status.timestamp}
+                `;
+                
+                log(`Extension status: ${JSON.stringify(status, null, 2)}`, 'info');
+                
+            } catch (error) {
+                log(`Error checking extension status: ${error.message}`, 'error');
+                extensionInfoDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        function monitorConnectionHealth() {
+            log('Starting 30-second connection health monitor...', 'info');
+            updateStatus('Monitoring connection health...', 'warning');
+            
+            let pingCount = 0;
+            let successCount = 0;
+            let errorCount = 0;
+            
+            monitoringInterval = setInterval(() => {
+                pingCount++;
+                
+                try {
+                    chrome.runtime.sendMessage({ 
+                        action: 'ping', 
+                        monitor: true, 
+                        pingNumber: pingCount,
+                        timestamp: Date.now() 
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            errorCount++;
+                            log(`Monitor ping ${pingCount} failed: ${chrome.runtime.lastError.message}`, 'error');
+                        } else {
+                            successCount++;
+                            log(`Monitor ping ${pingCount} success`, 'success');
+                        }
+                        
+                        updateStatus(`Monitoring: ${successCount} success, ${errorCount} errors`, 
+                                   errorCount === 0 ? 'success' : 'warning');
+                    });
+                } catch (error) {
+                    errorCount++;
+                    log(`Monitor ping ${pingCount} exception: ${error.message}`, 'error');
+                }
+                
+            }, 2000); // Ping every 2 seconds
+            
+            // Stop monitoring after 30 seconds
+            setTimeout(() => {
+                clearInterval(monitoringInterval);
+                log(`Monitoring completed. Total: ${pingCount}, Success: ${successCount}, Errors: ${errorCount}`, 'info');
+                updateStatus(`Monitoring completed: ${successCount}/${pingCount} successful`, 
+                           errorCount === 0 ? 'success' : 'error');
+            }, 30000);
+        }
+
+        // Check if this is a post-reload test
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('extensionTestAfterReload') === 'true') {
+                sessionStorage.removeItem('extensionTestAfterReload');
+                log('Page reloaded - running post-reload test...', 'info');
+                setTimeout(testExtensionConnection, 1000);
+            }
+            
+            // Initial status check
+            setTimeout(checkExtensionStatus, 500);
+        });
+
+        // Monitor for extension errors
+        window.addEventListener('error', (event) => {
+            log(`Page error: ${event.message} at ${event.filename}:${event.lineno}`, 'error');
+        });
+
+        // Initial log
+        log('Extension connection test page loaded', 'info');
+        log('Open the browser console to see additional debugging info', 'info');
+    </script>
+</body>
+</html>

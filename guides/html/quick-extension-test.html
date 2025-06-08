@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Extension Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-box { 
+            padding: 20px; 
+            margin: 10px; 
+            border: 2px solid #333; 
+            background: #f0f0f0; 
+            cursor: pointer;
+        }
+        .test-box:hover { background: #e0e0e0; }
+        .instructions {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>🧪 Quick Extension Connection Test</h2>
+        <p><strong>Instructions:</strong></p>
+        <ol>
+            <li>Click the Element AI Extractor extension icon</li>
+            <li>Click "Inspect Element" in the popup</li>
+            <li>If NO connection errors appear, the fix is working!</li>
+            <li>Click on any test element below to verify inspection works</li>
+        </ol>
+    </div>
+
+    <div class="test-box" id="test1">
+        <h3>Test Element 1 (with ID)</h3>
+        <p>This element has an ID for easy targeting.</p>
+    </div>
+
+    <div class="test-box" data-testid="test2">
+        <h3>Test Element 2 (with data-testid)</h3>
+        <p>This element uses data-testid attribute.</p>
+    </div>
+
+    <div class="test-box">
+        <h3>Test Element 3 (no ID)</h3>
+        <p>This element has no ID - tests CSS selector generation.</p>
+        <button>Click me!</button>
+    </div>
+
+    <script>
+        console.log("Extension test page loaded");
+        console.log("Ready for extension testing!");
+        
+        // Log any errors
+        window.addEventListener('error', (e) => {
+            console.error('Page error:', e.error);
+        });
+    </script>
+</body>
+</html>
