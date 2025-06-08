@@ -64,6 +64,40 @@ const aiTips = [
 // ---- Element Inspector State ----
 let isInspectingGlobal = false; // Tracks if inspect mode is active
 
+// ---- Global Helper Functions ----
+// Helper function to start inspection directly (when content script is already loaded)
+function startInspectionDirectly(tabId) {
+  const inspectorStatusDiv = document.getElementById('inspector-status');
+  chrome.tabs.sendMessage(tabId, {
+    action: "startInspectingAiExtractor"
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error("Element AI Extractor: Unexpected error during inspection start:", chrome.runtime.lastError.message);
+      inspectorStatusDiv.textContent = '❌ Error: Failed to start inspection.';
+      resetInspectionState();
+    } else if (response && response.status === 'error') {
+      console.warn("Element AI Extractor: Content script reported an error:", response.message);
+      inspectorStatusDiv.textContent = `❌ Error: ${response.message}`;
+      resetInspectionState();
+    } else if (response && response.status === 'listening') {
+      console.log("Element AI Extractor: Content script is now listening for inspection.");
+      inspectorStatusDiv.textContent = '🔬 Inspect Mode: Click an element on the page.';
+    }
+  });
+}
+
+// Helper function to reset inspection state
+function resetInspectionState() {
+  isInspectingGlobal = false;
+  // Clear inspection state from storage
+  chrome.storage.local.set({ isInspecting: false });
+  const inspectElementBtn = document.getElementById('inspectElement');
+  if (inspectElementBtn) {
+    inspectElementBtn.classList.remove('inspecting');
+    inspectElementBtn.textContent = '🔬 Inspect Element';
+  }
+}
+
 // ---- Pagination State ----
 let currentPage = 1;
 let itemsPerPage = 12;
@@ -1751,27 +1785,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Helper function to start inspection directly (when content script is already loaded)
-  function startInspectionDirectly(tabId) {
-    const inspectorStatusDiv = document.getElementById('inspector-status');
-    chrome.tabs.sendMessage(tabId, {
-      action: "startInspectingAiExtractor"
-    }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Element AI Extractor: Unexpected error during inspection start:", chrome.runtime.lastError.message);
-        inspectorStatusDiv.textContent = '❌ Error: Failed to start inspection.';
-        resetInspectionState();
-      } else if (response && response.status === 'error') {
-        console.warn("Element AI Extractor: Content script reported an error:", response.message);
-        inspectorStatusDiv.textContent = `❌ Error: ${response.message}`;
-        resetInspectionState();
-      } else if (response && response.status === 'listening') {
-        console.log("Element AI Extractor: Content script is now listening for inspection.");
-        inspectorStatusDiv.textContent = '🔬 Inspect Mode: Click an element on the page.';
-      }
-    });
-  }
-
   // Helper function to start inspection after manual injection
   function startInspectionAfterInjection(tabId) {
     const inspectorStatusDiv = document.getElementById('inspector-status');
@@ -1790,16 +1803,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resetInspectionState();
       }
     });
-  }
-
-  // Helper function to reset inspection state
-  function resetInspectionState() {
-    isInspectingGlobal = false;
-    // Clear inspection state from storage
-    chrome.storage.local.set({ isInspecting: false });
-    const inspectElementBtn = document.getElementById('inspectElement');
-    inspectElementBtn.classList.remove('inspecting');
-    inspectElementBtn.textContent = '🔬 Inspect Element';
   }
 
   // Note: We intentionally do NOT stop inspection when popup closes
