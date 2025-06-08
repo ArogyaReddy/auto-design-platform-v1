@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow DOM Test Runner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .test-card {
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafbfc;
+        }
+        .test-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .test-card p {
+            margin: 0 0 15px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+        .test-button:hover {
+            background: #5a67d8;
+        }
+        .test-button.secondary {
+            background: #718096;
+        }
+        .test-button.secondary:hover {
+            background: #4a5568;
+        }
+        .results {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .results h4 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+        }
+        .results pre {
+            background: white;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status.ready {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .status.loading {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .iframe-container {
+            margin-top: 30px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 600px;
+        }
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .url-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Shadow DOM Test Runner</h1>
+            <p>Comprehensive testing environment for the Element AI Extractor extension</p>
+            <span class="status" id="appStatus">Loading...</span>
+        </div>
+        
+        <div class="content">
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>🌳 Shadow DOM Analysis</h3>
+                    <p>Analyze the Shadow DOM structure and extract all shadow roots with their nesting levels.</p>
+                    <button class="test-button" onclick="runShadowDOMAnalysis()">Analyze Structure</button>
+                    <button class="test-button secondary" onclick="exportShadowDOM()">Export JSON</button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>🎯 Element Extraction</h3>
+                    <p>Extract all interactive elements from both regular DOM and Shadow DOM components.</p>
+                    <button class="test-button" onclick="extractAllElements()">Extract Elements</button>
+                    <button class="test-button secondary" onclick="findSpecificElements()">Find Test IDs</button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>🔄 Component Interaction</h3>
+                    <p>Test component interactions and event handling across nested Shadow DOM boundaries.</p>
+                    <button class="test-button" onclick="testInteractions()">Test Interactions</button>
+                    <button class="test-button secondary" onclick="simulateUserFlow()">User Flow</button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>♿ Accessibility Check</h3>
+                    <p>Run accessibility audit across all Shadow DOM components to identify issues.</p>
+                    <button class="test-button" onclick="runAccessibilityCheck()">Run Audit</button>
+                    <button class="test-button secondary" onclick="exportA11yReport()">Export Report</button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>⚡ Performance Monitor</h3>
+                    <p>Monitor performance metrics and memory usage of the Shadow DOM application.</p>
+                    <button class="test-button" onclick="getPerformanceMetrics()">Get Metrics</button>
+                    <button class="test-button secondary" onclick="startMonitoring()">Live Monitor</button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>🎬 Demo Scenarios</h3>
+                    <p>Run pre-defined scenarios to test various application states and interactions.</p>
+                    <button class="test-button" onclick="runGuidedTour()">Guided Tour</button>
+                    <button class="test-button secondary" onclick="resetApplication()">Reset App</button>
+                </div>
+            </div>
+            
+            <div class="results" id="testResults" style="display: none;">
+                <h4>Test Results</h4>
+                <pre id="resultOutput"></pre>
+            </div>
+            
+            <div class="iframe-container">
+                <div class="controls">
+                    <input type="text" class="url-input" id="appUrl" value="./index.html" readonly>
+                    <button class="test-button" onclick="reloadApp()">🔄 Reload</button>
+                    <button class="test-button secondary" onclick="openInNewTab()">🔗 New Tab</button>
+                </div>
+                <iframe id="testApp" src="./index.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testApp = null;
+        let testUtils = null;
+        let monitoringInterval = null;
+
+        // Initialize when iframe loads
+        document.getElementById('testApp').addEventListener('load', function() {
+            testApp = this.contentWindow;
+            
+            // Wait for app to initialize
+            setTimeout(() => {
+                testUtils = testApp.testShadowDOM;
+                updateStatus();
+            }, 2000);
+        });
+
+        function updateStatus() {
+            const statusEl = document.getElementById('appStatus');
+            if (testUtils) {
+                statusEl.textContent = 'Ready';
+                statusEl.className = 'status ready';
+            } else {
+                statusEl.textContent = 'Loading...';
+                statusEl.className = 'status loading';
+            }
+        }
+
+        function showResults(title, data) {
+            const resultsEl = document.getElementById('testResults');
+            const outputEl = document.getElementById('resultOutput');
+            
+            resultsEl.style.display = 'block';
+            outputEl.textContent = `${title}\n\n${JSON.stringify(data, null, 2)}`;
+            
+            // Scroll to results
+            resultsEl.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function runShadowDOMAnalysis() {
+            if (!testUtils) {
+                alert('Application not ready. Please wait...');
+                return;
+            }
+            
+            const shadowRoots = testUtils.getAllShadowRoots();
+            const analysis = {
+                totalShadowRoots: shadowRoots.length,
+                componentTypes: [...new Set(shadowRoots.map(sr => sr.hostTag))],
+                nestingLevels: calculateNestingLevels(shadowRoots),
+                shadowRoots: shadowRoots.map(sr => ({
+                    host: sr.hostTag,
+                    mode: sr.shadowRoot.mode,
+                    childCount: sr.shadowRoot.children.length
+                }))
+            };
+            
+            showResults('Shadow DOM Analysis', analysis);
+        }
+
+        function calculateNestingLevels(shadowRoots) {
+            const levels = {};
+            shadowRoots.forEach(sr => {
+                let level = 0;
+                let parent = sr.host.parentElement;
+                
+                while (parent) {
+                    if (parent.shadowRoot) level++;
+                    parent = parent.parentElement;
+                }
+                
+                levels[sr.hostTag] = Math.max(levels[sr.hostTag] || 0, level);
+            });
+            
+            return levels;
+        }
+
+        function extractAllElements() {
+            if (!testUtils) return;
+            
+            const elements = testUtils.extractAllElements();
+            const summary = {
+                totalElements: elements.length,
+                regularDOM: elements.filter(e => e.type === 'regular').length,
+                shadowDOM: elements.filter(e => e.type === 'shadow').length,
+                interactive: elements.filter(e => e.hasEventListeners).length,
+                withTestIds: elements.filter(e => e.testId).length,
+                byComponent: {}
+            };
+            
+            elements.filter(e => e.type === 'shadow').forEach(e => {
+                summary.byComponent[e.hostComponent] = (summary.byComponent[e.hostComponent] || 0) + 1;
+            });
+            
+            showResults('Element Extraction Summary', {
+                summary,
+                elements: elements.slice(0, 50) // Show first 50 for readability
+            });
+        }
+
+        function findSpecificElements() {
+            if (!testUtils) return;
+            
+            const testIdElements = testUtils.findElementInShadowDOM('[data-testid]');
+            const buttonElements = testUtils.findElementInShadowDOM('button');
+            const inputElements = testUtils.findElementInShadowDOM('input');
+            
+            const results = {
+                elementsWithTestIds: testIdElements.map(e => ({
+                    testId: e.element.getAttribute('data-testid'),
+                    tag: e.element.tagName.toLowerCase(),
+                    component: e.hostComponent
+                })),
+                buttons: buttonElements.length,
+                inputs: inputElements.length,
+                totalInteractive: testIdElements.length + buttonElements.length + inputElements.length
+            };
+            
+            showResults('Specific Element Search', results);
+        }
+
+        function testInteractions() {
+            if (!testUtils) return;
+            
+            const interactions = [
+                { component: 'notification-system', action: 'test-notification', data: { type: 'info', message: 'Test from runner' }},
+                { component: 'chat-widget', action: 'new-message', data: { sender: 'Test Runner', message: 'Hello from test!' }},
+                { component: 'dashboard-widget', action: 'metric-update', data: { metric: 'test', value: 999 }}
+            ];
+            
+            interactions.forEach((interaction, index) => {
+                setTimeout(() => {
+                    testUtils.simulateInteraction(interaction.component, interaction.action, interaction.data);
+                }, index * 1000);
+            });
+            
+            showResults('Interaction Tests', {
+                message: 'Triggered test interactions. Check the app for responses.',
+                interactions
+            });
+        }
+
+        function simulateUserFlow() {
+            if (!testUtils) return;
+            
+            const flow = [
+                'Opening navigation menu...',
+                'Filling out form...',
+                'Adding items to cart...',
+                'Opening chat...',
+                'Viewing notifications...'
+            ];
+            
+            flow.forEach((step, index) => {
+                setTimeout(() => {
+                    console.log(`Step ${index + 1}: ${step}`);
+                    
+                    switch (index) {
+                        case 0:
+                            // Simulate navigation interaction
+                            testUtils.simulateInteraction('header-nav', 'menu-open', {});
+                            break;
+                        case 1:
+                            // Focus form
+                            const formInputs = testUtils.findElementInShadowDOM('input[type="email"]');
+                            if (formInputs.length > 0) formInputs[0].element.focus();
+                            break;
+                        case 2:
+                            // Add to cart
+                            testApp.document.dispatchEvent(new testApp.CustomEvent('add-to-cart', {
+                                detail: { id: 999, name: 'Test Product', price: 99.99, quantity: 1 }
+                            }));
+                            break;
+                        case 3:
+                            // Open chat
+                            const chatElements = testUtils.findElementInShadowDOM('[data-testid="chat-trigger"]');
+                            if (chatElements.length > 0) chatElements[0].element.click();
+                            break;
+                        case 4:
+                            // Show notification
+                            testUtils.simulateInteraction('notification-system', 'show', { 
+                                type: 'success', 
+                                title: 'User Flow Complete',
+                                message: 'All test steps completed successfully!'
+                            });
+                            break;
+                    }
+                }, index * 2000);
+            });
+            
+            showResults('User Flow Simulation', {
+                message: 'Running user flow simulation...',
+                steps: flow
+            });
+        }
+
+        function runAccessibilityCheck() {
+            if (!testUtils) return;
+            
+            const issues = testUtils.runAccessibilityCheck();
+            const summary = {
+                totalIssues: issues.length,
+                errors: issues.filter(i => i.severity === 'error').length,
+                warnings: issues.filter(i => i.severity === 'warning').length,
+                byType: {}
+            };
+            
+            issues.forEach(issue => {
+                summary.byType[issue.type] = (summary.byType[issue.type] || 0) + 1;
+            });
+            
+            showResults('Accessibility Audit', {
+                summary,
+                issues: issues.slice(0, 20) // Show first 20 issues
+            });
+        }
+
+        function exportA11yReport() {
+            if (!testUtils) return;
+            
+            const issues = testUtils.runAccessibilityCheck();
+            const report = {
+                timestamp: new Date().toISOString(),
+                totalIssues: issues.length,
+                issues
+            };
+            
+            downloadJSON(report, 'accessibility-report.json');
+        }
+
+        function getPerformanceMetrics() {
+            if (!testApp?.shadowDOMApp) return;
+            
+            const metrics = testApp.shadowDOMApp.getPerformanceMetrics();
+            const componentStates = testUtils.getComponentStates();
+            
+            showResults('Performance Metrics', {
+                performance: metrics,
+                components: componentStates
+            });
+        }
+
+        function startMonitoring() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+                monitoringInterval = null;
+                return;
+            }
+            
+            monitoringInterval = setInterval(() => {
+                if (testApp?.shadowDOMApp) {
+                    const metrics = testApp.shadowDOMApp.getPerformanceMetrics();
+                    console.log('Performance Update:', metrics);
+                }
+            }, 5000);
+            
+            showResults('Live Monitoring', {
+                message: 'Started live monitoring. Check console for updates. Click again to stop.'
+            });
+        }
+
+        function runGuidedTour() {
+            if (!testApp?.shadowDOMApp) return;
+            
+            testApp.shadowDOMApp.startGuidedTour();
+            showResults('Guided Tour', {
+                message: 'Started guided tour in the application. Watch for notifications.'
+            });
+        }
+
+        function resetApplication() {
+            reloadApp();
+            showResults('Application Reset', {
+                message: 'Application has been reloaded.'
+            });
+        }
+
+        function exportShadowDOM() {
+            if (!testUtils) return;
+            
+            const shadowRoots = testUtils.getAllShadowRoots();
+            const elements = testUtils.extractAllElements();
+            
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                shadowRoots: shadowRoots.length,
+                totalElements: elements.length,
+                structure: shadowRoots,
+                elements
+            };
+            
+            downloadJSON(exportData, 'shadow-dom-export.json');
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function reloadApp() {
+            document.getElementById('testApp').src = document.getElementById('appUrl').value;
+            setTimeout(updateStatus, 2000);
+        }
+
+        function openInNewTab() {
+            window.open(document.getElementById('appUrl').value, '_blank');
+        }
+
+        // Initialize status
+        updateStatus();
+    </script>
+</body>
+</html>

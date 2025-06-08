@@ -48,7 +48,7 @@ body {
 .ai-tip {
     background: linear-gradient(95deg, #23286d 70%, #1d255b 100%);
     color: #ffe682;
-    font-size: 1.08rem;
+    font-size: 1.0rem;
     font-style: italic;
     margin-bottom: 10px;
     margin-top: 2px;
@@ -364,6 +364,16 @@ body {
     padding: 1.5px 7px;
     font-size: 0.97em;
     font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.host-path {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #ffe682;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .copy-btn,

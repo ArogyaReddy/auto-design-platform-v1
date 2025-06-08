@@ -146,7 +146,18 @@ function getCurrentFilters() {
 // ---- Utility: Check if URL is restricted ----
 function isRestrictedUrl(url) {
   if (!url) return true;
-  const restrictedProtocols = ['chrome:', 'chrome-extension:', 'moz-extension:', 'edge:', 'about:', 'data:', 'javascript:', 'file:'];
+  
+  // Allow localhost and file URLs for testing
+  if (url.startsWith('http://localhost') || url.startsWith('http://127.0.0.1')) {
+    return false;
+  }
+  
+  // Allow file URLs if the extension has permission
+  if (url.startsWith('file://')) {
+    return false; // Let the browser handle the permission check
+  }
+  
+  const restrictedProtocols = ['chrome:', 'chrome-extension:', 'moz-extension:', 'edge:', 'about:', 'data:', 'javascript:'];
   const restrictedPages = ['chrome.google.com/webstore', 'addons.mozilla.org', 'microsoftedge.microsoft.com'];
   
   return restrictedProtocols.some(protocol => url.startsWith(protocol)) ||
@@ -191,40 +202,89 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
     target: {tabId},
     args: [locator, inShadowDOM],
     func: (locator, inShadowDOM) => {
-      let el = null;
-      if (inShadowDOM) {
-        function searchShadowRoots(node, selector) {
-          if (!node) return null;
-          if (node.querySelector) {
-            let found = node.querySelector(selector);
-            if (found) return found;
+      // #FUNCTION: findElementWithShadowSupport
+      // #DESCRIPTION: Enhanced element finding with Shadow DOM path support
+      function findElementWithShadowSupport(locatorStr, isInShadow) {
+        if (!locatorStr) return null;
+        
+        // #NOTE: Handle Shadow DOM path syntax "host >> inner"
+        if (isInShadow && typeof locatorStr === 'string' && locatorStr.includes(' >> ')) {
+          try {
+            const pathSegments = locatorStr.split(' >> ');
+            const finalInnerSelector = pathSegments.pop();
+            let currentNode = document;
+            
+            // #IMPORTANT: Traverse through shadow host path
+            for (const segment of pathSegments) {
+              if (currentNode.querySelector) {
+                let host = currentNode.querySelector(segment);
+                if (host && host.shadowRoot) {
+                  currentNode = host.shadowRoot;
+                } else {
+                  console.warn('Element AI Extractor: Shadow host not found:', segment);
+                  return null;
+                }
+              } else {
+                console.warn('Element AI Extractor: Cannot query in current node:', currentNode);
+                return null;
+              }
+            }
+            
+            // #NOTE: Find final element in the deepest shadow root
+            if (currentNode.querySelector) {
+              return currentNode.querySelector(finalInnerSelector);
+            }
+          } catch (e) {
+            console.warn('Element AI Extractor: Error parsing shadow path:', e);
+            return null;
           }
-          let children = node.children || [];
-          for (let child of children) {
-            if (child.shadowRoot) {
-              let found = searchShadowRoots(child.shadowRoot, selector);
+        }
+        
+        // #NOTE: Legacy shadow search (recursive)
+        if (isInShadow) {
+          function searchShadowRoots(node, selector) {
+            if (!node) return null;
+            if (node.querySelector) {
+              let found = node.querySelector(selector);
               if (found) return found;
             }
+            let children = node.children || [];
+            for (let child of children) {
+              if (child.shadowRoot) {
+                let found = searchShadowRoots(child.shadowRoot, selector);
+                if (found) return found;
+              }
+            }
+            return null;
           }
+          return searchShadowRoots(document, locatorStr);
+        }
+        
+        // #NOTE: Standard element finding
+        try {
+          if (locatorStr.startsWith('#')) {
+            return document.querySelector(locatorStr);
+          } else if (locatorStr.startsWith('/')) {
+            let r = document.evaluate(locatorStr, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            return r.singleNodeValue;
+          } else {
+            return document.querySelector(locatorStr);
+          }
+        } catch (e) {
+          console.warn('Element AI Extractor: Error finding element:', e);
           return null;
         }
-        el = searchShadowRoots(document, locator);
-      } else {
-        if (locator.startsWith('#')) {
-          el = document.querySelector(locator);
-        } else if (locator.startsWith('/')) {
-          let r = document.evaluate(locator, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-          el = r.singleNodeValue;
-        } else {
-          el = document.querySelector(locator);
-        }
       }
+      
+      let el = findElementWithShadowSupport(locator, inShadowDOM);
       if (el) {
         el.scrollIntoView({behavior: 'smooth', block: 'center'});
         el.style.outline = '3px solid #ff0000';
         setTimeout(() => {
           el.style.outline = '';
         }, 1500);
+      } else {
+        console.warn('Element AI Extractor: Could not find element with locator:', locator);
       }
     }
   });
@@ -232,7 +292,7 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
 
 // ---- CSV Download Helper ----
 function downloadCSVFile(elementList, filename) {
-  const headers = ['Element Name', 'Element Type', 'Best Locator', 'ID', 'CSS', 'XPATH', 'In Shadow DOM'];
+  const headers = ['Element Name', 'Element Type', 'Best Locator', 'Locator Type', 'Strength', 'ID', 'CSS', 'XPATH', 'In Shadow DOM', 'Host Element Path'];
   const csvRows = [headers.join(',')].concat(elementList.map(row => headers.map(h => `"${(row[h] + '').replace(/"/g, '""')}"`).join(',')));
   const blob = new Blob([csvRows.join('\n')], {type: 'text/csv'});
   const url = URL.createObjectURL(blob);
@@ -396,13 +456,24 @@ function domExtractionFunction(filters) {
     filterCustom: '*'
   };
 
+  // #FUNCTION: isVisible - Enhanced visibility check
+  // #DESCRIPTION: Checks if an element is currently visible in the layout
   function isVisible(el) {
+    if (!el || !el.getBoundingClientRect) return false;
     const style = window.getComputedStyle(el);
-    return style && style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+    const rect = el.getBoundingClientRect();
+    
+    return style && 
+           style.display !== 'none' && 
+           style.visibility !== 'hidden' && 
+           style.opacity !== '0' &&
+           rect.width > 0 && 
+           rect.height > 0;
   }
 
-  // --- Get the best, most stable locator for the element (aligned with contentScript.js) ---
-  function getBestLocator(el) {
+  // #FUNCTION: getBestLocator - Enhanced for Shadow DOM context
+  // #DESCRIPTION: Get the best, most stable locator for the element with context awareness
+  function getBestLocator(el, contextNode = document) {
     // Priority order: ID > Test attributes > Aria attributes > Role > CSS > XPath
     
     // Helper function to check if ID contains special CSS characters
@@ -413,35 +484,56 @@ function domExtractionFunction(filters) {
     
     // 1. ID selector (most reliable)
     if (el.id && !el.id.match(/^[0-9]+$/)) {
-      // Use attribute selector for complex IDs with special characters
-      if (hasSpecialCssChars(el.id)) {
-        return {type: 'ID', locator: `[id="${el.id}"]`};
+      // Check uniqueness within the current context
+      const sameIdElements = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
+      if (sameIdElements.length === 1) {
+        // Use attribute selector for complex IDs with special characters
+        if (hasSpecialCssChars(el.id)) {
+          return {type: 'ID', locator: `[id="${el.id}"]`, reason: 'Unique ID (complex)'};
+        }
+        return {type: 'ID', locator: `#${el.id}`, reason: 'Unique ID'};
       }
-      return {type: 'ID', locator: `#${el.id}`};
     }
 
     // 2. Test attributes (very reliable for automation)
     for (const attr of ['data-testid', 'data-qa', 'data-cy']) {
       if (el.hasAttribute(attr)) {
-        return {type: attr, locator: `[${attr}="${el.getAttribute(attr)}"]`};
+        const value = el.getAttribute(attr);
+        const sameTestAttr = contextNode.querySelectorAll ? 
+          contextNode.querySelectorAll(`[${attr}="${value}"]`) : [];
+        if (sameTestAttr.length === 1) {
+          return {type: attr, locator: `[${attr}="${value}"]`, reason: 'Unique test attribute'};
+        }
       }
     }
 
     // 3. Name attribute (reliable for form elements)
     if (el.name) {
-      return {type: 'name', locator: `[name="${el.name}"]`};
+      const sameName = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`[name="${el.name}"]`) : [];
+      if (sameName.length === 1) {
+        return {type: 'name', locator: `[name="${el.name}"]`, reason: 'Unique name attribute'};
+      }
     }
 
     // 4. Aria attributes (good for accessibility)
     if (el.hasAttribute('aria-label')) {
-      return {type: 'aria-label', locator: `[aria-label="${el.getAttribute('aria-label')}"]`};
+      const ariaLabel = el.getAttribute('aria-label');
+      const sameAriaLabel = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`[aria-label="${ariaLabel}"]`) : [];
+      if (sameAriaLabel.length === 1) {
+        return {type: 'aria-label', locator: `[aria-label="${ariaLabel}"]`, reason: 'Unique aria-label'};
+      }
     }
 
     // 5. Role attribute (good for semantic elements)
     if (el.hasAttribute('role')) {
-      const sameRole = document.querySelectorAll(`[role="${el.getAttribute('role')}"]`);
+      const role = el.getAttribute('role');
+      const sameRole = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`[role="${role}"]`) : [];
       if (sameRole.length === 1) {
-        return {type: 'role', locator: `[role="${el.getAttribute('role')}"]`};
+        return {type: 'role', locator: `[role="${role}"]`, reason: 'Unique role'};
       }
     }
     
@@ -449,69 +541,79 @@ function domExtractionFunction(filters) {
     const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
     if (filteredClasses.length === 1) {
       const className = filteredClasses[0];
-      const sameClass = document.querySelectorAll(`.${className}`);
+      const sameClass = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`.${CSS.escape(className)}`) : [];
       if (sameClass.length === 1) {
-        return {type: 'class', locator: `.${className}`};
+        return {type: 'class', locator: `.${CSS.escape(className)}`, reason: 'Unique class'};
       }
     }
 
-    // 7. CSS selector (generated)
-    const cssSelector = getUniqueCssSelector(el);
+    // 7. CSS selector (generated) within context
+    const cssSelector = getUniqueCssSelector(el, contextNode);
     if (cssSelector && cssSelector.length < 100) {
-      return {type: 'CSS', locator: cssSelector};
+      return {type: 'CSS', locator: cssSelector, reason: 'Generated CSS selector'};
     }
 
-    // 8. XPath as fallback
-    const xpathSelector = getXPath(el);
+    // 8. XPath as fallback within context
+    const xpathSelector = getXPath(el, contextNode);
     if (xpathSelector && xpathSelector.length < 150) {
-      return {type: 'XPath', locator: xpathSelector};
+      return {type: 'XPath', locator: xpathSelector, reason: 'Generated XPath'};
     }
 
     // Final fallback to CSS even if long
-    return {type: 'CSS', locator: cssSelector || el.tagName.toLowerCase()};
+    return {type: 'CSS', locator: cssSelector || el.tagName.toLowerCase(), reason: 'Fallback CSS'};
   }
 
-  //FUNCTION: Unique CSS Selector Generator (aligned with contentScript.js) ---
-  function getUniqueCssSelector(el) {
+  // #FUNCTION: getUniqueCssSelector - Enhanced for Shadow DOM context
+  // #DESCRIPTION: Unique CSS Selector Generator with context awareness
+  function getUniqueCssSelector(el, contextNode = document) {
     // Helper function to check if ID contains special CSS characters
     function hasSpecialCssChars(id) {
       return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
     }
     
     if (el.id) {
-      // Use attribute selector for complex IDs with special characters
-      if (hasSpecialCssChars(el.id)) {
-        return `[id="${el.id}"]`;
+      // Check if ID is unique within the context
+      const sameIdElements = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
+      if (sameIdElements.length === 1) {
+        // Use attribute selector for complex IDs with special characters
+        if (hasSpecialCssChars(el.id)) {
+          return `[id="${el.id}"]`;
+        }
+        return `#${el.id}`;
       }
-      return `#${el.id}`;
     }
     
     const parts = [];
     let current = el;
     
-    while (current && current !== document.body) {
+    while (current && current !== contextNode && current !== document.body) {
       let selector = current.tagName.toLowerCase();
       
-      if (current.id) {
-        // Use attribute selector for complex IDs with special characters
-        if (hasSpecialCssChars(current.id)) {
-          selector = `[id="${current.id}"]`;
-        } else {
-          selector += `#${current.id}`;
+      if (current.id && contextNode.querySelectorAll) {
+        const sameIdInContext = contextNode.querySelectorAll(`[id="${current.id}"]`);
+        if (sameIdInContext.length === 1) {
+          // Use attribute selector for complex IDs with special characters
+          if (hasSpecialCssChars(current.id)) {
+            selector = `[id="${current.id}"]`;
+          } else {
+            selector += `#${current.id}`;
+          }
+          parts.unshift(selector);
+          break;
         }
-        parts.unshift(selector);
-        break;
       }
       
       if (current.className && typeof current.className === 'string') {
         const classes = current.className.split(' ')
           .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
         if (classes.length > 0) {
-          selector += '.' + classes.join('.');
+          selector += '.' + classes.map(c => CSS.escape(c)).join('.');
         }
       }
       
-      // Add nth-child if needed for uniqueness
+      // Add nth-child if needed for uniqueness within context
       const siblings = Array.from(current.parentNode?.children || [])
         .filter(child => child.tagName === current.tagName);
       if (siblings.length > 1) {
@@ -528,18 +630,33 @@ function domExtractionFunction(filters) {
     return parts.join(' > ');
   }
 
-  function getXPath(el) {
-    if (el.id) return `//*[@id="${el.id}"]`;
+  // #FUNCTION: getXPath - Enhanced for Shadow DOM context
+  // #DESCRIPTION: Generate XPath relative to context node (document or shadowRoot)
+  function getXPath(el, contextNode = document) {
+    if (el.id) {
+      // Check if ID is unique within the context
+      const sameIdElements = contextNode.querySelectorAll ? 
+        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
+      if (sameIdElements.length === 1) {
+        return `//*[@id="${el.id}"]`;
+      }
+    }
+    
     let path = [];
-    while (el && el.nodeType === Node.ELEMENT_NODE) {
-      let idx = 1, sib = el.previousSibling;
+    let current = el;
+    
+    while (current && current !== contextNode && current.nodeType === Node.ELEMENT_NODE) {
+      let idx = 1, sib = current.previousSibling;
       while (sib) {
-        if (sib.nodeType === Node.ELEMENT_NODE && sib.nodeName === el.nodeName) idx++;
+        if (sib.nodeType === Node.ELEMENT_NODE && sib.nodeName === current.nodeName) idx++;
         sib = sib.previousSibling;
       }
-      path.unshift(el.nodeName.toLowerCase() + `[${idx}]`);
-      el = el.parentNode;
+      path.unshift(current.nodeName.toLowerCase() + `[${idx}]`);
+      current = current.parentNode;
+      
+      if (path.length > 8) break; // Limit depth for performance
     }
+    
     return '/' + path.join('/');
   }
 
@@ -568,7 +685,133 @@ function domExtractionFunction(filters) {
     return el.tagName;
   }
 
-  // --- NEW: Get locator strength score (1-100) ---
+  // #FUNCTION: _extractElementsRecursive - Core recursive Shadow DOM extraction
+  // #DESCRIPTION: Recursively extracts elements from a given node (document or shadowRoot)
+  // #IMPORTANT: This is the heart of Shadow DOM traversal - handles nested shadow roots
+  function _extractElementsRecursive(contextNode, isShadowContext, currentHostPathArray) {
+    let collectedData = [];
+    let currentElementsProcessed = 0;
+    const perContextLimit = 1000; // Prevent runaway recursion
+
+    // #NOTE: Use broad selector to find all elements, including potential shadow hosts
+    let baseSelectorsString = '*';
+    if (filters.selectedTypes.length > 0 && !filters.selectedTypes.includes('filterCustom')) {
+      const allCheckbox = document.getElementById && document.getElementById('filterAll');
+      if (!allCheckbox || !allCheckbox.checked) {
+        baseSelectorsString = filters.selectedTypes.map(typeId => {
+          return typeToSelector[typeId] || '*';
+        }).filter(s => s).join(',');
+      }
+    }
+    if (!baseSelectorsString) baseSelectorsString = '*';
+
+    let elementsToScan = [];
+    try {
+      elementsToScan = Array.from(contextNode.querySelectorAll(baseSelectorsString));
+    } catch (e) {
+      console.warn(`Element AI Extractor: Could not query elements in context:`, contextNode, e);
+      return collectedData;
+    }
+
+    // #SECTION: Process each element in current context
+    for (let el of elementsToScan) {
+      if (currentElementsProcessed >= perContextLimit && !el.shadowRoot) {
+        // Skip if limit reached unless it's a shadow host
+        continue;
+      }
+
+      // #NOTE: Apply type filters after broad selection to ensure we find shadow hosts
+      const elementType = getElementTypeName(el);
+      const matchesTypeFilter = filters.selectedTypes.length === 0 || 
+        filters.selectedTypes.some(typeId => {
+          const typeInfo = typeToSelector[typeId];
+          return typeInfo && el.matches(typeInfo);
+        });
+
+      let shouldAddCurrentElement = true;
+      if (filters.selectedTypes.length > 0) {
+        const allCheckbox = document.getElementById && document.getElementById('filterAll');
+        const customSelected = filters.selectedTypes.includes('filterCustom');
+        if (!allCheckbox?.checked && !customSelected && !matchesTypeFilter) {
+          shouldAddCurrentElement = false;
+        }
+      }
+
+      // #NOTE: Apply visibility filters only if we plan to add the element
+      if (shouldAddCurrentElement) {
+        if (filters.visibleOnly && !isVisible(el)) continue;
+        if (filters.hiddenOnly && isVisible(el)) continue;
+
+        currentElementsProcessed++;
+
+        // #SECTION: Generate locators within current context
+        let localId = el.id || '';
+        let localCssSelector = getUniqueCssSelector(el, contextNode);
+        let localXPath = getXPath(el, contextNode);
+        let bestLocatorInfo = getBestLocator(el, contextNode);
+
+        // #SECTION: Build final locators for Shadow DOM elements
+        let finalCssSelector = localCssSelector;
+        let finalXPath = localXPath; // Keep local for display
+        let finalBestLocator = bestLocatorInfo.locator;
+        let hostPathString = isShadowContext ? currentHostPathArray.join(' >> ') : '';
+
+        // #IMPORTANT: Prefix locators with shadow host path for elements in shadow DOM
+        if (isShadowContext && hostPathString) {
+          finalCssSelector = `${hostPathString} >> ${localCssSelector}`;
+          // Prefix best locator if it's a CSS-type locator
+          if (['ID', 'data-testid', 'data-qa', 'data-cy', 'aria-label', 'role', 'class', 'CSS'].includes(bestLocatorInfo.type)) {
+            finalBestLocator = `${hostPathString} >> ${bestLocatorInfo.locator}`;
+          }
+        }
+
+        let displayName = getElementDisplayName(el);
+
+        // #SECTION: Add element data to collection
+        collectedData.push({
+          'Element Name': displayName,
+          'Element Type': elementType,
+          'Best Locator': finalBestLocator,
+          'Locator Type': bestLocatorInfo.type,
+          'Strength': getLocatorStrength(el, bestLocatorInfo.locator, bestLocatorInfo.type),
+          'ID': localId,
+          'CSS': finalCssSelector,
+          'XPATH': localXPath, // Store local XPath for debugging
+          'In Shadow DOM': isShadowContext ? 'Yes' : '',
+          'Host Element Path': hostPathString
+        });
+      }
+
+      // #SECTION: Recursion for Shadow Hosts
+      // #IMPORTANT: Always recurse into shadow roots if shadowDOM filter is active
+      if (el.shadowRoot && filters.shadowDOM) {
+        try {
+          // #NOTE: Generate robust selector for shadow host within current context
+          let selectorForHostInPath;
+          const hostBestLocator = getBestLocator(el, contextNode);
+          
+          if (hostBestLocator.type === 'ID') {
+            selectorForHostInPath = hostBestLocator.locator;
+          } else {
+            selectorForHostInPath = getUniqueCssSelector(el, contextNode);
+          }
+          
+          const newHostPath = [...currentHostPathArray, selectorForHostInPath];
+          
+          // #NOTE: Recursive call to extract from shadow root
+          const shadowData = _extractElementsRecursive(el.shadowRoot, true, newHostPath);
+          collectedData = collectedData.concat(shadowData);
+        } catch (e) {
+          console.warn('Element AI Extractor: Error processing shadow root:', e);
+        }
+      }
+    }
+
+    return collectedData;
+  }
+
+  // #FUNCTION: getLocatorStrength - Calculate reliability score for locators
+  // #DESCRIPTION: Returns strength score (1-100) based on locator type and characteristics
   function getLocatorStrength(el, locator, type) {
     let score = 50; // Base score
     
@@ -587,6 +830,9 @@ function domExtractionFunction(filters) {
     // Single class is decent
     else if (type === 'class') score = 65;
     
+    // Name attribute is reliable for forms
+    else if (type === 'name') score = 70;
+    
     // Text-based selectors are fragile
     else if (type === 'text') score = 40;
     
@@ -602,38 +848,54 @@ function domExtractionFunction(filters) {
     return Math.min(100, Math.max(10, score));
   }
 
-  // --- Extraction logic ---
-  let selectorsString = filters.selectedTypes.map(type => typeToSelector[type] || '*').join(',');
-  let domElements = [];
+  // #SECTION: Main Extraction Logic with Shadow DOM Support
+  // #IMPORTANT: Now uses recursive extraction to handle nested Shadow DOMs
   try {
-    domElements = Array.from(document.querySelectorAll(selectorsString));
-  } catch (e) {
-    domElements = Array.from(document.querySelectorAll('*'));
+    let allExtractedData = _extractElementsRecursive(document, false, []);
+    
+    // #NOTE: Apply overall limit after collecting all elements
+    const maxResultsLimit = 2000;
+    if (allExtractedData.length > maxResultsLimit) {
+      allExtractedData = allExtractedData.slice(0, maxResultsLimit);
+    }
+    
+    return allExtractedData;
+  } catch (error) {
+    console.error('Element AI Extractor: Error during extraction:', error);
+    
+    // #NOTE: Fallback to basic extraction if recursive fails
+    let selectorsString = filters.selectedTypes.map(type => typeToSelector[type] || '*').join(',');
+    let domElements = [];
+    try {
+      domElements = Array.from(document.querySelectorAll(selectorsString));
+    } catch (e) {
+      domElements = Array.from(document.querySelectorAll('*'));
+    }
+    domElements = domElements.slice(0, 2000);
+
+    let data = [];
+    for (let el of domElements) {
+      if (filters.visibleOnly && !isVisible(el)) continue;
+      if (filters.hiddenOnly && isVisible(el)) continue;
+
+      let best = getBestLocator(el);
+      let strength = getLocatorStrength(el, best.locator, best.type);
+
+      data.push({
+        'Element Name': getElementDisplayName(el),
+        'Element Type': getElementTypeName(el),
+        'Best Locator': best.locator,
+        'Locator Type': best.type,
+        'Strength': strength,
+        'ID': el.id || '',
+        'CSS': getUniqueCssSelector(el),
+        'XPATH': getXPath(el),
+        'In Shadow DOM': el.getRootNode() instanceof ShadowRoot ? 'Yes' : '',
+        'Host Element Path': ''
+      });
+    }
+    return data;
   }
-  domElements = domElements.slice(0, 2000);
-
-  let data = [];
-  for (let el of domElements) {
-    if (filters.visibleOnly && !isVisible(el)) continue;
-    if (filters.hiddenOnly && isVisible(el)) continue;
-
-    // --- ADVANCED: Get best locator and type
-    let best = getBestLocator(el);
-    let strength = getLocatorStrength(el, best.locator, best.type);
-
-    data.push({
-      'Element Name': getElementDisplayName(el),
-      'Element Type': getElementTypeName(el),
-      'Best Locator': best.locator,
-      'Locator Type': best.type,
-      'Strength': strength,
-      'ID': el.id || '',
-      'CSS': getUniqueCssSelector(el),
-      'XPATH': getXPath(el),
-      'In Shadow DOM': el.getRootNode() instanceof ShadowRoot ? 'Yes' : ''
-    });
-  }
-  return data;
 }
 
 // function domExtractionFunction(filters) {
@@ -851,11 +1113,15 @@ function renderElementsTable(data) {
     <th>CSS</th>
     <th>XPATH</th>
     <th>Shadow</th>
+    <th>Host Path</th>
     <th>Copy</th>
     <th>Highlight</th></tr>`;
     
   for (let i = 0; i < itemsToShow.length; i++) {
     let r = itemsToShow[i];
+    const isInShadow = r['In Shadow DOM'] === 'Yes';
+    const hostPath = r['Host Element Path'] || '';
+    
     previewHTML += `<tr>
       <td title="${r['Element Name']}">${r['Element Name']}</td>
       <td><span class="el-badge">${r['Element Type']}</span></td>
@@ -864,9 +1130,10 @@ function renderElementsTable(data) {
       <td title="${r['ID']}">${r['ID']}</td>
       <td title="${r['CSS']}">${r['CSS']}</td>
       <td title="${r['XPATH']}">${r['XPATH']}</td>
-      <td>${r['In Shadow DOM'] ? `<span class="shadow-badge">Shadow</span>` : ''}</td>
+      <td>${isInShadow ? `<span class="shadow-badge" title="Host Path: ${hostPath}">Shadow</span>` : ''}</td>
+      <td title="${hostPath}" class="host-path">${hostPath ? hostPath.substring(0, 30) + (hostPath.length > 30 ? '...' : '') : ''}</td>
       <td><button class="copy-btn" data-copy="${encodeURIComponent(r['Best Locator'])}" title="Copy to clipboard">📋</button></td>
-      <td><button class="hl-btn" data-hl="${encodeURIComponent(r['Best Locator'])}" data-shadow="${r['In Shadow DOM'] ? '1' : '0'}" title="Highlight element">👁️</button></td>
+      <td><button class="hl-btn" data-hl="${encodeURIComponent(r['Best Locator'])}" data-shadow="${isInShadow ? '1' : '0'}" title="Highlight element">👁️</button></td>
     </tr>`;
   }
   previewHTML += '</table>';
@@ -1494,6 +1761,17 @@ function displayInspectedElementData(data) {
   if (!inspectedElementDetailsDiv || !data) return;
   
   const isInShadow = data['In Shadow DOM'] === 'Yes';
+  const hostPath = data['Host Element Path'] || '';
+  
+  let shadowInfo = '';
+  if (isInShadow) {
+    shadowInfo = `<span class="shadow-badge" title="Host Path: ${hostPath}">Shadow</span>`;
+    if (hostPath) {
+      shadowInfo += `<br><small style="color: #ffe682;">Path: ${hostPath}</small>`;
+    }
+  } else {
+    shadowInfo = 'No';
+  }
   
   inspectedElementDetailsDiv.innerHTML = `
     <div class="inspected-header">
@@ -1509,7 +1787,7 @@ function displayInspectedElementData(data) {
       <tr><td>ID:</td><td title="${data['ID'] || 'N/A'}">${data['ID'] || 'N/A'}</td></tr>
       <tr><td>CSS Selector:</td><td title="${data['CSS'] || 'N/A'}">${data['CSS'] || 'N/A'}</td></tr>
       <tr><td>XPath:</td><td title="${data['XPATH'] || 'N/A'}">${data['XPATH'] || 'N/A'}</td></tr>
-      <tr><td>In Shadow DOM:</td><td>${isInShadow ? '<span class="shadow-badge">Shadow</span>' : 'No'}</td></tr>
+      <tr><td>In Shadow DOM:</td><td>${shadowInfo}</td></tr>
     </table>
     <div style="margin-top: 12px; display: flex; gap: 8px;">
       <button class="copy-btn" 

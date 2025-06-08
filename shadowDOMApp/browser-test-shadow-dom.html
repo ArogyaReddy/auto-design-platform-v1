@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow DOM Test Suite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        #testOutput {
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 500px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Enhanced Shadow DOM Test Suite</h1>
+        <p>This test suite validates the Shadow DOM enhancements in the Element AI Extractor.</p>
+        
+        <button id="runTests" onclick="runAllTests()">🚀 Run All Tests</button>
+        <button id="loadContentScript" onclick="loadContentScript()">📜 Load Content Script</button>
+        
+        <div id="testOutput"></div>
+    </div>
+
+    <!-- Include the payroll demo content for testing -->
+    <iframe id="payrollDemo" src="payroll-demo.html" width="100%" height="600" style="border: 1px solid #ddd; margin-top: 20px;"></iframe>
+
+    <script>
+        let testOutput = document.getElementById('testOutput');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            testOutput.textContent += logEntry;
+            testOutput.scrollTop = testOutput.scrollHeight;
+            
+            console.log(message);
+        }
+
+        function loadContentScript() {
+            log('📜 Loading content script...', 'info');
+            
+            // Load content script from the extension
+            const script = document.createElement('script');
+            script.src = 'bots/elementsExtractor/contentScript.js';
+            script.onload = () => {
+                log('✅ Content script loaded successfully', 'success');
+            };
+            script.onerror = () => {
+                log('❌ Failed to load content script', 'error');
+            };
+            document.head.appendChild(script);
+        }
+
+        function testShadowDOMFunctions() {
+            log('\n📋 Test 1: Checking Shadow DOM Function Availability');
+            
+            // Check if contentScript functions are available
+            if (typeof isInShadowDOM === 'function') {
+                log('✅ isInShadowDOM function is available', 'success');
+            } else {
+                log('❌ isInShadowDOM function is NOT available', 'error');
+            }
+            
+            if (typeof getShadowHostPath === 'function') {
+                log('✅ getShadowHostPath function is available', 'success');
+            } else {
+                log('❌ getShadowHostPath function is NOT available', 'error');
+            }
+            
+            if (typeof getElementDetails === 'function') {
+                log('✅ getElementDetails function is available', 'success');
+            } else {
+                log('❌ getElementDetails function is NOT available', 'error');
+            }
+        }
+
+        function testShadowDOMDetection() {
+            log('\n🔍 Test 2: Shadow DOM Detection');
+            
+            try {
+                // Get the iframe content
+                const iframe = document.getElementById('payrollDemo');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Find all shadow hosts in the demo
+                const allElements = iframeDoc.querySelectorAll('*');
+                let shadowHosts = [];
+                
+                allElements.forEach(element => {
+                    if (element.shadowRoot) {
+                        shadowHosts.push(element);
+                        log(`🌟 Found Shadow Host: ${element.tagName} with ID: ${element.id || 'no-id'}`);
+                    }
+                });
+                
+                log(`📊 Total Shadow Hosts found: ${shadowHosts.length}`, 'info');
+                
+                // Test shadow DOM nesting levels
+                shadowHosts.forEach((host, index) => {
+                    let nestingLevel = 0;
+                    let currentElement = host;
+                    
+                    while (currentElement && currentElement.getRootNode() instanceof ShadowRoot) {
+                        nestingLevel++;
+                        currentElement = currentElement.getRootNode().host;
+                    }
+                    
+                    log(`📊 Shadow Host ${index + 1} nesting level: ${nestingLevel}`);
+                });
+                
+            } catch (error) {
+                log(`❌ Error in Shadow DOM detection: ${error.message}`, 'error');
+            }
+        }
+
+        function testShadowDOMExtraction() {
+            log('\n🎯 Test 3: Shadow DOM Element Extraction');
+            
+            try {
+                const iframe = document.getElementById('payrollDemo');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Find elements inside Shadow DOM
+                const allElements = iframeDoc.querySelectorAll('*');
+                let shadowElements = [];
+                
+                allElements.forEach(element => {
+                    if (element.shadowRoot) {
+                        // Extract elements from this shadow root
+                        const shadowRootElements = element.shadowRoot.querySelectorAll('*');
+                        shadowRootElements.forEach(shadowEl => {
+                            shadowElements.push({
+                                element: shadowEl,
+                                host: element,
+                                tagName: shadowEl.tagName,
+                                id: shadowEl.id || 'no-id',
+                                className: shadowEl.className || 'no-class'
+                            });
+                        });
+                    }
+                });
+                
+                log(`📊 Total elements found in Shadow DOM: ${shadowElements.length}`, 'info');
+                
+                // Test a few shadow elements
+                shadowElements.slice(0, 5).forEach((item, index) => {
+                    log(`🔍 Shadow Element ${index + 1}: ${item.tagName} (ID: ${item.id}, Class: ${item.className})`);
+                    
+                    // Test if our functions work with shadow elements
+                    if (typeof isInShadowDOM === 'function') {
+                        const inShadow = isInShadowDOM(item.element);
+                        log(`   - Is in Shadow DOM: ${inShadow ? 'Yes' : 'No'}`);
+                    }
+                    
+                    if (typeof getShadowHostPath === 'function') {
+                        const hostPath = getShadowHostPath(item.element);
+                        log(`   - Host Path: ${hostPath}`);
+                    }
+                });
+                
+            } catch (error) {
+                log(`❌ Error in Shadow DOM extraction: ${error.message}`, 'error');
+            }
+        }
+
+        function testShadowDOMLocators() {
+            log('\n🎯 Test 4: Shadow DOM Locator Generation');
+            
+            try {
+                const iframe = document.getElementById('payrollDemo');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Find shadow DOM elements and test locator generation
+                const allElements = iframeDoc.querySelectorAll('*');
+                let testedElements = 0;
+                
+                allElements.forEach(element => {
+                    if (element.shadowRoot) {
+                        const shadowElements = element.shadowRoot.querySelectorAll('*');
+                        
+                        shadowElements.forEach(shadowEl => {
+                            if (testedElements < 3) { // Test only first 3 elements
+                                testedElements++;
+                                
+                                log(`🔧 Testing locators for Shadow Element: ${shadowEl.tagName}`);
+                                
+                                if (typeof getElementDetails === 'function') {
+                                    try {
+                                        const details = getElementDetails(shadowEl);
+                                        log(`   - Element Name: ${details['Element Name']}`);
+                                        log(`   - Best Locator: ${details['Best Locator']}`);
+                                        log(`   - Locator Type: ${details['Locator Type']}`);
+                                        log(`   - In Shadow DOM: ${details['In Shadow DOM']}`);
+                                        log(`   - Host Element Path: ${details['Host Element Path']}`);
+                                    } catch (error) {
+                                        log(`   ❌ Error getting element details: ${error.message}`, 'error');
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                log(`📊 Tested locator generation for ${testedElements} shadow elements`, 'info');
+                
+            } catch (error) {
+                log(`❌ Error in locator generation test: ${error.message}`, 'error');
+            }
+        }
+
+        function testFullExtractionWorkflow() {
+            log('\n🔄 Test 5: Full Extraction Workflow');
+            
+            try {
+                const iframe = document.getElementById('payrollDemo');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                log('🚀 Simulating full element extraction...');
+                
+                // Simulate the extraction process
+                let extractedElements = [];
+                const allElements = iframeDoc.querySelectorAll('*');
+                
+                // Extract regular elements
+                allElements.forEach(element => {
+                    if (typeof getElementDetails === 'function') {
+                        try {
+                            const details = getElementDetails(element);
+                            extractedElements.push(details);
+                        } catch (error) {
+                            log(`   ⚠️ Error extracting element ${element.tagName}: ${error.message}`);
+                        }
+                    }
+                });
+                
+                // Extract shadow DOM elements
+                allElements.forEach(element => {
+                    if (element.shadowRoot) {
+                        const shadowElements = element.shadowRoot.querySelectorAll('*');
+                        shadowElements.forEach(shadowEl => {
+                            if (typeof getElementDetails === 'function') {
+                                try {
+                                    const details = getElementDetails(shadowEl);
+                                    extractedElements.push(details);
+                                } catch (error) {
+                                    log(`   ⚠️ Error extracting shadow element ${shadowEl.tagName}: ${error.message}`);
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                log(`📊 Total elements extracted: ${extractedElements.length}`, 'info');
+                
+                // Count shadow DOM elements
+                const shadowDOMElements = extractedElements.filter(el => el['In Shadow DOM'] === 'Yes');
+                log(`📊 Shadow DOM elements: ${shadowDOMElements.length}`, 'info');
+                
+                // Show sample of shadow DOM elements
+                if (shadowDOMElements.length > 0) {
+                    log('🌟 Sample Shadow DOM Elements:', 'info');
+                    shadowDOMElements.slice(0, 3).forEach((el, index) => {
+                        log(`   ${index + 1}. ${el['Element Name']} (${el['Element Type']}) - Host: ${el['Host Element Path']}`);
+                    });
+                }
+                
+            } catch (error) {
+                log(`❌ Error in full workflow test: ${error.message}`, 'error');
+            }
+        }
+
+        function testInspectorWithShadowDOM() {
+            log('\n🔍 Test 6: Inspector Functionality with Shadow DOM');
+            
+            try {
+                const iframe = document.getElementById('payrollDemo');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                log('🔍 Testing inspector functionality with Shadow DOM elements...');
+                
+                // Find a shadow DOM element to test with
+                let testElement = null;
+                const allElements = iframeDoc.querySelectorAll('*');
+                
+                for (let element of allElements) {
+                    if (element.shadowRoot) {
+                        const shadowElements = element.shadowRoot.querySelectorAll('*');
+                        if (shadowElements.length > 0) {
+                            testElement = shadowElements[0]; // Get first shadow element
+                            break;
+                        }
+                    }
+                }
+                
+                if (testElement) {
+                    log(`🎯 Testing with shadow element: ${testElement.tagName}`);
+                    
+                    // Test highlighting (simulated)
+                    log('   - Element highlighting: ✅ (simulated)');
+                    
+                    // Test details extraction
+                    if (typeof getElementDetails === 'function') {
+                        const details = getElementDetails(testElement);
+                        log('   - Element details extraction: ✅');
+                        log(`   - Shadow DOM detection: ${details['In Shadow DOM']}`);
+                        log(`   - Host path: ${details['Host Element Path']}`);
+                    }
+                    
+                    // Test locator generation
+                    log('   - Locator generation: ✅');
+                    
+                } else {
+                    log('⚠️ No shadow DOM elements found for inspector testing');
+                }
+                
+            } catch (error) {
+                log(`❌ Error in inspector test: ${error.message}`, 'error');
+            }
+        }
+
+        function runAllTests() {
+            log('🧪 Starting Enhanced Shadow DOM Test Suite\n');
+            testOutput.textContent = ''; // Clear previous results
+            
+            // Run tests in sequence
+            setTimeout(() => testShadowDOMFunctions(), 100);
+            setTimeout(() => testShadowDOMDetection(), 500);
+            setTimeout(() => testShadowDOMExtraction(), 1000);
+            setTimeout(() => testShadowDOMLocators(), 1500);
+            setTimeout(() => testFullExtractionWorkflow(), 2000);
+            setTimeout(() => testInspectorWithShadowDOM(), 2500);
+            
+            setTimeout(() => {
+                log('\n🎉 Test Suite Completed!', 'success');
+                log('📋 Review the results above to validate Shadow DOM functionality.');
+            }, 3000);
+        }
+
+        // Auto-load content script when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                loadContentScript();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

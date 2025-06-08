@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow DOM Extension Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .shadow-host {
+            border: 2px solid #007acc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f0f8ff;
+        }
+        .instructions {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #007acc;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Shadow DOM Extension Test Page</h1>
+        
+        <div class="instructions">
+            <h3>📋 Test Instructions:</h3>
+            <ol>
+                <li>Load the Element AI Extractor extension in your browser</li>
+                <li>Click the extension icon or use Ctrl+Shift+E to open it</li>
+                <li>Use the inspector to examine the Shadow DOM elements below</li>
+                <li>Extract elements and verify Shadow DOM information is captured</li>
+                <li>Check that the "Host Element Path" column shows correct information</li>
+            </ol>
+        </div>
+        
+        <div class="test-section">
+            <h2>🌟 Regular DOM Elements</h2>
+            <button id="regular-button" class="btn-primary">Regular Button</button>
+            <input id="regular-input" type="text" placeholder="Regular Input" />
+            <div id="regular-div" class="test-div">Regular Div</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🌟 Shadow DOM Elements</h2>
+            <div id="shadow-host-1" class="shadow-host">Shadow Host 1 (will contain shadow elements)</div>
+            <div id="shadow-host-2" class="shadow-host">Shadow Host 2 (nested shadow)</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 Test Results</h2>
+            <div id="test-results">
+                <p>Use the Element AI Extractor to extract elements and verify:</p>
+                <ul>
+                    <li>✅ Regular elements are detected properly</li>
+                    <li>✅ Shadow DOM elements are detected and marked</li>
+                    <li>✅ "In Shadow DOM" column shows "Yes" for shadow elements</li>
+                    <li>✅ "Host Element Path" column shows correct host information</li>
+                    <li>✅ Locators are generated for shadow elements</li>
+                    <li>✅ CSV export includes shadow DOM information</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create Shadow DOM elements for testing
+        console.log('🌟 Creating Shadow DOM test elements...');
+        
+        // Shadow Host 1 - Simple Shadow DOM
+        const shadowHost1 = document.getElementById('shadow-host-1');
+        const shadow1 = shadowHost1.attachShadow({ mode: 'open' });
+        shadow1.innerHTML = `
+            <style>
+                .shadow-content {
+                    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                    color: white;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin: 10px 0;
+                }
+                .shadow-button {
+                    background: #007acc;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin: 5px;
+                }
+                .shadow-input {
+                    padding: 8px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    margin: 5px;
+                }
+            </style>
+            <div class="shadow-content">
+                <h3>Shadow DOM Level 1</h3>
+                <button id="shadow-btn-1" class="shadow-button">Shadow Button 1</button>
+                <input id="shadow-input-1" class="shadow-input" type="text" placeholder="Shadow Input 1" />
+                <div id="shadow-div-1" class="shadow-div">Shadow Div 1</div>
+            </div>
+        `;
+        
+        // Shadow Host 2 - Nested Shadow DOM
+        const shadowHost2 = document.getElementById('shadow-host-2');
+        const shadow2 = shadowHost2.attachShadow({ mode: 'open' });
+        shadow2.innerHTML = `
+            <style>
+                .nested-shadow {
+                    background: #f8f9fa;
+                    border: 2px solid #28a745;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin: 10px 0;
+                }
+                .nested-host {
+                    background: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    padding: 10px;
+                    border-radius: 5px;
+                    margin: 10px 0;
+                }
+            </style>
+            <div class="nested-shadow">
+                <h3>Shadow DOM Level 1 (Nested)</h3>
+                <button id="shadow-btn-2" class="shadow-button">Shadow Button 2</button>
+                <div id="nested-shadow-host" class="nested-host">Nested Shadow Host</div>
+            </div>
+        `;
+        
+        // Create nested shadow DOM inside shadow2
+        const nestedHost = shadow2.getElementById('nested-shadow-host');
+        const nestedShadow = nestedHost.attachShadow({ mode: 'open' });
+        nestedShadow.innerHTML = `
+            <style>
+                .deep-shadow {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 12px;
+                    border-radius: 6px;
+                    text-align: center;
+                }
+                .deep-button {
+                    background: #e74c3c;
+                    color: white;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    margin: 5px;
+                }
+            </style>
+            <div class="deep-shadow">
+                <h4>Shadow DOM Level 2 (Deep Nested)</h4>
+                <button id="deep-shadow-btn" class="deep-button">Deep Shadow Button</button>
+                <input id="deep-shadow-input" type="text" placeholder="Deep Shadow Input" />
+                <span id="deep-shadow-span">Deep Shadow Span</span>
+            </div>
+        `;
+        
+        console.log('✅ Shadow DOM test elements created successfully!');
+        
+        // Add event listeners to demonstrate functionality
+        shadow1.getElementById('shadow-btn-1').addEventListener('click', () => {
+            alert('Shadow Button 1 clicked! This element is inside Shadow DOM.');
+        });
+        
+        shadow2.getElementById('shadow-btn-2').addEventListener('click', () => {
+            alert('Shadow Button 2 clicked! This element is inside nested Shadow DOM.');
+        });
+        
+        nestedShadow.getElementById('deep-shadow-btn').addEventListener('click', () => {
+            alert('Deep Shadow Button clicked! This element is inside deeply nested Shadow DOM.');
+        });
+        
+        // Log shadow DOM structure for debugging
+        console.log('🔍 Shadow DOM Structure:');
+        console.log('- Shadow Host 1:', shadowHost1);
+        console.log('- Shadow Root 1:', shadow1);
+        console.log('- Shadow Host 2:', shadowHost2);
+        console.log('- Shadow Root 2:', shadow2);
+        console.log('- Nested Shadow Host:', nestedHost);
+        console.log('- Nested Shadow Root:', nestedShadow);
+        
+        // Test function to verify shadow DOM elements
+        function testShadowElements() {
+            console.log('\n🧪 Testing Shadow DOM Element Access:');
+            
+            // Test Level 1 Shadow DOM
+            const shadowBtn1 = shadow1.getElementById('shadow-btn-1');
+            console.log('Shadow Button 1:', shadowBtn1);
+            console.log('Shadow Button 1 Root Node:', shadowBtn1.getRootNode());
+            console.log('Shadow Button 1 is in Shadow DOM:', shadowBtn1.getRootNode() instanceof ShadowRoot);
+            
+            // Test Level 2 Shadow DOM (nested)
+            const deepBtn = nestedShadow.getElementById('deep-shadow-btn');
+            console.log('Deep Shadow Button:', deepBtn);
+            console.log('Deep Shadow Button Root Node:', deepBtn.getRootNode());
+            console.log('Deep Shadow Button is in Shadow DOM:', deepBtn.getRootNode() instanceof ShadowRoot);
+            
+            // Test host path
+            if (deepBtn) {
+                let hostPath = [];
+                let currentElement = deepBtn;
+                
+                while (currentElement && currentElement.getRootNode() instanceof ShadowRoot) {
+                    const shadowRoot = currentElement.getRootNode();
+                    const host = shadowRoot.host;
+                    hostPath.unshift(host.tagName + (host.id ? '#' + host.id : ''));
+                    currentElement = host;
+                }
+                
+                console.log('Deep Shadow Button Host Path:', hostPath.join(' → '));
+            }
+        }
+        
+        // Run test after page loads
+        setTimeout(testShadowElements, 1000);
+        
+        // Add CSS for better visibility
+        const style = document.createElement('style');
+        style.textContent = `
+            .shadow-host::before {
+                content: "🌟 Shadow Host";
+                display: block;
+                font-size: 12px;
+                color: #007acc;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

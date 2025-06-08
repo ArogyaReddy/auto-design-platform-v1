@@ -11,6 +11,16 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Element AI Extractor: Background script initialized');
 });
 
+// Add message listener to help debug connections
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'contentScriptLoaded') {
+    console.log('Element AI Extractor: Content script loaded in tab', sender.tab?.id, 'URL:', message.url);
+  }
+  if (message.action === 'contentScriptReady') {
+    console.log('Element AI Extractor: Content script ready in tab', sender.tab?.id, 'URL:', message.url);
+  }
+});
+
 
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {

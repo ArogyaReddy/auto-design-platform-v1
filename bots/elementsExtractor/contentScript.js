@@ -1,33 +1,50 @@
 // Element AI Extractor - Content Script
 // Handles element inspection, highlighting, and data extraction
 
-// Prevent multiple script loading with enhanced protection
+// Enhanced loading protection with immediate communication setup
 if (window.aiExtractorLoaded) {
-  console.log("Element AI Extractor: Content script already loaded, skipping duplicate injection");
+  console.log("Element AI Extractor: Content script already loaded, ensuring communication...");
   
-  // Still respond to ping messages even if script was already loaded
+  // Ensure message listener is always available
   if (!window.aiExtractorMessageListenerAdded) {
     window.aiExtractorMessageListenerAdded = true;
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log("Element AI Extractor: Received message:", message.action);
       if (message.action === 'ping') {
-        console.log("Element AI Extractor: Responding to ping from duplicate script check");
-        sendResponse({ status: 'alive', inspecting: window.aiExtractorIsInspecting || false, timestamp: Date.now() });
+        console.log("Element AI Extractor: Responding to ping - script already loaded");
+        sendResponse({ 
+          status: 'alive', 
+          inspecting: window.aiExtractorIsInspecting || false, 
+          timestamp: Date.now(),
+          loaded: true 
+        });
         return true;
       }
     });
   }
+  
+  // Send ready signal immediately
+  try {
+    chrome.runtime.sendMessage({ action: 'contentScriptReady', url: window.location.href });
+  } catch (error) {
+    console.log("Element AI Extractor: Could not send ready signal (expected during injection)");
+  }
+  
 } else {
   window.aiExtractorLoaded = true;
   window.aiExtractorMessageListenerAdded = false;
-  console.log("Element AI Extractor: Content script loaded and initializing...");
+  console.log("Element AI Extractor: Content script loading for the first time...");
   console.log("Element AI Extractor: Page URL:", window.location.href);
   console.log("Element AI Extractor: Frame type:", window === window.top ? 'main frame' : 'iframe');
+  console.log("Element AI Extractor: User agent:", navigator.userAgent.substring(0, 100));
   
-  // Log Chrome APIs availability
+  // Comprehensive Chrome APIs check
   if (typeof chrome !== 'undefined' && chrome.runtime) {
     console.log("Element AI Extractor: Chrome runtime API available");
+    console.log("Element AI Extractor: Extension ID:", chrome.runtime.id);
   } else {
     console.error("Element AI Extractor: Chrome runtime API not available!");
+    console.error("Element AI Extractor: Chrome object:", typeof chrome);
   }
 
   // Global state for inspection mode
@@ -555,6 +572,7 @@ function getElementDetails(element) {
     'CSS': locators.css,
     'XPATH': locators.xpath,
     'In Shadow DOM': isInShadowDOM(element) ? 'Yes' : 'No',
+    'Host Element Path': getShadowHostPath(element),
     'Tag Name': tagName,
     'Class': element.className || 'N/A',
     'Text': (element.textContent || '').trim().substring(0, 100) || 'N/A'
@@ -757,6 +775,15 @@ function getBestLocator(locators) {
 
 // Check if element is in shadow DOM
 function isInShadowDOM(element) {
+  if (!element) return false;
+  
+  // Use getRootNode if available (modern approach)
+  if (element.getRootNode) {
+    const root = element.getRootNode();
+    return root instanceof ShadowRoot;
+  }
+  
+  // Fallback to parent traversal
   let parent = element.parentNode;
   while (parent) {
     if (parent.toString() === '[object ShadowRoot]') {
@@ -765,6 +792,31 @@ function isInShadowDOM(element) {
     parent = parent.parentNode;
   }
   return false;
+}
+
+// Get shadow DOM host path for an element
+function getShadowHostPath(element) {
+  if (!element || !isInShadowDOM(element)) {
+    return '';
+  }
+  
+  const hostPath = [];
+  let current = element;
+  
+  while (current) {
+    const root = current.getRootNode ? current.getRootNode() : null;
+    
+    if (root instanceof ShadowRoot && root.host) {
+      // Found a shadow host, add its selector to the path
+      const hostSelector = generateCSSSelector(root.host);
+      hostPath.unshift(hostSelector);
+      current = root.host;
+    } else {
+      break;
+    }
+  }
+  
+  return hostPath.join(' >> ');
 }
 
 // Start inspection mode
@@ -961,31 +1013,45 @@ function handleClick(event) {
   }
 }
 
-// Message listener for communication with popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Element AI Extractor: Content script received message", message);
-  
-  // Mark that we have a message listener to prevent duplicates
+// Message listener for communication with popup - Set up immediately
+if (!window.aiExtractorMessageListenerAdded) {
   window.aiExtractorMessageListenerAdded = true;
   
-  try {
-    // Validate message structure
-    if (!message || typeof message !== 'object') {
-      console.warn("Element AI Extractor: Invalid message received", message);
-      sendResponse({ status: 'error', message: 'Invalid message format' });
-      return true;
-    }
+  console.log("Element AI Extractor: Setting up message listener");
+  
+  // Test the message listener setup
+  setTimeout(() => {
+    console.log("Element AI Extractor: Message listener should be active now");
+    console.log("Element AI Extractor: chrome.runtime available:", !!chrome.runtime);
+    console.log("Element AI Extractor: chrome.runtime.onMessage available:", !!chrome.runtime?.onMessage);
+  }, 100);
+  
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log("Element AI Extractor: Content script received message", message);
+    console.log("Element AI Extractor: Sender:", sender);
+    console.log("Element AI Extractor: Will send response via sendResponse function");
+    
+    try {
+      // Validate message structure
+      if (!message || typeof message !== 'object') {
+        console.warn("Element AI Extractor: Invalid message received", message);
+        sendResponse({ status: 'error', message: 'Invalid message format' });
+        return true;
+      }
 
-    switch (message.action) {
-      case 'ping':
-        console.log("Element AI Extractor: Responding to ping");
-        sendResponse({ 
-          status: 'alive', 
-          inspecting: isInspecting, 
-          timestamp: Date.now(),
-          frameType: window === window.top ? 'main' : 'iframe'
-        });
-        return true; // Keep channel open
+      switch (message.action) {
+        case 'ping':
+          console.log("Element AI Extractor: Responding to ping with alive status");
+          const response = { 
+            status: 'alive', 
+            inspecting: window.aiExtractorIsInspecting || false, 
+            timestamp: Date.now(),
+            frameType: window === window.top ? 'main' : 'iframe',
+            url: window.location.href
+          };
+          console.log("Element AI Extractor: Ping response:", response);
+          sendResponse(response);
+          return true; // Keep channel open
         
       case 'startInspectingAiExtractor':
         console.log("Element AI Extractor: Starting inspection");
@@ -1037,4 +1103,18 @@ startStorageSync();
 
 console.log("Element AI Extractor: Content script ready");
 
-} // End of script loading check
+// Send a signal to indicate the script has loaded successfully
+try {
+  chrome.runtime.sendMessage({ action: 'contentScriptLoaded', url: window.location.href }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.log("Element AI Extractor: Could not notify popup of script load (expected if popup closed)");
+    } else {
+      console.log("Element AI Extractor: Successfully notified popup of script load");
+    }
+  });
+} catch (error) {
+  console.log("Element AI Extractor: Error sending load notification:", error);
+}
+
+} // End of else block (script loading check)
+} // End of main if-else block

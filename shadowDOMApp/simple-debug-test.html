@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Debug Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            line-height: 1.6;
+        }
+        .test-button {
+            background: #007cba;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin: 10px;
+            width: 200px;
+        }
+        .debug-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Extension Debug Test</h1>
+    
+    <div class="debug-info">
+        <h3>Test Instructions:</h3>
+        <ol>
+            <li>Make sure your extension is enabled and reloaded</li>
+            <li>Open Chrome DevTools (F12) and check the Console tab</li>
+            <li>Click the extension icon in the toolbar</li>
+            <li>Look for any error messages or connection issues</li>
+            <li>Try clicking the elements below to test interaction</li>
+        </ol>
+    </div>
+
+    <div>
+        <h2>Test Elements</h2>
+        <button id="test-btn-1" class="test-button">Test Button 1</button>
+        <button id="test-btn-2" class="test-button">Test Button 2</button>
+        <br>
+        <input id="test-input-1" class="test-input" type="text" placeholder="Test Input 1">
+        <input id="test-input-2" class="test-input" type="email" placeholder="Test Email Input">
+        <br>
+        <a href="#" id="test-link">Test Link</a>
+    </div>
+
+    <div class="debug-info">
+        <h3>Debug Information:</h3>
+        <p><strong>URL:</strong> <span id="current-url"></span></p>
+        <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+        <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+    </div>
+
+    <script>
+        // Fill debug info
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('timestamp').textContent = new Date().toISOString();
+
+        // Log page load
+        console.log('Simple debug test page loaded');
+        console.log('URL:', window.location.href);
+        console.log('Ready for extension testing');
+
+        // Add click listeners for testing
+        document.querySelectorAll('button, input, a').forEach(element => {
+            element.addEventListener('click', () => {
+                console.log('Element clicked:', element.tagName, element.id || element.className);
+            });
+        });
+    </script>
+</body>
+</html>

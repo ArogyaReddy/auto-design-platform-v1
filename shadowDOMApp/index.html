@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Shadow DOM Application - Element AI Extractor Test Suite</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header with Shadow DOM Navigation -->
+    <header-nav id="main-header"></header-nav>
+    
+    <!-- Main Application Container -->
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
+            🌟 Modern Shadow DOM Test Application
+        </h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Dashboard Widget -->
+            <dashboard-widget id="main-dashboard" data-testid="dashboard"></dashboard-widget>
+            
+            <!-- User Profile Card -->
+            <user-profile-card id="user-profile" data-user="john-doe"></user-profile-card>
+        </div>
+        
+        <!-- Modal Containers -->
+        <modal-container id="modal-container"></modal-container>
+        
+        <!-- Complex Form Section -->
+        <div class="mt-12">
+            <complex-form-widget id="main-form" data-form-type="registration"></complex-form-widget>
+        </div>
+        
+        <!-- Data Table with Shadow DOM -->
+        <div class="mt-12">
+            <data-table-component id="data-table" data-source="users"></data-table-component>
+        </div>
+        
+        <!-- Chat Widget -->
+        <chat-widget id="chat-system" data-position="bottom-right"></chat-widget>
+        
+        <!-- Notification System -->
+        <notification-system id="notifications"></notification-system>
+        
+        <!-- Media Gallery -->
+        <media-gallery id="gallery" data-type="images"></media-gallery>
+        
+        <!-- Shopping Cart -->
+        <shopping-cart id="cart" data-store="main"></shopping-cart>
+        
+        <!-- Calendar Widget -->
+        <calendar-widget id="calendar" data-view="month"></calendar-widget>
+        
+        <!-- File Upload Zone -->
+        <file-upload-zone id="upload-zone"></file-upload-zone>
+        
+        <!-- Interactive Map -->
+        <map-component id="interactive-map" data-location="new-york"></map-component>
+        
+        <!-- Payment Gateway -->
+        <payment-gateway id="payment" data-provider="stripe"></payment-gateway>
+        
+        <!-- Video Player -->
+        <video-player-widget id="video-player" data-src="demo.mp4"></video-player-widget>
+        
+        <!-- Code Editor -->
+        <code-editor-widget id="code-editor" data-language="javascript"></code-editor-widget>
+        
+        <!-- Analytics Dashboard -->
+        <analytics-dashboard id="analytics" data-timeframe="week"></analytics-dashboard>
+    </div>
+    
+    <!-- iFrame with Shadow DOM -->
+    <iframe-wrapper id="iframe-container" data-src="iframe-content.html"></iframe-wrapper>
+    
+    <!-- Scripts -->
+    <script src="components/base-component.js"></script>
+    <!-- Load base component first -->
+    <script src="components/base-component.js"></script>
+    
+    <!-- Load all Shadow DOM components -->
+    <script src="components/header-nav.js"></script>
+    <script src="components/dashboard-widget.js"></script>
+    <script src="components/user-profile-card.js"></script>
+    <script src="components/modal-container.js"></script>
+    <script src="components/complex-form-widget.js"></script>
+    <script src="components/data-table-widget.js"></script>
+    <script src="components/chat-widget.js"></script>
+    <script src="components/notification-system.js"></script>
+    <script src="components/media-gallery.js"></script>
+    <script src="components/shopping-cart.js"></script>
+    
+    <!-- Main application logic -->
+    <script src="app.js"></script>
+</body>
+</html>
