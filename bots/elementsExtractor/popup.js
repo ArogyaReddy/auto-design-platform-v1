@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show random tip at top - target the content div to preserve the sidebar structure
   const aiTipContent = document.querySelector('.ai-tip-content');
   if (aiTipContent) {
-    aiTipContent.innerHTML = `<strong>Pro Tip:</strong> ${aiTips[Math.floor(Math.random() * aiTips.length)]}`;
+    aiTipContent.innerHTML = `<strong>Pro Tip:</strong>${aiTips[Math.floor(Math.random() * aiTips.length)]}`;
   }
 
   // Make only "All Elements" checked initially; others unchecked
