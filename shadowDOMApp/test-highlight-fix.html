@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow DOM Highlight Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .regular-button {
+            background-color: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .shadow-host {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border: 2px dashed #007cba;
+            margin: 10px 0;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .status {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Shadow DOM Highlight Fix Test</h1>
+        
+        <div class="instructions">
+            <h3>Test Instructions:</h3>
+            <ol>
+                <li><strong>Load the Extension:</strong> Make sure the Element AI Extractor extension is loaded in Chrome</li>
+                <li><strong>Test Regular Elements:</strong> Try both "Inspect Element" and "AI Inspector Active" modes on regular buttons</li>
+                <li><strong>Test Shadow DOM Elements:</strong> Try both modes on buttons inside Shadow DOM components</li>
+                <li><strong>Compare Results:</strong> Both modes should now highlight Shadow DOM elements consistently</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Regular DOM Elements</h3>
+            <p>These buttons are in the regular DOM (not in Shadow DOM):</p>
+            <button id="regular-btn-1" class="regular-button" data-testid="regular-button-1">Regular Button 1</button>
+            <button id="regular-btn-2" class="regular-button" data-testid="regular-button-2">Regular Button 2</button>
+            <div class="status">✅ Both inspection modes should highlight these buttons</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌟 Shadow DOM Elements</h3>
+            <p>These components contain buttons inside Shadow DOM:</p>
+            
+            <div class="shadow-host">
+                <p><strong>Shadow Component 1:</strong></p>
+                <shadow-button-1 id="shadow-component-1" data-label="Shadow Button 1"></shadow-button-1>
+            </div>
+            
+            <div class="shadow-host">
+                <p><strong>Shadow Component 2:</strong></p>
+                <shadow-button-2 id="shadow-component-2" data-label="Shadow Button 2"></shadow-button-2>
+            </div>
+            
+            <div class="shadow-host">
+                <p><strong>Nested Shadow Component:</strong></p>
+                <nested-shadow id="nested-component" data-label="Nested Shadow Button"></nested-shadow>
+            </div>
+            
+            <div class="status">🔧 BEFORE FIX: Only "AI Inspector Active" mode highlighted these buttons<br>
+                ✅ AFTER FIX: Both "Inspect Element" and "AI Inspector Active" modes should highlight these buttons</div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="test-results">
+                <p>Use the extension to test both modes and verify the fix is working!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Define Shadow Button Component 1
+        class ShadowButton1 extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    button {
+                        background-color: #28a745;
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: background-color 0.3s;
+                    }
+                    button:hover {
+                        background-color: #218838;
+                    }
+                    .container {
+                        padding: 10px;
+                        background-color: rgba(40, 167, 69, 0.1);
+                        border-radius: 5px;
+                    }
+                `;
+                
+                const container = document.createElement('div');
+                container.className = 'container';
+                
+                const button = document.createElement('button');
+                button.id = 'shadow-btn-1';
+                button.textContent = this.getAttribute('data-label') || 'Shadow Button 1';
+                button.setAttribute('data-testid', 'shadow-button-1');
+                
+                container.appendChild(button);
+                shadow.appendChild(style);
+                shadow.appendChild(container);
+            }
+        }
+
+        // Define Shadow Button Component 2
+        class ShadowButton2 extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    button {
+                        background-color: #fd7e14;
+                        color: white;
+                        border: none;
+                        padding: 15px 30px;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        font-size: 18px;
+                        font-weight: bold;
+                    }
+                    button:hover {
+                        background-color: #e55a00;
+                    }
+                `;
+                
+                const button = document.createElement('button');
+                button.id = 'shadow-btn-2';
+                button.className = 'orange-button';
+                button.textContent = this.getAttribute('data-label') || 'Shadow Button 2';
+                button.setAttribute('data-testid', 'shadow-button-2');
+                
+                shadow.appendChild(style);
+                shadow.appendChild(button);
+            }
+        }
+
+        // Define Nested Shadow Component
+        class NestedShadow extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    .outer-container {
+                        background-color: #6f42c1;
+                        padding: 15px;
+                        border-radius: 10px;
+                        color: white;
+                    }
+                    .inner-host {
+                        background-color: rgba(255, 255, 255, 0.2);
+                        padding: 10px;
+                        border-radius: 5px;
+                        margin-top: 10px;
+                    }
+                `;
+                
+                const outerContainer = document.createElement('div');
+                outerContainer.className = 'outer-container';
+                outerContainer.innerHTML = '<h4>Nested Shadow DOM</h4>';
+                
+                const innerHost = document.createElement('div');
+                innerHost.className = 'inner-host';
+                
+                // Create inner shadow DOM
+                const innerShadow = innerHost.attachShadow({mode: 'open'});
+                
+                const innerStyle = document.createElement('style');
+                innerStyle.textContent = `
+                    button {
+                        background-color: #dc3545;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    }
+                    button:hover {
+                        background-color: #c82333;
+                    }
+                `;
+                
+                const innerButton = document.createElement('button');
+                innerButton.id = 'nested-shadow-btn';
+                innerButton.textContent = this.getAttribute('data-label') || 'Nested Shadow Button';
+                innerButton.setAttribute('data-testid', 'nested-shadow-button');
+                
+                innerShadow.appendChild(innerStyle);
+                innerShadow.appendChild(innerButton);
+                
+                outerContainer.appendChild(innerHost);
+                shadow.appendChild(style);
+                shadow.appendChild(outerContainer);
+            }
+        }
+
+        // Register custom elements
+        customElements.define('shadow-button-1', ShadowButton1);
+        customElements.define('shadow-button-2', ShadowButton2);
+        customElements.define('nested-shadow', NestedShadow);
+
+        // Add some interactive functionality
+        document.addEventListener('click', function(event) {
+            if (event.target.tagName === 'BUTTON') {
+                const resultsDiv = document.getElementById('test-results');
+                const timestamp = new Date().toLocaleTimeString();
+                const buttonInfo = `${event.target.textContent} (ID: ${event.target.id || 'none'})`;
+                resultsDiv.innerHTML += `<p>🖱️ ${timestamp}: Clicked ${buttonInfo}</p>`;
+            }
+        });
+
+        // Log Shadow DOM structure for debugging
+        console.log('Shadow DOM Test Page Loaded');
+        console.log('Shadow Components:', {
+            'shadow-component-1': document.querySelector('#shadow-component-1'),
+            'shadow-component-2': document.querySelector('#shadow-component-2'),
+            'nested-component': document.querySelector('#nested-component')
+        });
+    </script>
+</body>
+</html>

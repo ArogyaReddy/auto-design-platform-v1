@@ -1,38 +1,16 @@
 // Element AI Extractor - Content Script
 // Handles element inspection, highlighting, and data extraction
 
-// Enhanced loading protection with immediate communication setup
+// Enhanced loading protection - prevent duplicate script execution
 if (window.aiExtractorLoaded) {
-  console.log("Element AI Extractor: Content script already loaded, ensuring communication...");
-  
-  // Ensure message listener is always available
-  if (!window.aiExtractorMessageListenerAdded) {
-    window.aiExtractorMessageListenerAdded = true;
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log("Element AI Extractor: Received message:", message.action);
-      if (message.action === 'ping') {
-        console.log("Element AI Extractor: Responding to ping - script already loaded");
-        sendResponse({ 
-          status: 'alive', 
-          inspecting: window.aiExtractorIsInspecting || false, 
-          timestamp: Date.now(),
-          loaded: true 
-        });
-        return true;
-      }
-    });
-  }
-  
-  // Send ready signal immediately
-  try {
-    chrome.runtime.sendMessage({ action: 'contentScriptReady', url: window.location.href });
-  } catch (error) {
-    console.log("Element AI Extractor: Could not send ready signal (expected during injection)");
-  }
-  
+  console.log("Element AI Extractor: Content script already loaded, skipping initialization");
+  // Script already loaded, exit early to prevent conflicts
+  // The existing message listener is already active
+  // Script already loaded, exit early to prevent conflicts
+  // The existing message listener is already active
 } else {
   window.aiExtractorLoaded = true;
-  window.aiExtractorMessageListenerAdded = false;
+  window.aiExtractorMessageListenerAdded = true; // Mark as added
   console.log("Element AI Extractor: Content script loading for the first time...");
   console.log("Element AI Extractor: Page URL:", window.location.href);
   console.log("Element AI Extractor: Frame type:", window === window.top ? 'main frame' : 'iframe');
@@ -499,6 +477,30 @@ function removeInspectorBadge() {
   }
 }
 
+// Inject styles into all shadow roots
+function injectStylesIntoShadowRoots(rootNode = document) {
+  // Find all elements with shadow roots
+  const allElements = rootNode.querySelectorAll('*');
+  
+  allElements.forEach(element => {
+    if (element.shadowRoot) {
+      // Inject styles into this shadow root
+      const existingShadowStyle = element.shadowRoot.getElementById('ai-extractor-shadow-styles');
+      if (existingShadowStyle) {
+        existingShadowStyle.remove();
+      }
+      
+      const shadowStyleElement = document.createElement('style');
+      shadowStyleElement.id = 'ai-extractor-shadow-styles';
+      shadowStyleElement.textContent = HIGHLIGHT_STYLES;
+      element.shadowRoot.appendChild(shadowStyleElement);
+      
+      // Recursively inject into nested shadow roots
+      injectStylesIntoShadowRoots(element.shadowRoot);
+    }
+  });
+}
+
 // Inject CSS styles for highlighting
 function injectStyles() {
   const existingStyle = document.getElementById('ai-extractor-styles');
@@ -510,6 +512,26 @@ function injectStyles() {
   styleElement.id = 'ai-extractor-styles';
   styleElement.textContent = HIGHLIGHT_STYLES;
   document.head.appendChild(styleElement);
+  
+  // Also inject styles into all shadow roots
+  injectStylesIntoShadowRoots();
+}
+
+// Remove CSS styles from shadow roots
+function removeStylesFromShadowRoots(rootNode = document) {
+  const allElements = rootNode.querySelectorAll('*');
+  
+  allElements.forEach(element => {
+    if (element.shadowRoot) {
+      const shadowStyleElement = element.shadowRoot.getElementById('ai-extractor-shadow-styles');
+      if (shadowStyleElement) {
+        shadowStyleElement.remove();
+      }
+      
+      // Recursively remove from nested shadow roots
+      removeStylesFromShadowRoots(element.shadowRoot);
+    }
+  });
 }
 
 // Remove CSS styles
@@ -518,6 +540,9 @@ function removeStyles() {
   if (styleElement) {
     styleElement.remove();
   }
+  
+  // Also remove styles from all shadow roots
+  removeStylesFromShadowRoots();
 }
 
 // Highlight element on hover
@@ -542,12 +567,33 @@ function removeHighlight(element) {
   }
 }
 
+// Remove all highlights from shadow roots
+function removeAllHighlightsFromShadowRoots(rootNode = document) {
+  const allElements = rootNode.querySelectorAll('*');
+  
+  allElements.forEach(element => {
+    if (element.shadowRoot) {
+      const shadowHighlightedElements = element.shadowRoot.querySelectorAll('.ai-extractor-highlight');
+      shadowHighlightedElements.forEach(el => {
+        el.classList.remove('ai-extractor-highlight');
+      });
+      
+      // Recursively remove from nested shadow roots
+      removeAllHighlightsFromShadowRoots(element.shadowRoot);
+    }
+  });
+}
+
 // Remove all highlights
 function removeAllHighlights() {
   const highlightedElements = document.querySelectorAll('.ai-extractor-highlight');
   highlightedElements.forEach(el => {
     el.classList.remove('ai-extractor-highlight');
   });
+  
+  // Also remove highlights from all shadow roots
+  removeAllHighlightsFromShadowRoots();
+  
   currentHighlightedElement = null;
 }
 
@@ -838,8 +884,11 @@ function startInspection() {
   // Start syncing with storage
   startStorageSync();
   
-  // Inject styles
+  // Inject styles (including into shadow roots)
   injectStyles();
+  
+  // Set up shadow DOM observer for dynamic content
+  setupShadowDOMObserver();
   
   // Add cursor style to body
   document.body.classList.add('ai-extractor-inspecting');
@@ -853,6 +902,47 @@ function startInspection() {
   document.addEventListener('click', handleClick, true);
   
   return { status: 'listening' };
+}
+
+// Set up observer for dynamically added shadow DOM content
+function setupShadowDOMObserver() {
+  if (window.aiExtractorShadowObserver) {
+    window.aiExtractorShadowObserver.disconnect();
+  }
+  
+  window.aiExtractorShadowObserver = new MutationObserver((mutations) => {
+    let needsStyleRefresh = false;
+    
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          // Check if the added node has shadow roots or is inside a shadow root
+          if (node.shadowRoot) {
+            needsStyleRefresh = true;
+          }
+          
+          // Check if any child elements have shadow roots
+          const shadowElements = node.querySelectorAll && node.querySelectorAll('*') || [];
+          for (let element of shadowElements) {
+            if (element.shadowRoot) {
+              needsStyleRefresh = true;
+              break;
+            }
+          }
+        }
+      });
+    });
+    
+    if (needsStyleRefresh) {
+      console.log("Element AI Extractor: Detected new shadow DOM content, refreshing styles");
+      injectStylesIntoShadowRoots();
+    }
+  });
+  
+  window.aiExtractorShadowObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
 }
 
 // Stop inspection mode
@@ -876,6 +966,12 @@ function stopInspection() {
   // Stop syncing with storage
   stopStorageSync();
   
+  // Disconnect shadow DOM observer
+  if (window.aiExtractorShadowObserver) {
+    window.aiExtractorShadowObserver.disconnect();
+    window.aiExtractorShadowObserver = null;
+  }
+  
   // Remove floating badge
   removeInspectorBadge();
   
@@ -884,7 +980,7 @@ function stopInspection() {
   document.removeEventListener('mouseout', handleMouseOut, true);
   document.removeEventListener('click', handleClick, true);
   
-  // Remove highlights and styles
+  // Remove highlights and styles (including from shadow roots)
   removeAllHighlights();
   document.body.classList.remove('ai-extractor-inspecting');
   removeStyles();
@@ -895,12 +991,58 @@ function stopInspection() {
 // Track currently highlighted element
 let currentlyHighlightedElement = null;
 
+// Get the actual element under the mouse, including shadow DOM elements
+function getElementFromPoint(x, y) {
+  let element = document.elementFromPoint(x, y);
+  
+  // Traverse into shadow DOM if the element has shadow root
+  while (element && element.shadowRoot) {
+    const shadowElement = element.shadowRoot.elementFromPoint(x, y);
+    if (shadowElement && shadowElement !== element) {
+      element = shadowElement;
+    } else {
+      break;
+    }
+  }
+  
+  return element;
+}
+
+// Get the deepest element under mouse coordinates, traversing shadow DOM
+function getDeepElementFromPoint(x, y) {
+  let element = document.elementFromPoint(x, y);
+  
+  // Keep going deeper into shadow DOMs
+  while (element) {
+    if (element.shadowRoot) {
+      const shadowElement = element.shadowRoot.elementFromPoint(x, y);
+      if (shadowElement && shadowElement !== element) {
+        element = shadowElement;
+        continue;
+      }
+    }
+    break;
+  }
+  
+  return element;
+}
+
 // Handle mouse over events
 function handleMouseOver(event) {
   if (!isInspecting) return;
   
   event.stopPropagation();
-  const element = event.target;
+  
+  // Get the actual element under the mouse, including shadow DOM elements
+  const actualElement = getDeepElementFromPoint(event.clientX, event.clientY);
+  const element = actualElement || event.target;
+  
+  console.log("Element AI Extractor: Mouse over", {
+    originalTarget: event.target,
+    actualElement: actualElement,
+    finalElement: element,
+    inShadowDOM: isInShadowDOM(element)
+  });
   
   // Don't highlight body or html
   if (element === document.body || element === document.documentElement) {
@@ -933,8 +1075,16 @@ function handleMouseOut(event) {
 function handleClick(event) {
   if (!isInspecting) return;
   
-  const element = event.target;
-  console.log("Element AI Extractor: Element clicked", element);
+  // Get the actual element under the mouse, including shadow DOM elements
+  const actualElement = getDeepElementFromPoint(event.clientX, event.clientY);
+  const element = actualElement || event.target;
+  
+  console.log("Element AI Extractor: Element clicked", {
+    originalTarget: event.target,
+    actualElement: actualElement,
+    finalElement: element,
+    inShadowDOM: isInShadowDOM(element)
+  });
   
   // Don't process body or html clicks
   if (element === document.body || element === document.documentElement) {
@@ -1013,20 +1163,17 @@ function handleClick(event) {
   }
 }
 
-// Message listener for communication with popup - Set up immediately
-if (!window.aiExtractorMessageListenerAdded) {
-  window.aiExtractorMessageListenerAdded = true;
-  
-  console.log("Element AI Extractor: Setting up message listener");
-  
-  // Test the message listener setup
-  setTimeout(() => {
-    console.log("Element AI Extractor: Message listener should be active now");
-    console.log("Element AI Extractor: chrome.runtime available:", !!chrome.runtime);
-    console.log("Element AI Extractor: chrome.runtime.onMessage available:", !!chrome.runtime?.onMessage);
-  }, 100);
-  
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Message listener for communication with popup
+console.log("Element AI Extractor: Setting up message listener");
+
+// Test the message listener setup
+setTimeout(() => {
+  console.log("Element AI Extractor: Message listener should be active now");
+  console.log("Element AI Extractor: chrome.runtime available:", !!chrome.runtime);
+  console.log("Element AI Extractor: chrome.runtime.onMessage available:", !!chrome.runtime?.onMessage);
+}, 100);
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("Element AI Extractor: Content script received message", message);
     console.log("Element AI Extractor: Sender:", sender);
     console.log("Element AI Extractor: Will send response via sendResponse function");
@@ -1036,8 +1183,7 @@ if (!window.aiExtractorMessageListenerAdded) {
       if (!message || typeof message !== 'object') {
         console.warn("Element AI Extractor: Invalid message received", message);
         sendResponse({ status: 'error', message: 'Invalid message format' });
-        return true;
-      }
+        return true;      }
 
       switch (message.action) {
         case 'ping':
@@ -1047,10 +1193,18 @@ if (!window.aiExtractorMessageListenerAdded) {
             inspecting: window.aiExtractorIsInspecting || false, 
             timestamp: Date.now(),
             frameType: window === window.top ? 'main' : 'iframe',
-            url: window.location.href
+            url: window.location.href,
+            readyState: document.readyState,
+            scriptLoaded: window.aiExtractorLoaded || false,
+            contentScriptVersion: '1.0.1'
           };
           console.log("Element AI Extractor: Ping response:", response);
-          sendResponse(response);
+          // Ensure immediate response
+          try {
+            sendResponse(response);
+          } catch (responseError) {
+            console.error("Element AI Extractor: Error sending ping response:", responseError);
+          }
           return true; // Keep channel open
         
       case 'startInspectingAiExtractor':
@@ -1117,4 +1271,3 @@ try {
 }
 
 } // End of else block (script loading check)
-} // End of main if-else block

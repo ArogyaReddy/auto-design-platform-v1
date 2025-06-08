@@ -203,9 +203,11 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
     args: [locator, inShadowDOM],
     func: (locator, inShadowDOM) => {
       // #FUNCTION: findElementWithShadowSupport
-      // #DESCRIPTION: Enhanced element finding with Shadow DOM path support
+      // #DESCRIPTION: Enhanced element finding with comprehensive Shadow DOM support
       function findElementWithShadowSupport(locatorStr, isInShadow) {
         if (!locatorStr) return null;
+        
+        console.log('Element AI Extractor: Searching for element:', locatorStr, 'inShadowDOM:', isInShadow);
         
         // #NOTE: Handle Shadow DOM path syntax "host >> inner"
         if (isInShadow && typeof locatorStr === 'string' && locatorStr.includes(' >> ')) {
@@ -214,12 +216,15 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
             const finalInnerSelector = pathSegments.pop();
             let currentNode = document;
             
+            console.log('Element AI Extractor: Processing shadow path segments:', pathSegments);
+            
             // #IMPORTANT: Traverse through shadow host path
             for (const segment of pathSegments) {
               if (currentNode.querySelector) {
                 let host = currentNode.querySelector(segment);
                 if (host && host.shadowRoot) {
                   currentNode = host.shadowRoot;
+                  console.log('Element AI Extractor: Found shadow host:', segment, 'shadowRoot:', currentNode);
                 } else {
                   console.warn('Element AI Extractor: Shadow host not found:', segment);
                   return null;
@@ -232,7 +237,9 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
             
             // #NOTE: Find final element in the deepest shadow root
             if (currentNode.querySelector) {
-              return currentNode.querySelector(finalInnerSelector);
+              const foundElement = currentNode.querySelector(finalInnerSelector);
+              console.log('Element AI Extractor: Final element search result:', foundElement);
+              return foundElement;
             }
           } catch (e) {
             console.warn('Element AI Extractor: Error parsing shadow path:', e);
@@ -240,36 +247,60 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
           }
         }
         
-        // #NOTE: Legacy shadow search (recursive)
+        // #NOTE: Enhanced shadow search with deep traversal
         if (isInShadow) {
-          function searchShadowRoots(node, selector) {
-            if (!node) return null;
-            if (node.querySelector) {
-              let found = node.querySelector(selector);
-              if (found) return found;
+          function searchAllShadowRoots(rootNode, selector) {
+            if (!rootNode) return null;
+            
+            // Try to find in current context
+            if (rootNode.querySelector) {
+              try {
+                let found = rootNode.querySelector(selector);
+                if (found) {
+                  console.log('Element AI Extractor: Found element in shadow root:', found);
+                  return found;
+                }
+              } catch (e) {
+                console.warn('Element AI Extractor: Error querying selector in shadow root:', e);
+              }
             }
-            let children = node.children || [];
-            for (let child of children) {
-              if (child.shadowRoot) {
-                let found = searchShadowRoots(child.shadowRoot, selector);
+            
+            // Recursively search in all shadow roots
+            const elements = rootNode.querySelectorAll ? rootNode.querySelectorAll('*') : [];
+            for (let element of elements) {
+              if (element.shadowRoot) {
+                let found = searchAllShadowRoots(element.shadowRoot, selector);
                 if (found) return found;
               }
             }
+            
             return null;
           }
-          return searchShadowRoots(document, locatorStr);
+          
+          // Search starting from document
+          let result = searchAllShadowRoots(document, locatorStr);
+          if (result) {
+            console.log('Element AI Extractor: Found element via shadow search:', result);
+            return result;
+          }
         }
         
         // #NOTE: Standard element finding
         try {
+          let element = null;
           if (locatorStr.startsWith('#')) {
-            return document.querySelector(locatorStr);
+            element = document.querySelector(locatorStr);
           } else if (locatorStr.startsWith('/')) {
             let r = document.evaluate(locatorStr, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-            return r.singleNodeValue;
+            element = r.singleNodeValue;
           } else {
-            return document.querySelector(locatorStr);
+            element = document.querySelector(locatorStr);
           }
+          
+          if (element) {
+            console.log('Element AI Extractor: Found element via standard search:', element);
+          }
+          return element;
         } catch (e) {
           console.warn('Element AI Extractor: Error finding element:', e);
           return null;
@@ -278,13 +309,36 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
       
       let el = findElementWithShadowSupport(locator, inShadowDOM);
       if (el) {
+        console.log('Element AI Extractor: Successfully found element, highlighting:', el);
         el.scrollIntoView({behavior: 'smooth', block: 'center'});
         el.style.outline = '3px solid #ff0000';
+        el.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
         setTimeout(() => {
           el.style.outline = '';
-        }, 1500);
+          el.style.backgroundColor = '';
+        }, 2000);
       } else {
-        console.warn('Element AI Extractor: Could not find element with locator:', locator);
+        console.warn('Element AI Extractor: Could not find element with locator:', locator, 'inShadowDOM:', inShadowDOM);
+        // Try alternative search methods if shadow DOM search failed
+        if (inShadowDOM) {
+          console.log('Element AI Extractor: Trying fallback search methods...');
+          try {
+            // Try direct querySelector on document as fallback
+            let fallbackEl = document.querySelector(locator);
+            if (fallbackEl) {
+              console.log('Element AI Extractor: Found element via fallback search:', fallbackEl);
+              fallbackEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+              fallbackEl.style.outline = '3px solid #ff0000';
+              fallbackEl.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+              setTimeout(() => {
+                fallbackEl.style.outline = '';
+                fallbackEl.style.backgroundColor = '';
+              }, 2000);
+            }
+          } catch (e) {
+            console.warn('Element AI Extractor: Fallback search also failed:', e);
+          }
+        }
       }
     }
   });

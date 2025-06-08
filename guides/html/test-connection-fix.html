@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element AI Extractor - Connection Fix Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-element {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-element:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background-color: rgba(46, 125, 50, 0.8); }
+        .error { background-color: rgba(198, 40, 40, 0.8); }
+        .info { background-color: rgba(21, 101, 192, 0.8); }
+        .log-entry {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .shadow-test {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Element AI Extractor - Connection Fix Test</h1>
+        <p>This page tests the connection fix for the "Could not establish connection. Receiving end does not exist" error.</p>
+        
+        <div id="test-status" class="status info">🔄 Initializing tests...</div>
+        
+        <div class="test-actions">
+            <button onclick="testContentScript()">🔧 Test Content Script</button>
+            <button onclick="testPingResponse()">📡 Test Ping Response</button>
+            <button onclick="testMessageHandling()">💬 Test Message Handling</button>
+            <button onclick="clearLogs()">🗑️ Clear Logs</button>
+        </div>
+        
+        <div id="test-logs"></div>
+    </div>
+
+    <div class="container">
+        <h2>🎯 Test Elements for Inspection</h2>
+        <p>Use these elements to test the Element AI Extractor's inspection functionality:</p>
+        
+        <div class="test-element" id="button-test" data-test="primary-button">
+            🔘 Primary Button Test Element
+        </div>
+        
+        <div class="test-element" id="form-test" data-test="form-control">
+            📝 Form Control Test Element
+            <input type="text" placeholder="Test input field" style="margin-left: 10px; padding: 5px;">
+        </div>
+        
+        <div class="test-element" id="link-test" data-test="navigation-link">
+            🔗 <a href="#" style="color: #ffd700;">Navigation Link Test</a>
+        </div>
+        
+        <!-- Shadow DOM Test -->
+        <div class="shadow-test">
+            <h3>🌟 Shadow DOM Test Area</h3>
+            <div id="shadow-host"></div>
+        </div>
+    </div>
+
+    <script>
+        const testLogs = document.getElementById('test-logs');
+        const testStatus = document.getElementById('test-status');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry status ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            testLogs.appendChild(logEntry);
+            testLogs.scrollTop = testLogs.scrollHeight;
+            console.log(`Element AI Extractor Test: ${message}`);
+        }
+        
+        function updateStatus(message, type) {
+            testStatus.textContent = message;
+            testStatus.className = `status ${type}`;
+        }
+        
+        function clearLogs() {
+            testLogs.innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+        
+        function testContentScript() {
+            log('Testing content script status...', 'info');
+            updateStatus('🔄 Testing content script...', 'info');
+            
+            // Check content script flags
+            if (window.aiExtractorLoaded) {
+                log('✅ Content script loaded flag found', 'success');
+            } else {
+                log('❌ Content script loaded flag NOT found', 'error');
+            }
+            
+            if (window.aiExtractorMessageListenerAdded) {
+                log('✅ Message listener flag found', 'success');
+            } else {
+                log('❌ Message listener flag NOT found', 'error');
+            }
+            
+            // Check Chrome APIs
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                log('✅ Chrome runtime API available', 'success');
+                log(`Extension ID: ${chrome.runtime.id}`, 'info');
+            } else {
+                log('❌ Chrome runtime API NOT available', 'error');
+            }
+            
+            updateStatus('Content script test completed', 'success');
+        }
+        
+        async function testPingResponse() {
+            log('Testing ping response mechanism...', 'info');
+            updateStatus('🔄 Testing ping response...', 'info');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                log('❌ Chrome runtime not available - cannot test ping', 'error');
+                updateStatus('❌ Chrome runtime not available', 'error');
+                return;
+            }
+            
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Ping timeout (1.5 seconds)'));
+                    }, 1500);
+                    
+                    chrome.runtime.sendMessage({
+                        action: 'ping'
+                    }, (response) => {
+                        clearTimeout(timeout);
+                        if (chrome.runtime.lastError) {
+                            reject(new Error(chrome.runtime.lastError.message));
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                });
+                
+                log(`✅ Ping successful: ${JSON.stringify(response)}`, 'success');
+                updateStatus('✅ Ping response working', 'success');
+                
+            } catch (error) {
+                log(`❌ Ping failed: ${error.message}`, 'error');
+                updateStatus(`❌ Ping failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testMessageHandling() {
+            log('Testing message handling capabilities...', 'info');
+            updateStatus('🔄 Testing message handling...', 'info');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                log('❌ Chrome runtime not available', 'error');
+                return;
+            }
+            
+            // Test different message types
+            const testMessages = [
+                { action: 'ping' },
+                { action: 'startInspectingAiExtractor' },
+                { action: 'stopInspectingAiExtractor' }
+            ];
+            
+            for (const message of testMessages) {
+                try {
+                    const response = await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            reject(new Error('Message timeout'));
+                        }, 2000);
+                        
+                        chrome.runtime.sendMessage(message, (response) => {
+                            clearTimeout(timeout);
+                            if (chrome.runtime.lastError) {
+                                reject(new Error(chrome.runtime.lastError.message));
+                            } else {
+                                resolve(response);
+                            }
+                        });
+                    });
+                    
+                    log(`✅ Message '${message.action}' successful: ${JSON.stringify(response)}`, 'success');
+                    
+                } catch (error) {
+                    log(`❌ Message '${message.action}' failed: ${error.message}`, 'error');
+                }
+            }
+            
+            updateStatus('Message handling test completed', 'success');
+        }
+        
+        // Create Shadow DOM test element
+        function createShadowDOMTest() {
+            const shadowHost = document.getElementById('shadow-host');
+            if (shadowHost && !shadowHost.shadowRoot) {
+                const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+                shadowRoot.innerHTML = `
+                    <style>
+                        .shadow-button {
+                            background: linear-gradient(45deg, #e91e63, #9c27b0);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 25px;
+                            cursor: pointer;
+                            font-weight: bold;
+                            transition: transform 0.2s;
+                        }
+                        .shadow-button:hover {
+                            transform: scale(1.1);
+                        }
+                    </style>
+                    <div style="padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                        <p>🌟 This is inside Shadow DOM</p>
+                        <button class="shadow-button" data-shadow-test="shadow-button">Shadow DOM Button</button>
+                    </div>
+                `;
+                log('✅ Shadow DOM test element created', 'success');
+            }
+        }
+        
+        // Auto-run tests when page loads
+        window.addEventListener('load', function() {
+            log('🚀 Page loaded, initializing tests...', 'success');
+            createShadowDOMTest();
+            
+            // Auto-check content script after a delay
+            setTimeout(() => {
+                testContentScript();
+            }, 1000);
+            
+            // Auto-test ping after another delay
+            setTimeout(() => {
+                testPingResponse();
+            }, 2000);
+        });
+        
+        // Monitor for extension communication
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                log(`📨 Received message: ${JSON.stringify(message)}`, 'info');
+                return true;
+            });
+        }
+        
+        // Log clicks for testing
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.test-element')) {
+                const element = e.target.closest('.test-element');
+                log(`🖱️ Clicked test element: ${element.id} (${element.dataset.test})`, 'info');
+            }
+        });
+    </script>
+</body>
+</html>
