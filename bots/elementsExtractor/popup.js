@@ -1252,15 +1252,15 @@ function renderElementsTable(data) {
     const hostPath = r['Host Element Path'] || '';
     
     previewHTML += `<tr>
-      <td title="${r['Element Name']}">${r['Element Name']}</td>
+      <td class="element-name" title="${r['Element Name']}">${r['Element Name']}</td>
       <td><span class="el-badge">${r['Element Type']}</span></td>
-      <td title="${r['Best Locator']}">${r['Best Locator']}</td>
+      <td class="locator-text" title="${r['Best Locator']}">${r['Best Locator']}</td>
       <td><span class="strength-badge strength-${getStrengthClass(r['Strength'])}">${r['Strength']}%</span></td>
-      <td title="${r['ID']}">${r['ID']}</td>
-      <td title="${r['CSS']}">${r['CSS']}</td>
-      <td title="${r['XPATH']}">${r['XPATH']}</td>
+      <td class="element-id" title="${r['ID']}">${r['ID']}</td>
+      <td class="locator-text" title="${r['CSS']}">${r['CSS']}</td>
+      <td class="locator-text" title="${r['XPATH']}">${r['XPATH']}</td>
       <td>${isInShadow ? `<span class="shadow-badge" title="Host Path: ${hostPath}">Shadow</span>` : ''}</td>
-      <td title="${hostPath}" class="host-path">${hostPath ? hostPath.substring(0, 30) + (hostPath.length > 30 ? '...' : '') : ''}</td>
+      <td title="${hostPath}" class="host-path">${hostPath ? hostPath.substring(0, 25) + (hostPath.length > 25 ? '...' : '') : ''}</td>
       <td><button class="copy-btn" data-copy="${encodeURIComponent(r['Best Locator'])}" title="Copy to clipboard">📋</button></td>
       <td><button class="hl-btn" data-hl="${encodeURIComponent(r['Best Locator'])}" data-shadow="${isInShadow ? '1' : '0'}" title="Highlight element">👁️</button></td>
     </tr>`;
@@ -1437,9 +1437,11 @@ if (document.getElementById('filterAll').checked) {
 
 // ---- Get Strength CSS Class ----
 function getStrengthClass(strength) {
-  if (strength >= 80) return 'high';
-  if (strength >= 50) return 'medium';
-  return 'low';
+  if (strength >= 90) return 'excellent';
+  if (strength >= 80) return 'very-good';
+  if (strength >= 70) return 'good';
+  if (strength >= 50) return 'fair';
+  return 'poor';
 }
 
 // ---- Pagination Functions ----

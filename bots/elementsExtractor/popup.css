@@ -416,7 +416,7 @@ body.expanded .popup-root {
 }
 
 .preview-table table {
-    width: 100%;
+    min-width: 1200px; /* Ensure table is wide enough for all columns */
     border-collapse: collapse;
     margin-top: 7px;
     font-size: 0.99em;
@@ -429,7 +429,21 @@ body.expanded .popup-root {
     font-family: 'JetBrains Mono', 'Consolas', monospace;
     text-align: left;
     background: transparent;
+    white-space: nowrap;
 }
+
+/* Column minimum width management for proper spacing */
+.preview-table th:nth-child(1), .preview-table td:nth-child(1) { min-width: 120px; } /* Name */
+.preview-table th:nth-child(2), .preview-table td:nth-child(2) { min-width: 80px; }  /* Type */
+.preview-table th:nth-child(3), .preview-table td:nth-child(3) { min-width: 150px; } /* Best Locator */
+.preview-table th:nth-child(4), .preview-table td:nth-child(4) { min-width: 80px; }  /* Strength */
+.preview-table th:nth-child(5), .preview-table td:nth-child(5) { min-width: 100px; } /* ID */
+.preview-table th:nth-child(6), .preview-table td:nth-child(6) { min-width: 150px; } /* CSS */
+.preview-table th:nth-child(7), .preview-table td:nth-child(7) { min-width: 150px; } /* XPATH */
+.preview-table th:nth-child(8), .preview-table td:nth-child(8) { min-width: 70px; }  /* Shadow */
+.preview-table th:nth-child(9), .preview-table td:nth-child(9) { min-width: 120px; } /* Host Path */
+.preview-table th:nth-child(10), .preview-table td:nth-child(10) { min-width: 50px; } /* Copy */
+.preview-table th:nth-child(11), .preview-table td:nth-child(11) { min-width: 50px; } /* Highlight */
 
 .preview-table th {
     background: #25305b;
@@ -467,6 +481,38 @@ body.expanded .popup-root {
     font-family: 'JetBrains Mono', 'Consolas', monospace;
     font-size: 0.85em;
     color: #ffe682;
+    max-width: none; /* Remove previous max-width constraint */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Enhanced text overflow handling for specific columns */
+.preview-table .element-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #e6f6ff;
+}
+
+.preview-table .locator-text {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #c6e6fc;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    padding: 2px 4px;
+}
+
+.preview-table .element-id {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #ffc366;
     max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -479,18 +525,38 @@ body.expanded .popup-root {
     background: #23286d;
     border-radius: 6px;
     color: #59f9d6;
-    padding: 5px 11px;
+    padding: 3px 6px; /* Reduced padding for better fit */
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.9em; /* Slightly smaller font */
     transition: background 0.15s, color 0.13s, font-size 0.18s;
+    white-space: nowrap;
+    min-width: 20px;
 }
 
 .copy-btn:hover,
 .hl-btn:hover {
     background: #59f9d6;
     color: #21264a;
-    font-size: 1.11em;
+    font-size: 1em; /* Reduced hover growth */
 }
+
+/* Strength badge styling */
+.strength-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    white-space: nowrap;
+    text-align: center;
+    min-width: 35px;
+}
+
+.strength-excellent { background: #28a745; color: white; }
+.strength-very-good { background: #6f42c1; color: white; }
+.strength-good { background: #007bff; color: white; }
+.strength-fair { background: #fd7e14; color: white; }
+.strength-poor { background: #dc3545; color: white; }
 
 .footer {
     margin: 20px 0 10px 0;
@@ -628,34 +694,6 @@ body.expanded .popup-root {
 
 .action-btn:active {
     transform: translateY(0);
-}
-
-/* Strength Badges */
-.strength-badge {
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-
-.strength-high {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-}
-
-.strength-medium {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
-.strength-low {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-}
-
-.strength-poor {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-    color: white;
 }
 
 /* Pagination Controls */
@@ -1175,5 +1213,48 @@ body.expanded .popup-root {
     
     .title {
         font-size: 0.95em;
+    }
+}
+
+/* Responsive table adjustments for smaller screens */
+@media (max-width: 480px) {
+    .preview-table {
+        font-size: 0.85em;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        padding: 3px 4px;
+    }
+    
+    /* Adjust column widths for mobile */
+    .preview-table th:nth-child(1), .preview-table td:nth-child(1) { width: 15%; } /* Name */
+    .preview-table th:nth-child(2), .preview-table td:nth-child(2) { width: 8%; }  /* Type */
+    .preview-table th:nth-child(3), .preview-table td:nth-child(3) { width: 20%; } /* Best Locator */
+    .preview-table th:nth-child(4), .preview-table td:nth-child(4) { width: 8%; }  /* Strength */
+    .preview-table th:nth-child(5), .preview-table td:nth-child(5) { width: 10%; } /* ID */
+    .preview-table th:nth-child(6), .preview-table td:nth-child(6) { width: 15%; } /* CSS */
+    .preview-table th:nth-child(7), .preview-table td:nth-child(7) { width: 15%; } /* XPATH */
+    .preview-table th:nth-child(8), .preview-table td:nth-child(8) { width: 6%; }  /* Shadow */
+    .preview-table th:nth-child(9), .preview-table td:nth-child(9) { width: 10%; } /* Host Path */
+    .preview-table th:nth-child(10), .preview-table td:nth-child(10) { width: 3%; } /* Copy */
+    .preview-table th:nth-child(11), .preview-table td:nth-child(11) { width: 3%; } /* Highlight */
+    
+    .copy-btn,
+    .hl-btn {
+        font-size: 0.75em;
+        padding: 2px 4px;
+        min-width: 16px;
+    }
+    
+    .strength-badge {
+        font-size: 0.7em;
+        padding: 1px 4px;
+        min-width: 28px;
+    }
+    
+    .el-badge {
+        font-size: 0.8em;
+        padding: 1px 6px;
     }
 }

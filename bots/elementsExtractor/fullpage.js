@@ -61,15 +61,15 @@ function renderTableFallback(data) {
     if (!preview || !data || data.length === 0) return;
     
     let html = `
-        <table style="width: 100%; border-collapse: collapse; color: #e0e7ff; font-family: 'JetBrains Mono', 'Consolas', monospace;">
+        <table>
             <thead>
-                <tr style="background: rgba(255, 255, 255, 0.1);">
-                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 120px;">Name</th>
-                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 80px;">Type</th>
-                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 200px;">CSS Selector</th>
-                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 200px;">XPath</th>
-                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 100px;">ID</th>
-                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 120px;">Text Content</th>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>CSS Selector</th>
+                    <th>XPath</th>
+                    <th>ID</th>
+                    <th>Text Content</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,15 +85,15 @@ function renderTableFallback(data) {
         const textContent = element['Element Name'] || element.text || 'N/A';
         
         html += `
-            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; word-wrap: break-word; max-width: 150px;">${elementName}</td>
-                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top;">
-                    <span style="background: linear-gradient(90deg, #59f9d6 10%, #18aaff 90%); color: #19224a; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">${elementType}</span>
+            <tr>
+                <td class="element-name">${elementName}</td>
+                <td>
+                    <span class="el-badge">${elementType}</span>
                 </td>
-                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-wrap: break-word; max-width: 250px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">${cssSelector}</td>
-                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-wrap: break-word; max-width: 250px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">${xpath}</td>
-                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-wrap: break-word; max-width: 120px;">${elementId}</td>
-                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; word-wrap: break-word; max-width: 180px; color: #b8c5d6;">${textContent}</td>
+                <td class="locator-text">${cssSelector}</td>
+                <td class="locator-text">${xpath}</td>
+                <td class="element-id">${elementId}</td>
+                <td>${textContent}</td>
             </tr>
         `;
     });

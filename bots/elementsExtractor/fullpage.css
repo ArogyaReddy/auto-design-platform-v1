@@ -98,7 +98,8 @@
 }
 
 .fullpage-table table {
-    width: 100%;
+    min-width: 1400px; /* Ensure table is wide enough for all columns */
+    border-collapse: collapse;
     font-size: 0.9rem;
 }
 
@@ -107,7 +108,17 @@
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    white-space: nowrap;
 }
+
+/* Column minimum width management for proper spacing in fullpage view */
+.fullpage-table th:nth-child(1), .fullpage-table td:nth-child(1) { min-width: 140px; } /* Name */
+.fullpage-table th:nth-child(2), .fullpage-table td:nth-child(2) { min-width: 100px; } /* Type */
+.fullpage-table th:nth-child(3), .fullpage-table td:nth-child(3) { min-width: 180px; } /* Best/CSS */
+.fullpage-table th:nth-child(4), .fullpage-table td:nth-child(4) { min-width: 180px; } /* XPATH */
+.fullpage-table th:nth-child(5), .fullpage-table td:nth-child(5) { min-width: 120px; } /* ID */
+.fullpage-table th:nth-child(6), .fullpage-table td:nth-child(6) { min-width: 200px; } /* Text Content */
 
 .fullpage-table th {
     background: rgba(255, 255, 255, 0.1);
@@ -120,8 +131,42 @@
 
 .fullpage-table td {
     color: #e0e7ff;
-    word-break: break-all;
-    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Enhanced text overflow handling for specific columns in fullpage view */
+.fullpage-table .element-name {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.fullpage-table .locator-text {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #c6e6fc;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    padding: 4px 6px;
+}
+
+.fullpage-table .element-id {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #ffc366;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .fullpage-table tr:hover {
@@ -282,6 +327,47 @@
     
     .fullpage-container {
         padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .fullpage-table {
+        font-size: 0.85rem;
+    }
+    
+    .fullpage-table th,
+    .fullpage-table td {
+        padding: 8px 10px;
+    }
+    
+    /* Reduce minimum widths for mobile fullpage view while maintaining scrolling */
+    .fullpage-table table {
+        min-width: 1000px; /* Smaller minimum width for mobile */
+    }
+    
+    .fullpage-table th:nth-child(1), .fullpage-table td:nth-child(1) { min-width: 100px; } /* Name */
+    .fullpage-table th:nth-child(2), .fullpage-table td:nth-child(2) { min-width: 80px; } /* Type */
+    .fullpage-table th:nth-child(3), .fullpage-table td:nth-child(3) { min-width: 130px; } /* Best/CSS */
+    .fullpage-table th:nth-child(4), .fullpage-table td:nth-child(4) { min-width: 130px; } /* XPATH */
+    .fullpage-table th:nth-child(5), .fullpage-table td:nth-child(5) { min-width: 80px; } /* ID */
+    .fullpage-table th:nth-child(6), .fullpage-table td:nth-child(6) { min-width: 150px; } /* Text Content */
+    
+    .fullpage-table .copy-btn {
+        padding: 3px 6px;
+        font-size: 0.75rem;
+    }
+    
+    /* Adjust max-widths for mobile text overflow handling */
+    .fullpage-table .element-name {
+        max-width: 120px;
+    }
+    
+    .fullpage-table .locator-text {
+        max-width: 150px;
+    }
+    
+    .fullpage-table .element-id {
+        max-width: 100px;
     }
 }
 
