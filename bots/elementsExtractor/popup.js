@@ -120,6 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check for recent inspection data and display it
   checkForRecentInspectionData();
 
+  // Initialize expand/collapse functionality
+  initializeExpandCollapse();
+
   // Restore last data (if any) from storage for user
   chrome.storage.local.get(['lastExtractedData'], res => {
     if (res.lastExtractedData && Array.isArray(res.lastExtractedData)) {
@@ -2030,4 +2033,43 @@ async function bulletproofStartInspection(tabId) {
     inspectorStatusDiv.textContent = '❌ Failed to start. Please reload and try again.';
     resetInspectionState();
   }
+}
+
+// ---- Expand/Collapse Functionality ----
+function initializeExpandCollapse() {
+  const expandCollapseBtn = document.getElementById('expandCollapseBtn');
+  const expandCollapseIcon = document.getElementById('expandCollapseIcon');
+  const expandCollapseText = document.getElementById('expandCollapseText');
+  let isExpanded = false;
+
+  // Load saved state from storage
+  chrome.storage.local.get(['popupExpanded'], (result) => {
+    if (result.popupExpanded) {
+      isExpanded = true;
+      document.body.classList.add('expanded');
+      expandCollapseIcon.textContent = '🔽';
+      expandCollapseText.textContent = 'Collapse';
+    }
+  });
+
+  expandCollapseBtn.addEventListener('click', () => {
+    isExpanded = !isExpanded;
+    
+    if (isExpanded) {
+      // Expand the popup
+      document.body.classList.add('expanded');
+      expandCollapseIcon.textContent = '🔽';
+      expandCollapseText.textContent = 'Collapse';
+      expandCollapseBtn.title = 'Collapse popup to original size';
+    } else {
+      // Collapse the popup
+      document.body.classList.remove('expanded');
+      expandCollapseIcon.textContent = '🔼';
+      expandCollapseText.textContent = 'Expand';
+      expandCollapseBtn.title = 'Expand popup to double size';
+    }
+
+    // Save state to storage
+    chrome.storage.local.set({ popupExpanded: isExpanded });
+  });
 }
