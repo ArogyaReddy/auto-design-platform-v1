@@ -120,11 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check for recent inspection data and display it
   checkForRecentInspectionData();
 
-  // Initialize expand/collapse functionality
-  initializeExpandCollapse();
+  // Only initialize popup-specific features if we're in popup context (not fullpage)
+  if (!document.body.classList.contains('fullpage-mode')) {
+    // Initialize expand/collapse functionality (popup only)
+    initializeExpandCollapse();
 
-  // Initialize open in new tab functionality
-  initializeOpenInNewTab();
+    // Initialize open in new tab functionality (popup only)
+    initializeOpenInNewTab();
+  }
 
   // Restore last data (if any) from storage for user
   chrome.storage.local.get(['lastExtractedData'], res => {
@@ -2042,6 +2045,13 @@ async function bulletproofStartInspection(tabId) {
 function initializeExpandCollapse() {
   const expandCollapseBtn = document.getElementById('expandCollapseBtn');
   const expandCollapseIcon = document.getElementById('expandCollapseIcon');
+  
+  // Add null checks to prevent errors
+  if (!expandCollapseBtn || !expandCollapseIcon) {
+    console.warn('Expand/collapse elements not found in DOM');
+    return;
+  }
+  
   let isExpanded = false;
 
   // Load saved state from storage

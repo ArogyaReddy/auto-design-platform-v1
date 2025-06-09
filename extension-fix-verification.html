@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Fix Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .fix-summary {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .code-block {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .success {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .instruction {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛠️ Chrome Extension Fix Verification</h1>
+    
+    <div class="fix-summary">
+        <h2>✅ Fix Applied Successfully</h2>
+        <p><strong>Issue:</strong> <code>Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')</code></p>
+        <p><strong>Root Cause:</strong> popup.js was trying to initialize popup-specific features in fullpage.html context</p>
+        <p><strong>Solution:</strong> Added context detection and null checks to prevent errors</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🔧 Changes Made</h3>
+        <p>Made two key improvements to <code>popup.js</code>:</p>
+        
+        <h4>1. Added Context Detection</h4>
+        <div class="code-block">
+// Only initialize popup-specific features if we're in popup context (not fullpage)
+if (!document.body.classList.contains('fullpage-mode')) {
+  // Initialize expand/collapse functionality (popup only)
+  initializeExpandCollapse();
+
+  // Initialize open in new tab functionality (popup only)
+  initializeOpenInNewTab();
+}
+        </div>
+        
+        <h4>2. Added Null Checks in Functions</h4>
+        <div class="code-block">
+function initializeExpandCollapse() {
+  const expandCollapseBtn = document.getElementById('expandCollapseBtn');
+  const expandCollapseIcon = document.getElementById('expandCollapseIcon');
+  
+  // Add null checks to prevent errors ✅
+  if (!expandCollapseBtn || !expandCollapseIcon) {
+    console.warn('Expand/collapse elements not found in DOM');
+    return;
+  }
+  
+  let isExpanded = false;
+  // ... rest of function
+}
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Testing Instructions</h3>
+        <div class="instruction">
+            <strong>To verify the fix:</strong>
+            <ol>
+                <li>Load the extension in Chrome (chrome://extensions/)</li>
+                <li>Enable Developer Mode and click "Load unpacked"</li>
+                <li>Select the <code>/Users/arog/ADP/ElementsExtractorV1/bots/elementsExtractor</code> folder</li>
+                <li>Click the extension icon to open the popup</li>
+                <li>Click the <strong>"Open in new tab"</strong> button (🚀)</li>
+                <li>Verify no JavaScript errors appear in the console</li>
+                <li>Test the expand/collapse button (🔼/🔽) functionality</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Expected Results</h3>
+        <ul>
+            <li class="success">✅ No "Cannot read properties of null" errors</li>
+            <li class="success">✅ "Open in new tab" button works correctly</li>
+            <li class="success">✅ Expand/collapse functionality works smoothly</li>
+            <li class="success">✅ Console shows no JavaScript errors</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Additional Context</h3>
+        <p><strong>Files Modified:</strong> <code>popup.js</code> (lines around 120-125 and 2042-2060)</p>
+        <p><strong>Functions Fixed:</strong> <code>initializeExpandCollapse()</code> and context detection</p>
+        <p><strong>Context Detection:</strong> Uses <code>document.body.classList.contains('fullpage-mode')</code></p>
+        <p><strong>Problem Solved:</strong> popup.js was being loaded by both popup.html and fullpage.html</p>
+        <p><strong>Root Cause:</strong> fullpage.html loads popup.js but doesn't have popup-specific DOM elements</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🚀 Next Steps</h3>
+        <p>The fix has been applied and should resolve the TypeError. The extension should now work without JavaScript errors when clicking the "Open in new tab" button.</p>
+        <p><em>This defensive programming approach prevents similar issues if DOM elements are missing or not yet loaded.</em></p>
+    </div>
+
+    <script>
+        // Log fix confirmation
+        console.log('🛠️ Extension fix verification page loaded');
+        console.log('✅ Fix applied: Added null checks to initializeExpandCollapse() function');
+    </script>
+</body>
+</html>
