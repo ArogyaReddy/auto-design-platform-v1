@@ -25,6 +25,9 @@ function initializeFullPageMode() {
     
     // Setup data synchronization
     setupDataSync();
+    
+    // Disable problematic buttons to avoid extension issues
+    disableProblematicButtons();
 }
 
 function loadDataFromStorage() {
@@ -58,37 +61,50 @@ function renderTableFallback(data) {
     if (!preview || !data || data.length === 0) return;
     
     let html = `
-        <table style="width: 100%; border-collapse: collapse; color: #e0e7ff;">
+        <table style="width: 100%; border-collapse: collapse; color: #e0e7ff; font-family: 'JetBrains Mono', 'Consolas', monospace;">
             <thead>
                 <tr style="background: rgba(255, 255, 255, 0.1);">
-                    <th style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">Element</th>
-                    <th style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">Type</th>
-                    <th style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">Locators</th>
-                    <th style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">Text</th>
-                    <th style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">Attributes</th>
+                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 120px;">Name</th>
+                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 80px;">Type</th>
+                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 200px;">CSS Selector</th>
+                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 200px;">XPath</th>
+                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 100px;">ID</th>
+                    <th style="padding: 12px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; min-width: 120px;">Text Content</th>
                 </tr>
             </thead>
             <tbody>
     `;
     
     data.forEach((element, index) => {
+        // Extract proper data structure matching popup format
+        const elementName = element['Element Name'] || element.tag || 'N/A';
+        const elementType = element['Element Type'] || element.type || 'N/A';
+        const cssSelector = element['CSS'] || element.css || 'N/A';
+        const xpath = element['XPATH'] || element.xpath || 'N/A';
+        const elementId = element['ID'] || element.id || 'N/A';
+        const textContent = element['Element Name'] || element.text || 'N/A';
+        
         html += `
             <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                <td style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">${element.tag || 'N/A'}</td>
-                <td style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">${element.type || 'N/A'}</td>
-                <td style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1); font-family: monospace; font-size: 0.9em;">
-                    ${element.css ? `CSS: ${element.css}<br>` : ''}
-                    ${element.xpath ? `XPath: ${element.xpath}<br>` : ''}
-                    ${element.id ? `ID: #${element.id}<br>` : ''}
+                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; word-wrap: break-word; max-width: 150px;">${elementName}</td>
+                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top;">
+                    <span style="background: linear-gradient(90deg, #59f9d6 10%, #18aaff 90%); color: #19224a; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">${elementType}</span>
                 </td>
-                <td style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 200px; word-wrap: break-word;">${element.text || 'N/A'}</td>
-                <td style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 200px; word-wrap: break-word;">${JSON.stringify(element.attributes || {})}</td>
+                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-wrap: break-word; max-width: 250px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">${cssSelector}</td>
+                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-wrap: break-word; max-width: 250px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">${xpath}</td>
+                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-wrap: break-word; max-width: 120px;">${elementId}</td>
+                <td style="padding: 12px 8px; border: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; word-wrap: break-word; max-width: 180px; color: #b8c5d6;">${textContent}</td>
             </tr>
         `;
     });
     
     html += '</tbody></table>';
     preview.innerHTML = html;
+    
+    // Disable any buttons that were just added
+    setTimeout(() => {
+        disableHighlightButtons();
+    }, 100);
     
     // Update stats
     const elementCount = document.getElementById('elementCount');
@@ -117,6 +133,164 @@ function setupDataSync() {
         if (namespace === 'local' && (changes.lastExtractedData || changes.fullPageData)) {
             loadDataFromStorage();
         }
+    });
+}
+
+// Disable problematic buttons to avoid extension issues in fullpage view
+function disableProblematicButtons() {
+    // Disable Inspect Element button
+    const inspectElementBtn = document.getElementById('inspectElement');
+    if (inspectElementBtn) {
+        inspectElementBtn.disabled = true;
+        inspectElementBtn.style.opacity = '0.5';
+        inspectElementBtn.style.cursor = 'not-allowed';
+        inspectElementBtn.title = 'Inspect Element is disabled in full page view to avoid extension conflicts';
+        
+        // Remove any existing click handlers and prevent new ones
+        inspectElementBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+    }
+    
+    // Disable Extract Element button
+    const extractElementBtn = document.getElementById('extract');
+    if (extractElementBtn) {
+        extractElementBtn.disabled = true;
+        extractElementBtn.style.opacity = '0.5';
+        extractElementBtn.style.cursor = 'not-allowed';
+        extractElementBtn.title = 'Extract Elements is disabled in full page view to avoid extension conflicts';
+        
+        // Remove any existing click handlers and prevent new ones
+        extractElementBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+    }
+    
+    // Override the bindTablePreviewButtons function to disable highlight buttons
+    if (typeof window.bindTablePreviewButtons === 'function') {
+        const originalBindFunction = window.bindTablePreviewButtons;
+        window.bindTablePreviewButtons = function() {
+            // Call original function first to set up copy buttons
+            originalBindFunction.call(this);
+            
+            // Then disable highlight buttons
+            disableHighlightButtons();
+        };
+    }
+    
+    // Set up a mutation observer to catch dynamically added buttons
+    setupButtonDisableObserver();
+    
+    // Also disable any existing highlight buttons immediately
+    disableHighlightButtons();
+}
+
+// Function to disable highlight buttons specifically
+function disableHighlightButtons() {
+    const highlightButtons = document.querySelectorAll('.hl-btn');
+    highlightButtons.forEach(button => {
+        button.disabled = true;
+        button.style.opacity = '0.5';
+        button.style.cursor = 'not-allowed';
+        button.title = 'Highlight is disabled in full page view to avoid extension conflicts';
+        
+        // Remove existing handlers and prevent clicks
+        button.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+        
+        // Change icon to indicate disabled state
+        if (button.textContent.includes('👁️')) {
+            button.innerHTML = '🚫 Disabled';
+            button.style.fontSize = '0.8em';
+        }
+    });
+}
+
+// Set up mutation observer to catch dynamically added buttons
+function setupButtonDisableObserver() {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check for highlight buttons in the added content
+                        const newHighlightButtons = node.querySelectorAll ? node.querySelectorAll('.hl-btn') : [];
+                        newHighlightButtons.forEach(button => {
+                            button.disabled = true;
+                            button.style.opacity = '0.5';
+                            button.style.cursor = 'not-allowed';
+                            button.title = 'Highlight is disabled in full page view';
+                            button.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            };
+                            if (button.textContent.includes('👁️')) {
+                                button.innerHTML = '🚫 Disabled';
+                                button.style.fontSize = '0.8em';
+                            }
+                        });
+                        
+                        // Check for Extract Element buttons in the added content
+                        const newExtractButtons = node.querySelectorAll ? node.querySelectorAll('#extract') : [];
+                        newExtractButtons.forEach(button => {
+                            button.disabled = true;
+                            button.style.opacity = '0.5';
+                            button.style.cursor = 'not-allowed';
+                            button.title = 'Extract Elements is disabled in full page view';
+                            button.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            };
+                        });
+                        
+                        // Check if the node itself is a highlight button
+                        if (node.classList && node.classList.contains('hl-btn')) {
+                            node.disabled = true;
+                            node.style.opacity = '0.5';
+                            node.style.cursor = 'not-allowed';
+                            node.title = 'Highlight is disabled in full page view';
+                            node.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            };
+                            if (node.textContent.includes('👁️')) {
+                                node.innerHTML = '🚫 Disabled';
+                                node.style.fontSize = '0.8em';
+                            }
+                        }
+                        
+                        // Check if the node itself is an Extract Element button
+                        if (node.id === 'extract') {
+                            node.disabled = true;
+                            node.style.opacity = '0.5';
+                            node.style.cursor = 'not-allowed';
+                            node.title = 'Extract Elements is disabled in full page view';
+                            node.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            };
+                        }
+                    }
+                });
+            }
+        });
+    });
+    
+    // Start observing the document with the configured parameters
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 }
 
