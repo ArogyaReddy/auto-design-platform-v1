@@ -568,7 +568,7 @@ function domExtractionFunction(filters) {
            rect.height > 0;
   }
 
-  // #FUNCTION: getBestLocator - Enhanced for Shadow DOM context
+  // #FUNCTION: getBestLocator - Enhanced for Shadow DOM context with DevTools compatibility
   // #DESCRIPTION: Get the best, most stable locator for the element with context awareness
   function getBestLocator(el, contextNode = document) {
     // Priority order: ID > Test attributes > Aria attributes > Role > CSS > XPath
@@ -579,17 +579,89 @@ function domExtractionFunction(filters) {
       return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
     }
     
-    // 1. ID selector (most reliable)
-    if (el.id && !el.id.match(/^[0-9]+$/)) {
-      // Check uniqueness within the current context
-      const sameIdElements = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
-      if (sameIdElements.length === 1) {
-        // Use attribute selector for complex IDs with special characters
-        if (hasSpecialCssChars(el.id)) {
-          return {type: 'ID', locator: `[id="${el.id}"]`, reason: 'Unique ID (complex)'};
+    // Helper function to generate a guaranteed unique path-based selector
+    function generatePathBasedSelector(element, context = document) {
+      const path = [];
+      let current = element;
+      
+      while (current && current !== context && current.nodeType === Node.ELEMENT_NODE) {
+        const tagName = current.tagName.toLowerCase();
+        const siblings = Array.from(current.parentNode?.children || [])
+          .filter(child => child.tagName === current.tagName);
+        
+        if (siblings.length === 1) {
+          path.unshift(tagName);
+        } else {
+          const index = siblings.indexOf(current) + 1;
+          path.unshift(`${tagName}:nth-of-type(${index})`);
         }
-        return {type: 'ID', locator: `#${el.id}`, reason: 'Unique ID'};
+        
+        current = current.parentNode;
+      }
+      
+      return path.join(' > ');
+    }
+    
+    // Helper function to validate selector in DevTools context
+    function validateSelector(selector, targetElement = null) {
+      try {
+        // Test the selector in the current document context
+        const testElements = contextNode.querySelectorAll ? 
+          contextNode.querySelectorAll(selector) : [];
+        
+        // CRITICAL: Selector must be UNIQUE (exactly 1 match) for automation reliability
+        if (testElements.length !== 1) {
+          console.warn(`Element AI Extractor: Non-unique selector (found ${testElements.length} elements):`, selector);
+          return false;
+        }
+        
+        // If we have a target element, verify the selector actually selects it
+        if (targetElement && testElements[0] !== targetElement) {
+          console.warn('Element AI Extractor: Selector selects wrong element:', selector);
+          return false;
+        }
+        
+        return true;
+      } catch (e) {
+        console.warn('Element AI Extractor: Invalid selector syntax:', selector, e);
+        return false;
+      }
+    }
+    
+    // Helper function to generate robust ID selector
+    function generateIdSelector(id, targetElement) {
+      // Always use attribute selector for maximum compatibility
+      const attributeSelector = `[id="${id}"]`;
+      
+      // For simple IDs, also try CSS.escape with hash selector
+      if (!hasSpecialCssChars(id)) {
+        try {
+          const hashSelector = `#${CSS.escape(id)}`;
+          // Validate both and prefer the simpler one if both work
+          if (validateSelector(hashSelector, targetElement) && validateSelector(attributeSelector, targetElement)) {
+            return hashSelector;
+          }
+        } catch (e) {
+          // CSS.escape failed, fall back to attribute selector
+        }
+      }
+      
+      // Use attribute selector as the most reliable fallback
+      return attributeSelector;
+    }
+    
+    // 1. ID selector (most reliable) - Enhanced with DevTools compatibility
+    if (el.id && !el.id.match(/^[0-9]+$/)) {
+      // Generate the optimal ID selector
+      const idSelector = generateIdSelector(el.id, el);
+      
+      // Verify uniqueness using the actual selector we're generating
+      if (validateSelector(idSelector, el)) {
+        return {
+          type: 'ID', 
+          locator: idSelector, 
+          reason: hasSpecialCssChars(el.id) ? 'Unique ID (DevTools compatible)' : 'Unique ID'
+        };
       }
     }
 
@@ -597,20 +669,20 @@ function domExtractionFunction(filters) {
     for (const attr of ['data-testid', 'data-qa', 'data-cy']) {
       if (el.hasAttribute(attr)) {
         const value = el.getAttribute(attr);
-        const sameTestAttr = contextNode.querySelectorAll ? 
-          contextNode.querySelectorAll(`[${attr}="${value}"]`) : [];
-        if (sameTestAttr.length === 1) {
-          return {type: attr, locator: `[${attr}="${value}"]`, reason: 'Unique test attribute'};
+        const testSelector = `[${attr}="${value}"]`;
+        
+        if (validateSelector(testSelector, el)) {
+          return {type: attr, locator: testSelector, reason: 'Unique test attribute'};
         }
       }
     }
 
     // 3. Name attribute (reliable for form elements)
     if (el.name) {
-      const sameName = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[name="${el.name}"]`) : [];
-      if (sameName.length === 1) {
-        return {type: 'name', locator: `[name="${el.name}"]`, reason: 'Unique name attribute'};
+      const nameSelector = `[name="${el.name}"]`;
+      
+      if (validateSelector(nameSelector, el)) {
+        return {type: 'name', locator: nameSelector, reason: 'Unique name attribute'};
       }
     }
 
@@ -624,39 +696,37 @@ function domExtractionFunction(filters) {
           .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
         if (classes.length > 0) {
           const combinedLocator = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
-          const sameCombined = contextNode.querySelectorAll ? 
-            contextNode.querySelectorAll(combinedLocator) : [];
-          if (sameCombined.length === 1) {
+          
+          if (validateSelector(combinedLocator, el)) {
             return {type: 'class+href', locator: combinedLocator, reason: 'BEST: Unique semantic navigation locator'};
           }
         }
       }
       
       // PRIORITY 2: Pure href (fallback)
-      const sameHref = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`a[href="${href}"]`) : [];
-      if (sameHref.length === 1) {
-        return {type: 'href', locator: `a[href="${href}"]`, reason: 'Unique href'};
+      const hrefSelector = `a[href="${href}"]`;
+      if (validateSelector(hrefSelector, el)) {
+        return {type: 'href', locator: hrefSelector, reason: 'Unique href'};
       }
     }
 
     // 5. Aria attributes (good for accessibility)
     if (el.hasAttribute('aria-label')) {
       const ariaLabel = el.getAttribute('aria-label');
-      const sameAriaLabel = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[aria-label="${ariaLabel}"]`) : [];
-      if (sameAriaLabel.length === 1) {
-        return {type: 'aria-label', locator: `[aria-label="${ariaLabel}"]`, reason: 'Unique aria-label'};
+      const ariaSelector = `[aria-label="${ariaLabel}"]`;
+      
+      if (validateSelector(ariaSelector, el)) {
+        return {type: 'aria-label', locator: ariaSelector, reason: 'Unique aria-label'};
       }
     }
 
     // 6. Role attribute (good for semantic elements)
     if (el.hasAttribute('role')) {
       const role = el.getAttribute('role');
-      const sameRole = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[role="${role}"]`) : [];
-      if (sameRole.length === 1) {
-        return {type: 'role', locator: `[role="${role}"]`, reason: 'Unique role'};
+      const roleSelector = `[role="${role}"]`;
+      
+      if (validateSelector(roleSelector, el)) {
+        return {type: 'role', locator: roleSelector, reason: 'Unique role'};
       }
     }
     
@@ -664,16 +734,20 @@ function domExtractionFunction(filters) {
     const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
     if (filteredClasses.length === 1) {
       const className = filteredClasses[0];
-      const sameClass = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`.${CSS.escape(className)}`) : [];
-      if (sameClass.length === 1) {
-        return {type: 'class', locator: `.${CSS.escape(className)}`, reason: 'Unique class'};
+      try {
+        const classSelector = `.${CSS.escape(className)}`;
+        
+        if (validateSelector(classSelector, el)) {
+          return {type: 'class', locator: classSelector, reason: 'Unique class'};
+        }
+      } catch (e) {
+        console.warn('Element AI Extractor: Class selector generation failed:', className, e);
       }
     }
 
     // 8. CSS selector (generated) within context
     const cssSelector = getUniqueCssSelector(el, contextNode);
-    if (cssSelector && cssSelector.length < 100) {
+    if (cssSelector && cssSelector.length < 100 && validateSelector(cssSelector, el)) {
       return {type: 'CSS', locator: cssSelector, reason: 'Generated CSS selector'};
     }
 
@@ -683,28 +757,85 @@ function domExtractionFunction(filters) {
       return {type: 'XPath', locator: xpathSelector, reason: 'Generated XPath'};
     }
 
-    // Final fallback to CSS even if long
-    return {type: 'CSS', locator: cssSelector || el.tagName.toLowerCase(), reason: 'Fallback CSS'};
+    // Final fallback to CSS even if long (with validation)
+    if (cssSelector && validateSelector(cssSelector, el)) {
+      return {type: 'CSS', locator: cssSelector, reason: 'Fallback CSS (validated)'};
+    }
+    
+    // Ultimate fallback - generate a simple, reliable selector that MUST be unique
+    const tagName = el.tagName.toLowerCase();
+    const siblings = Array.from(el.parentNode?.children || []).filter(child => child.tagName === el.tagName);
+    const index = siblings.indexOf(el) + 1;
+    const ultimateFallback = `${tagName}:nth-of-type(${index})`;
+    
+    // CRITICAL: Validate even the ultimate fallback for uniqueness
+    if (validateSelector(ultimateFallback, el)) {
+      return {type: 'CSS', locator: ultimateFallback, reason: 'Ultimate fallback (position-based)'};
+    }
+    
+    // If even nth-of-type fails, create a more specific path-based selector
+    const pathSelector = generatePathBasedSelector(el, contextNode);
+    return {type: 'CSS', locator: pathSelector, reason: 'Path-based fallback (guaranteed unique)'};
   }
 
-  // #FUNCTION: getUniqueCssSelector - Enhanced for Shadow DOM context
-  // #DESCRIPTION: Unique CSS Selector Generator with context awareness
+  // #FUNCTION: getUniqueCssSelector - Enhanced for Shadow DOM context with DevTools compatibility
+  // #DESCRIPTION: Unique CSS Selector Generator with context awareness and browser compatibility
   function getUniqueCssSelector(el, contextNode = document) {
     // Helper function to check if ID contains special CSS characters
     function hasSpecialCssChars(id) {
       return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
     }
     
-    if (el.id) {
-      // Check if ID is unique within the context
-      const sameIdElements = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
-      if (sameIdElements.length === 1) {
-        // Use attribute selector for complex IDs with special characters
-        if (hasSpecialCssChars(el.id)) {
-          return `[id="${el.id}"]`;
+    // Helper function to validate selector works in DevTools and is UNIQUE
+    function validateSelector(selector, targetElement = null) {
+      try {
+        const testElements = contextNode.querySelectorAll ? 
+          contextNode.querySelectorAll(selector) : [];
+        
+        // CRITICAL: Must be exactly 1 match for uniqueness
+        if (testElements.length !== 1) {
+          return false;
         }
-        return `#${el.id}`;
+        
+        // If we have a target element, verify the selector actually selects it
+        if (targetElement && testElements[0] !== targetElement) {
+          return false;
+        }
+        
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // Helper function to generate robust ID selector
+    function generateIdSelector(id, targetElement) {
+      // Always use attribute selector for maximum compatibility
+      const attributeSelector = `[id="${id}"]`;
+      
+      // For simple IDs, also try CSS.escape with hash selector
+      if (!hasSpecialCssChars(id)) {
+        try {
+          const hashSelector = `#${CSS.escape(id)}`;
+          // Validate both and prefer the simpler one if both work
+          if (validateSelector(hashSelector, targetElement) && validateSelector(attributeSelector, targetElement)) {
+            return hashSelector;
+          }
+        } catch (e) {
+          // CSS.escape failed, fall back to attribute selector
+        }
+      }
+      
+      return attributeSelector;
+    }
+    
+    if (el.id) {
+      // Generate robust ID selector
+      const idSelector = generateIdSelector(el.id, el);
+      
+      // Check if ID is unique within the context using the actual selector
+      if (validateSelector(idSelector, el)) {
+        return idSelector;
       }
     }
     
@@ -715,14 +846,10 @@ function domExtractionFunction(filters) {
       let selector = current.tagName.toLowerCase();
       
       if (current.id && contextNode.querySelectorAll) {
-        const sameIdInContext = contextNode.querySelectorAll(`[id="${current.id}"]`);
-        if (sameIdInContext.length === 1) {
-          // Use attribute selector for complex IDs with special characters
-          if (hasSpecialCssChars(current.id)) {
-            selector = `[id="${current.id}"]`;
-          } else {
-            selector += `#${current.id}`;
-          }
+        // Generate robust ID selector for path building
+        const idSelector = generateIdSelector(current.id, current);
+        if (validateSelector(idSelector, current)) {
+          selector = idSelector;
           parts.unshift(selector);
           break;
         }
@@ -750,7 +877,19 @@ function domExtractionFunction(filters) {
       if (parts.length > 5) break; // Limit depth for performance
     }
     
-    return parts.join(' > ');
+    const finalSelector = parts.join(' > ');
+    
+    // Final validation: ensure the selector works in DevTools context and is UNIQUE
+    if (!validateSelector(finalSelector, el)) {
+      console.warn('Element AI Extractor: Generated selector failed validation:', finalSelector);
+      // Return a basic fallback that should work
+      const tagName = el.tagName.toLowerCase();
+      const siblings = Array.from(el.parentNode?.children || []).filter(child => child.tagName === el.tagName);
+      const index = siblings.indexOf(el) + 1;
+      return `${tagName}:nth-of-type(${index})`;
+    }
+    
+    return finalSelector;
   }
 
   // #FUNCTION: getXPath - Enhanced for Shadow DOM context

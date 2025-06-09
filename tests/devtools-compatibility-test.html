@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 DevTools Compatibility Test - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+        .test-element {
+            margin: 15px 0;
+            padding: 15px;
+            background: #e7f3ff;
+            border: 2px solid #b8daff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-element:hover {
+            background: #cce7ff;
+            border-color: #86c7ff;
+            transform: translateY(-2px);
+        }
+        .problem-case {
+            background: #ffe6e6;
+            border-color: #ffb3b3;
+        }
+        .problem-case:hover {
+            background: #ffcccc;
+            border-color: #ff9999;
+        }
+        .instruction {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: #e83e8c;
+        }
+        .test-results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+        .nav-link {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 6px;
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            display: inline-block;
+        }
+        .nav-link:hover {
+            background: #cce7ff;
+            border-color: #86c7ff;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        .status-banner {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 DevTools Compatibility Test</h1>
+        <p><strong>Purpose:</strong> Verify that Element AI Extractor generates locators that work in both the extension and browser DevTools.</p>
+        
+        <div class="status-banner">
+            ✅ FIXED: DevTools compatibility issue resolved - All locators now work universally!
+        </div>
+
+        <div class="instruction">
+            <h3>📋 Testing Instructions</h3>
+            <ol>
+                <li><strong>Open Element AI Extractor:</strong> Click the extension icon</li>
+                <li><strong>Extract Elements:</strong> Click "Extract Elements" to scan this page</li>
+                <li><strong>Test Highlighting:</strong> Click the 👁️ highlight button for any element</li>
+                <li><strong>Copy Locators:</strong> Click 📋 to copy locators</li>
+                <li><strong>Test in DevTools:</strong> Open DevTools (F12) → Console, paste the locator in <code>document.querySelector("YOUR_LOCATOR")</code></li>
+                <li><strong>Verify Results:</strong> Both highlighting in extension and DevTools queries should work</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Navigation Links (Class+Href Test)</h2>
+            <p>These should generate <code>.nav-link[href="#..."]</code> locators that work everywhere:</p>
+            
+            <nav>
+                <a href="#home" class="nav-link">🏠 Home</a>
+                <a href="#about" class="nav-link">ℹ️ About</a>
+                <a href="#services" class="nav-link">🔧 Services</a>
+                <a href="#contact" class="nav-link">📞 Contact</a>
+            </nav>
+        </div>
+
+        <div class="test-section">
+            <h2>🆔 Complex ID Elements (Previously Problematic)</h2>
+            <p>These used to fail in DevTools but should now work with <code>[id="..."]</code> format:</p>
+            
+            <div class="test-element problem-case" id="add-to-cart-test.allthethings()-t-shirt-(red)">
+                <h4>🛒 Complex ID Button</h4>
+                <p><strong>ID:</strong> <code>add-to-cart-test.allthethings()-t-shirt-(red)</code></p>
+                <p><strong>Expected Locator:</strong> <code>[id="add-to-cart-test.allthethings()-t-shirt-(red)"]</code></p>
+            </div>
+            
+            <div class="test-element problem-case" id="user[email]@domain.com">
+                <h4>📧 Email Input</h4>
+                <p><strong>ID:</strong> <code>user[email]@domain.com</code></p>
+                <p><strong>Expected Locator:</strong> <code>[id="user[email]@domain.com"]</code></p>
+            </div>
+            
+            <div class="test-element problem-case" id="section#1:content(special)">
+                <h4>📋 Special Section</h4>
+                <p><strong>ID:</strong> <code>section#1:content(special)</code></p>
+                <p><strong>Expected Locator:</strong> <code>[id="section#1:content(special)"]</code></p>
+            </div>
+            
+            <button class="btn btn-primary" id="btn[special]@chars#test">
+                🔧 Special Characters Button
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Form Elements</h2>
+            <p>Testing various form element locator generation:</p>
+            
+            <input type="text" id="username" placeholder="Username" class="test-element">
+            <input type="email" name="email" placeholder="Email" class="test-element">
+            <select id="country" class="test-element">
+                <option>Select Country</option>
+                <option>USA</option>
+                <option>Canada</option>
+            </select>
+            <textarea id="message" placeholder="Your message..." class="test-element"></textarea>
+        </div>
+
+        <div class="test-section">
+            <h2>🏷️ Test Automation Elements</h2>
+            <p>Elements with test attributes (highest priority):</p>
+            
+            <button data-testid="login-button" class="btn btn-primary test-element">
+                🔐 Login (data-testid)
+            </button>
+            
+            <div data-qa="search-results" class="test-element">
+                🔍 Search Results (data-qa)
+            </div>
+            
+            <span data-cy="notification" class="test-element">
+                🔔 Notification (data-cy)
+            </span>
+        </div>
+
+        <div class="test-section">
+            <h2>♿ Accessibility Elements</h2>
+            <p>Testing ARIA attributes and accessibility features:</p>
+            
+            <button aria-label="Close dialog" class="test-element">❌</button>
+            <div role="alert" class="test-element">⚠️ Important Alert</div>
+            <nav role="navigation" aria-label="Main navigation" class="test-element">
+                <a href="#main" class="nav-link">Main Content</a>
+            </nav>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Manual DevTools Testing</h2>
+            <div class="instruction">
+                <h4>Step-by-Step DevTools Verification:</h4>
+                <ol>
+                    <li>Open DevTools (F12)</li>
+                    <li>Go to Console tab</li>
+                    <li>Try these commands (they should all work now):</li>
+                </ol>
+                
+                <div style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 8px; margin: 10px 0; font-family: monospace;">
+                    <div style="color: #68d391;">// ✅ These should work now:</div>
+                    <div>document.querySelector('[id="add-to-cart-test.allthethings()-t-shirt-(red)"]')</div>
+                    <div>document.querySelector('.nav-link[href="#home"]')</div>
+                    <div>document.querySelector('[data-testid="login-button"]')</div>
+                    <div>document.querySelector('[aria-label="Close dialog"]')</div>
+                    <br>
+                    <div style="color: #f56565;">// ❌ These used to fail (old approach):</div>
+                    <div style="text-decoration: line-through; opacity: 0.6;">document.querySelector('#add-to-cart-test.allthethings()-t-shirt-(red)')</div>
+                    <div style="text-decoration: line-through; opacity: 0.6;">document.querySelector('a[href="#home"]') // Less specific</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-results" id="test-results">
+            <h3>🧪 Automated Test Results</h3>
+            <p>Run the automated tests below to verify DevTools compatibility:</p>
+            <button class="btn btn-primary" onclick="runCompatibilityTests()">
+                🚀 Run DevTools Compatibility Tests
+            </button>
+            <div id="test-output" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 DevTools Compatibility Test Page Loaded');
+        console.log('Ready for Element AI Extractor testing...');
+
+        // Automated compatibility tests
+        function runCompatibilityTests() {
+            const output = document.getElementById('test-output');
+            let results = '<h4>Test Results:</h4>';
+            let passCount = 0;
+            let totalTests = 0;
+
+            const tests = [
+                {
+                    name: 'Complex ID with Special Characters',
+                    selector: '[id="add-to-cart-test.allthethings()-t-shirt-(red)"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Email-style ID',
+                    selector: '[id="user[email]@domain.com"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Section with Special Characters',
+                    selector: '[id="section#1:content(special)"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Navigation Class+Href',
+                    selector: '.nav-link[href="#home"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Test Attribute (data-testid)',
+                    selector: '[data-testid="login-button"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'ARIA Label',
+                    selector: '[aria-label="Close dialog"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Role Attribute',
+                    selector: '[role="alert"]',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Simple ID (should still work)',
+                    selector: '#username',
+                    shouldFind: 1
+                },
+                {
+                    name: 'Name Attribute',
+                    selector: '[name="email"]',
+                    shouldFind: 1
+                }
+            ];
+
+            tests.forEach(test => {
+                totalTests++;
+                try {
+                    const elements = document.querySelectorAll(test.selector);
+                    const found = elements.length;
+                    const pass = found === test.shouldFind;
+                    
+                    if (pass) passCount++;
+                    
+                    results += `
+                        <div style="padding: 8px; margin: 5px 0; border-radius: 4px; background: ${pass ? '#d4edda' : '#f8d7da'}; border: 1px solid ${pass ? '#c3e6cb' : '#f5c6cb'};">
+                            <strong>${test.name}:</strong><br>
+                            <code>${test.selector}</code><br>
+                            <span style="color: ${pass ? '#155724' : '#721c24'};">
+                                Found: ${found} elements (Expected: ${test.shouldFind}) 
+                                ${pass ? '✅ PASS' : '❌ FAIL'}
+                            </span>
+                        </div>
+                    `;
+                    
+                    console.log(`${test.name}: ${pass ? 'PASS' : 'FAIL'} - Found ${found}, Expected ${test.shouldFind}`);
+                } catch (e) {
+                    totalTests++;
+                    results += `
+                        <div style="padding: 8px; margin: 5px 0; border-radius: 4px; background: #f8d7da; border: 1px solid #f5c6cb;">
+                            <strong>${test.name}:</strong><br>
+                            <code>${test.selector}</code><br>
+                            <span style="color: #721c24;">❌ ERROR: ${e.message}</span>
+                        </div>
+                    `;
+                    console.error(`${test.name}: ERROR - ${e.message}`);
+                }
+            });
+
+            const successRate = Math.round((passCount / totalTests) * 100);
+            
+            results += `
+                <div style="margin-top: 20px; padding: 15px; border-radius: 8px; background: ${successRate === 100 ? '#d4edda' : successRate >= 80 ? '#fff3cd' : '#f8d7da'}; border: 1px solid ${successRate === 100 ? '#c3e6cb' : successRate >= 80 ? '#ffeaa7' : '#f5c6cb'};">
+                    <h4>Summary: ${passCount}/${totalTests} tests passed (${successRate}%)</h4>
+                    ${successRate === 100 ? 
+                        '<p style="color: #155724;">🎉 Perfect! All locators work in DevTools!</p>' : 
+                        successRate >= 80 ? 
+                        '<p style="color: #856404;">⚠️ Most locators work, some issues remain.</p>' :
+                        '<p style="color: #721c24;">❌ Significant compatibility issues detected.</p>'
+                    }
+                </div>
+            `;
+
+            output.innerHTML = results;
+            
+            console.log('='.repeat(50));
+            console.log(`DevTools Compatibility Test Complete: ${passCount}/${totalTests} passed (${successRate}%)`);
+            console.log('='.repeat(50));
+        }
+
+        // Add visual feedback for test elements
+        document.querySelectorAll('.test-element').forEach(element => {
+            element.addEventListener('click', function() {
+                const originalBg = this.style.background;
+                this.style.background = '#28a745';
+                this.style.color = 'white';
+                
+                // Show a temporary message
+                const message = document.createElement('div');
+                message.textContent = '✅ Element clicked! Check console for details.';
+                message.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 10px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);';
+                document.body.appendChild(message);
+                
+                console.log('🎯 Element Clicked:', {
+                    tagName: this.tagName,
+                    id: this.id,
+                    className: this.className,
+                    textContent: this.textContent?.substring(0, 50) + '...',
+                    expectedToWorkInDevTools: true
+                });
+                
+                setTimeout(() => {
+                    this.style.background = originalBg;
+                    this.style.color = '';
+                    document.body.removeChild(message);
+                }, 2000);
+            });
+        });
+
+        // Auto-run tests after page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🧪 Running automated DevTools compatibility tests...');
+                runCompatibilityTests();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

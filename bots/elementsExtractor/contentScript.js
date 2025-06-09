@@ -679,22 +679,65 @@ function getElementType(element) {
   return tagName.charAt(0).toUpperCase() + tagName.slice(1);
 }
 
-// Generate different locator strategies
+// Generate different locator strategies with DevTools compatibility
 function generateLocators(element) {
   // Helper function to check if ID contains special CSS characters
   function hasSpecialCssChars(id) {
     return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
   }
   
+  // Helper function to validate selector works in DevTools and is UNIQUE
+  function validateSelector(selector, targetElement = null) {
+    try {
+      const testElements = document.querySelectorAll(selector);
+      
+      // CRITICAL: Selector must be UNIQUE (exactly 1 match) for automation reliability
+      if (testElements.length !== 1) {
+        console.warn(`Element AI Extractor: Non-unique selector (found ${testElements.length} elements):`, selector);
+        return false;
+      }
+      
+      // If we have a target element, verify the selector actually selects it
+      if (targetElement && testElements[0] !== targetElement) {
+        console.warn('Element AI Extractor: Selector selects wrong element:', selector);
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      console.warn('Element AI Extractor: Invalid selector syntax in contentScript:', selector, e);
+      return false;
+    }
+  }
+  
+  // Helper function to generate robust ID selector
+  function generateIdSelector(id, targetElement) {
+    // Always use attribute selector for maximum compatibility
+    const attributeSelector = `[id="${id}"]`;
+    
+    // For simple IDs, also try CSS.escape with hash selector
+    if (!hasSpecialCssChars(id)) {
+      try {
+        const hashSelector = `#${CSS.escape(id)}`;
+        // Validate both and prefer the simpler one if both work
+        if (validateSelector(hashSelector, targetElement) && validateSelector(attributeSelector, targetElement)) {
+          return hashSelector;
+        }
+      } catch (e) {
+        // CSS.escape failed, fall back to attribute selector
+      }
+    }
+    
+    return attributeSelector;
+  }
+  
   const locators = {};
   
-  // ID selector
+  // ID selector - Enhanced with DevTools compatibility
   if (element.id) {
-    // Use attribute selector for complex IDs with special characters
-    if (hasSpecialCssChars(element.id)) {
-      locators.id = `[id="${element.id}"]`;
-    } else {
-      locators.id = `#${element.id}`;
+    const idSelector = generateIdSelector(element.id, element);
+    if (validateSelector(idSelector, element)) {
+      locators.id = idSelector;
     }
   }
   
@@ -706,15 +749,20 @@ function generateLocators(element) {
   
   // Name attribute
   if (element.name) {
-    locators.name = `[name="${element.name}"]`;
+    const nameSelector = `[name="${element.name}"]`;
+    if (validateSelector(nameSelector, element)) {
+      locators.name = nameSelector;
+    }
   }
   
   // Aria-label
   if (element.getAttribute('aria-label')) {
-    locators.ariaLabel = `[aria-label="${element.getAttribute('aria-label')}"]`;
+    const ariaSelector = `[aria-label="${element.getAttribute('aria-label')}"]`;
+    if (validateSelector(ariaSelector, element)) {
+      locators.ariaLabel = ariaSelector;
+    }
   }
-  
-  // ULTIMATE Href locator strategies for navigation elements
+  // ULTIMATE Href locator strategies for navigation elements with validation
   if (element.tagName.toLowerCase() === 'a' && element.getAttribute('href')) {
     const href = element.getAttribute('href');
     
@@ -723,41 +771,93 @@ function generateLocators(element) {
       const classes = element.className.split(' ')
         .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
       if (classes.length > 0) {
-        locators.classHref = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
+        const classHrefSelector = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
+        if (validateSelector(classHrefSelector, element)) {
+          locators.classHref = classHrefSelector;
+        }
       }
     }
     
     // Strategy 2: Pure href (fallback)
-    locators.href = `a[href="${href}"]`;
+    const hrefSelector = `a[href="${href}"]`;
+    if (validateSelector(hrefSelector, element)) {
+      locators.href = hrefSelector;
+    }
     
     // Strategy 3: Text + href for unique navigation items
     const linkText = element.textContent?.trim();
     if (linkText && linkText.length < 50) {
-      locators.textHref = `a[href="${href}"]:has-text("${linkText}")`;
+      // Note: :has-text() is Playwright-specific, may not work in all browsers
+      const textHrefSelector = `a[href="${href}"]:has-text("${linkText}")`;
+      locators.textHref = textHrefSelector; // Include but don't validate as it's framework-specific
     }
     
     // Strategy 4: Role-based navigation locator
     if (element.getAttribute('role')) {
-      locators.roleHref = `[role="${element.getAttribute('role')}"][href="${href}"]`;
+      const roleHrefSelector = `[role="${element.getAttribute('role')}"][href="${href}"]`;
+      if (validateSelector(roleHrefSelector, element)) {
+        locators.roleHref = roleHrefSelector;
+      }
     }
   }
   
   return locators;
 }
 
-// Generate CSS selector
+// Generate CSS selector with DevTools compatibility
 function generateCSSSelector(element) {
   // Helper function to check if ID contains special CSS characters
   function hasSpecialCssChars(id) {
     return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
   }
   
-  if (element.id) {
-    // Use attribute selector for complex IDs with special characters
-    if (hasSpecialCssChars(element.id)) {
-      return `[id="${element.id}"]`;
+  // Helper function to validate selector works in DevTools and is UNIQUE
+  function validateSelector(selector, targetElement = null) {
+    try {
+      const testElements = document.querySelectorAll(selector);
+      
+      // CRITICAL: Must be exactly 1 match for uniqueness
+      if (testElements.length !== 1) {
+        return false;
+      }
+      
+      // If we have a target element, verify the selector actually selects it
+      if (targetElement && testElements[0] !== targetElement) {
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      return false;
     }
-    return `#${element.id}`;
+  }
+  
+  // Helper function to generate robust ID selector
+  function generateIdSelector(id) {
+    // Always use attribute selector for maximum compatibility
+    const attributeSelector = `[id="${id}"]`;
+    
+    // For simple IDs, also try CSS.escape with hash selector
+    if (!hasSpecialCssChars(id)) {
+      try {
+        const hashSelector = `#${CSS.escape(id)}`;
+        // Validate both and prefer the simpler one if both work
+        if (validateSelector(hashSelector) && validateSelector(attributeSelector)) {
+          return hashSelector;
+        }
+      } catch (e) {
+        // CSS.escape failed, fall back to attribute selector
+      }
+    }
+    
+    return attributeSelector;
+  }
+  
+  if (element.id) {
+    const idSelector = generateIdSelector(element.id);
+    if (validateSelector(idSelector)) {
+      return idSelector;
+    }
   }
   
   const parts = [];
@@ -767,14 +867,12 @@ function generateCSSSelector(element) {
     let selector = current.tagName.toLowerCase();
     
     if (current.id) {
-      // Use attribute selector for complex IDs with special characters
-      if (hasSpecialCssChars(current.id)) {
-        selector = `[id="${current.id}"]`;
-      } else {
-        selector += `#${current.id}`;
+      const idSelector = generateIdSelector(current.id);
+      if (validateSelector(idSelector)) {
+        selector = idSelector;
+        parts.unshift(selector);
+        break;
       }
-      parts.unshift(selector);
-      break;
     }
     
     if (current.className && typeof current.className === 'string') {
@@ -799,7 +897,17 @@ function generateCSSSelector(element) {
     if (parts.length > 5) break; // Limit depth
   }
   
-  return parts.join(' > ');
+  const finalSelector = parts.join(' > ');
+  
+  // Final validation: ensure the selector works in DevTools context
+  if (!validateSelector(finalSelector)) {
+    console.warn('Element AI Extractor: Generated CSS selector failed validation:', finalSelector);
+    // Return a basic fallback that should work
+    return `${element.tagName.toLowerCase()}:nth-of-type(${Array.from(element.parentNode?.children || [])
+      .filter(child => child.tagName === element.tagName).indexOf(element) + 1})`;
+  }
+  
+  return finalSelector;
 }
 
 // Generate XPath
