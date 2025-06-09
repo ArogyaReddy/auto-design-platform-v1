@@ -53,7 +53,10 @@
       "resources": [
         "icons/*",
         "magic-effects/*",
-        "styles/*.css"
+        "styles/*.css",
+        "fullpage.html",
+        "fullpage.css",
+        "fullpage.js"
       ],
       "matches": ["<all_urls>"]
     }

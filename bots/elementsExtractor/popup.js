@@ -123,6 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize expand/collapse functionality
   initializeExpandCollapse();
 
+  // Initialize open in new tab functionality
+  initializeOpenInNewTab();
+
   // Restore last data (if any) from storage for user
   chrome.storage.local.get(['lastExtractedData'], res => {
     if (res.lastExtractedData && Array.isArray(res.lastExtractedData)) {
@@ -2039,7 +2042,6 @@ async function bulletproofStartInspection(tabId) {
 function initializeExpandCollapse() {
   const expandCollapseBtn = document.getElementById('expandCollapseBtn');
   const expandCollapseIcon = document.getElementById('expandCollapseIcon');
-  const expandCollapseText = document.getElementById('expandCollapseText');
   let isExpanded = false;
 
   // Load saved state from storage
@@ -2048,7 +2050,7 @@ function initializeExpandCollapse() {
       isExpanded = true;
       document.body.classList.add('expanded');
       expandCollapseIcon.textContent = '🔽';
-      expandCollapseText.textContent = 'Collapse';
+      expandCollapseBtn.title = 'Collapse popup to original size';
     }
   });
 
@@ -2059,17 +2061,54 @@ function initializeExpandCollapse() {
       // Expand the popup
       document.body.classList.add('expanded');
       expandCollapseIcon.textContent = '🔽';
-      expandCollapseText.textContent = 'Collapse';
       expandCollapseBtn.title = 'Collapse popup to original size';
     } else {
       // Collapse the popup
       document.body.classList.remove('expanded');
       expandCollapseIcon.textContent = '🔼';
-      expandCollapseText.textContent = 'Expand';
       expandCollapseBtn.title = 'Expand popup to double size';
     }
 
     // Save state to storage
     chrome.storage.local.set({ popupExpanded: isExpanded });
+  });
+}
+
+// ---- Open in New Tab Functionality ----
+function initializeOpenInNewTab() {
+  const openTabBtn = document.getElementById('openTabBtn');
+  
+  if (!openTabBtn) return;
+
+  openTabBtn.addEventListener('click', () => {
+    // Get current extracted data
+    chrome.storage.local.get(['lastExtractedData'], (result) => {
+      const dataToSend = result.lastExtractedData || [];
+      
+      if (dataToSend.length === 0) {
+        // Show message if no data available
+        document.getElementById('status').textContent = 'No data to display. Please extract elements first.';
+        return;
+      }
+      
+      // Store data for full page and open new tab
+      chrome.storage.local.set({ 
+        fullPageData: dataToSend,
+        fullPageTimestamp: Date.now()
+      }, () => {
+        // Open the full page in a new tab
+        chrome.tabs.create({
+          url: chrome.runtime.getURL('fullpage.html'),
+          active: true
+        }, (tab) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error opening new tab:', chrome.runtime.lastError);
+            document.getElementById('status').textContent = 'Error opening new tab. Please try again.';
+          } else {
+            document.getElementById('status').textContent = 'Opened in new tab successfully!';
+          }
+        });
+      });
+    });
   });
 }

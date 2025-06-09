@@ -21,21 +21,27 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 1.38rem;
-    margin-bottom: 6px;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
     font-weight: 700;
-    gap: 7px;
+    gap: 10px;
+    min-height: 40px;
+    flex-wrap: nowrap;
 }
 
 .header-row .title-section {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+    white-space: nowrap;
 }
 
 .logo {
-    font-size: 1.5em;
-    margin-right: 1px;
+    font-size: 1.3em;
+    margin-right: 2px;
+    flex-shrink: 0;
 }
 
 .ai-gradient {
@@ -44,42 +50,85 @@ body {
     -webkit-background-clip: text;
     color: transparent;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .eye {
-    margin-left: 1px;
-    font-size: 1.3em;
+    margin-left: 2px;
+    font-size: 1.1em;
+    flex-shrink: 0;
 }
 
-/* Expand/Collapse Button Styles */
+.title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* Expand/Collapse Button - Blue theme */
 .expand-collapse-btn {
     background: linear-gradient(135deg, #396be6 0%, #4c7aff 100%);
     color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(57, 107, 230, 0.3);
-    min-width: 90px;
-    justify-content: center;
 }
 
 .expand-collapse-btn:hover {
     background: linear-gradient(135deg, #4c7aff 0%, #5a86ff 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(57, 107, 230, 0.4);
+    box-shadow: 0 6px 20px rgba(57, 107, 230, 0.4);
 }
 
 .expand-collapse-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(57, 107, 230, 0.3);
+    background: linear-gradient(135deg, #2f5cc7 0%, #4269e6 100%);
+}
+
+/* Custom Tooltip Styles for Icon Buttons */
+.icon-only[title] {
+    position: relative;
+}
+
+.icon-only[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease-out 0.5s forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.icon-only[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: -29px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
+    z-index: 1001;
+    pointer-events: none;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease-out 0.5s forwards;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 /* Expanded State */
@@ -1049,4 +1098,82 @@ body.expanded .popup-root {
     animation: none !important;
 }
 
-/* Inspector highlight styling */
+/* Header Buttons */
+.header-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Icon-only button base styles */
+.icon-only {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.icon-only:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.icon-only:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Open Tab Button - Rocket theme */
+.open-tab-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+    color: #ffffff;
+}
+
+.open-tab-btn:hover {
+    background: linear-gradient(135deg, #ff8e8e 0%, #ffb0b0 100%);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.open-tab-btn:active {
+    background: linear-gradient(135deg, #ff5a5a 0%, #ff7d7d 100%);
+}
+
+/* Responsive header adjustments */
+@media (max-width: 400px) {
+    .header-row {
+        font-size: 1.1rem;
+        gap: 8px;
+    }
+    
+    .header-buttons {
+        gap: 6px;
+    }
+    
+    .icon-only {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .logo {
+        font-size: 1.2em;
+    }
+    
+    .eye {
+        font-size: 1em;
+    }
+    
+    .title {
+        font-size: 0.95em;
+    }
+}

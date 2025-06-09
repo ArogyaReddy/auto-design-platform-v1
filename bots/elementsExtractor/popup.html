@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Element AI Extractor 🤖👁️</title>
+    <title>Element AI Extractor 👁️</title>
     <link rel="stylesheet" href="popup.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -15,12 +15,16 @@
         <div class="header-row">
             <div class="title-section">
                 <span class="logo">🤖</span>
-                <span class="title">Element <span class="ai-gradient">AI Extractor</span> <span
-                        class="eye">👁️</span></span>
+                <span class="title">Element <span class="ai-gradient">AI Extractor</span> <span class="eye">👁️</span></span>
             </div>
-            <button class="expand-collapse-btn" id="expandCollapseBtn" title="Expand/Collapse popup">
-                <span id="expandCollapseIcon">🔼</span> <span id="expandCollapseText">Expand</span>
-            </button>
+            <div class="header-buttons">
+                <button class="open-tab-btn icon-only" id="openTabBtn" title="Open in new tab">
+                    <span>🚀</span>
+                </button>
+                <button class="expand-collapse-btn icon-only" id="expandCollapseBtn" title="Expand/Collapse popup">
+                    <span id="expandCollapseIcon">🔼</span>
+                </button>
+            </div>
         </div>
         <div class="ai-tip" id="ai-tip">
             <div class="ai-tip-sidebar"></div>
