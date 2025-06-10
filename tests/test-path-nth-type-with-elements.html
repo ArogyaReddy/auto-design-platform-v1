@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test path:nth-of-type(2) - With Actual Elements</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .svg-container {
+            border: 2px dashed #007acc;
+            padding: 15px;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .result {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .highlight {
+            outline: 3px solid #ff6b6b !important;
+            background-color: rgba(255, 107, 107, 0.2) !important;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005c99; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Testing "path:nth-of-type(2)" - With Real Elements</h1>
+    
+    <div class="test-section">
+        <h2>📋 The Problem Explained</h2>
+        <p><strong>Confusion:</strong> Why does it say "supported: true" but "elements found: 0"?</p>
+        <p><strong>Answer:</strong></p>
+        <ul>
+            <li><strong>"Supported: true"</strong> = The CSS syntax is valid ✅</li>
+            <li><strong>"Elements found: 0"</strong> = No matching elements exist on this page ❌</li>
+        </ul>
+        <p>It's like asking for "the 2nd pizza" - the question makes sense, but there are no pizzas!</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Test Elements (Now we have actual &lt;path&gt; elements!)</h2>
+        
+        <div class="svg-container">
+            <h3>SVG #1 - Multiple Path Elements</h3>
+            <svg width="200" height="100" style="border: 1px solid #ccc;">
+                <path d="M10 10 L190 10" stroke="red" stroke-width="3" class="path-1"/>
+                <path d="M10 30 L190 30" stroke="blue" stroke-width="3" class="path-2"/>
+                <path d="M10 50 L190 50" stroke="green" stroke-width="3" class="path-3"/>
+                <path d="M10 70 L190 70" stroke="orange" stroke-width="3" class="path-4"/>
+            </svg>
+            <p><strong>This SVG has 4 &lt;path&gt; elements!</strong></p>
+        </div>
+
+        <div class="svg-container">
+            <h3>SVG #2 - Icon-style Elements</h3>
+            <svg width="100" height="100" style="border: 1px solid #ccc;">
+                <path d="M20 20 L80 20 L80 80 L20 80 Z" fill="lightblue" class="icon-bg"/>
+                <path d="M30 40 L70 40 M50 30 L50 70" stroke="black" stroke-width="2" class="icon-cross"/>
+            </svg>
+            <p><strong>This SVG has 2 &lt;path&gt; elements!</strong></p>
+        </div>
+
+        <div class="svg-container">
+            <h3>SVG #3 - Complex Shape</h3>
+            <svg width="150" height="100" style="border: 1px solid #ccc;">
+                <path d="M75 10 Q100 50 75 90 Q50 50 75 10" fill="yellow" stroke="black" class="shape-1"/>
+                <path d="M25 30 Q40 50 25 70 Q10 50 25 30" fill="pink" stroke="black" class="shape-2"/>
+                <path d="M125 30 Q140 50 125 70 Q110 50 125 30" fill="lightgreen" stroke="black" class="shape-3"/>
+            </svg>
+            <p><strong>This SVG has 3 &lt;path&gt; elements!</strong></p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Now Test the Locator</h2>
+        <p><strong>Total &lt;path&gt; elements on this page:</strong> <span id="pathCount">0</span></p>
+        
+        <button onclick="countPaths()">Count All Path Elements</button>
+        <button onclick="testPathNthType2()">Test "path:nth-of-type(2)"</button>
+        <button onclick="testInBrowser()">Test in Browser DevTools</button>
+        <button onclick="testWithAutomationTester()">Test with Automation Tester</button>
+        
+        <div id="results" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Manual DevTools Testing</h2>
+        <p>Open DevTools (F12) and try these commands:</p>
+        <div style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-family: monospace;">
+            <div>// Count all path elements:</div>
+            <div>document.querySelectorAll("path").length</div>
+            <br>
+            <div>// Test the problematic selector:</div>
+            <div>document.querySelectorAll("path:nth-of-type(2)")</div>
+            <br>
+            <div>// Get the second path element:</div>
+            <div>document.querySelectorAll("path")[1]</div>
+        </div>
+    </div>
+
+    <!-- Load the automation tester -->
+    <script src="../utils/automation-locator-tester.js"></script>
+    
+    <script>
+        function countPaths() {
+            const paths = document.querySelectorAll("path");
+            const count = paths.length;
+            
+            document.getElementById('pathCount').textContent = count;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h4>📊 Path Elements Found: ${count}</h4>
+                <div style="display: grid; gap: 10px;">
+                    ${Array.from(paths).map((path, index) => `
+                        <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <strong>Path ${index + 1}:</strong> 
+                            <code>${path.outerHTML.substring(0, 100)}${path.outerHTML.length > 100 ? '...' : ''}</code>
+                            <br><strong>Classes:</strong> ${path.className || 'none'}
+                            <br><strong>Parent SVG:</strong> ${path.closest('svg') ? '✅' : '❌'}
+                        </div>
+                    `).join('')}
+                </div>
+                <p><strong>Conclusion:</strong> ${count > 0 ? `✅ We have ${count} path elements, so "path:nth-of-type(2)" should work!` : '❌ No path elements found'}</p>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function testPathNthType2() {
+            console.log('🧪 Testing path:nth-of-type(2) manually...');
+            
+            const allPaths = document.querySelectorAll("path");
+            const nthTypePaths = document.querySelectorAll("path:nth-of-type(2)");
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h4>🔍 Manual Test Results:</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h5>All Paths (document.querySelectorAll("path")):</h5>
+                        <p><strong>Count:</strong> ${allPaths.length}</p>
+                        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                            ${Array.from(allPaths).map((path, index) => `
+                                <div style="margin: 5px 0; padding: 5px; background: #f8f9fa;">
+                                    <strong>${index + 1}.</strong> ${path.className ? `class="${path.className}"` : 'no class'}
+                                    <br><small>${path.getAttribute('d') ? `d="${path.getAttribute('d').substring(0, 30)}..."` : 'no d attribute'}</small>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5>nth-of-type(2) Results:</h5>
+                        <p><strong>Count:</strong> ${nthTypePaths.length}</p>
+                        ${nthTypePaths.length > 0 ? `
+                            <div style="border: 1px solid #28a745; padding: 10px; background: #d4edda;">
+                                <strong>✅ SUCCESS!</strong> Found element(s):
+                                ${Array.from(nthTypePaths).map((path, index) => `
+                                    <div style="margin: 5px 0;">
+                                        <strong>Element ${index + 1}:</strong> ${path.className ? `class="${path.className}"` : 'no class'}
+                                        <br><small>Parent: ${path.parentElement.tagName}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div style="border: 1px solid #dc3545; padding: 10px; background: #f8d7da;">
+                                <strong>❌ NO RESULTS</strong>
+                                <p>This means nth-of-type(2) doesn't work as expected on this page structure.</p>
+                            </div>
+                        `}
+                    </div>
+                </div>
+                
+                <h5>🔍 Analysis:</h5>
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px;">
+                    ${allPaths.length === 0 ? 
+                        '❌ No path elements exist - that\'s why you got "0 elements found"' :
+                        allPaths.length >= 2 ?
+                            nthTypePaths.length > 0 ?
+                                '✅ nth-of-type(2) works! The issue was that your previous test page had no path elements.' :
+                                '⚠️ We have multiple paths but nth-of-type(2) still doesn\'t work. This suggests the paths are in different parent contexts.' :
+                            '⚠️ We only have 1 path element, so nth-of-type(2) will naturally return 0 results.'
+                    }
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+            
+            // Highlight the found elements
+            nthTypePaths.forEach(path => {
+                path.classList.add('highlight');
+                setTimeout(() => path.classList.remove('highlight'), 3000);
+            });
+        }
+        
+        function testInBrowser() {
+            const command = 'document.querySelectorAll("path:nth-of-type(2)")';
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(command).then(() => {
+                alert(`Command copied to clipboard!
+
+Now:
+1. Open DevTools (F12)
+2. Go to Console tab  
+3. Paste: ${command}
+4. Press Enter
+
+You should see the same results as our manual test above. If you see elements here but not in the previous test, it proves the issue was lack of test elements, not the selector syntax.`);
+            }).catch(() => {
+                alert(`Copy this to DevTools Console:
+
+${command}
+
+This will show you the actual browser behavior vs automation tools.`);
+            });
+        }
+        
+        function testWithAutomationTester() {
+            if (typeof testLocator === 'undefined') {
+                alert('Automation Locator Tester not loaded. Please check that the script loaded correctly.');
+                return;
+            }
+            
+            console.log('🧪 Testing with Automation Locator Tester...');
+            const result = testLocator("path:nth-of-type(2)", true);
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h4>🤖 Automation Locator Tester Results:</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                    <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <strong>Overall Rating:</strong><br>
+                        <span style="font-size: 1.2em; color: ${result.overall === 'EXCELLENT' ? '#28a745' : result.overall === 'GOOD' ? '#17a2b8' : result.overall === 'FAIR' ? '#ffc107' : '#dc3545'}">
+                            ${result.overall}
+                        </span>
+                    </div>
+                    <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <strong>Elements Found:</strong><br>
+                        <span style="font-size: 1.2em;">${result.elements.length}</span>
+                    </div>
+                    <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <strong>Browser Score:</strong><br>
+                        ${result.tests.browser.score}% ${result.tests.browser.supported ? '✅' : '❌'}
+                    </div>
+                    <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <strong>Playwright:</strong><br>
+                        ${result.tests.playwright.score}% ✅
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                    <h5>🎯 Key Insight:</h5>
+                    <p><strong>Browser Test:</strong> ${result.tests.browser.reason}</p>
+                    ${result.elements.length > 0 ? `
+                        <p><strong>✅ Success!</strong> Now that we have actual path elements, the selector works in both browser and automation tools.</p>
+                        <p><strong>Elements Found:</strong></p>
+                        <ul>
+                            ${result.elements.map(el => `
+                                <li><strong>${el.tagName}</strong> - ${el.className ? `class="${el.className}"` : 'no class'} - ${el.isVisible ? 'Visible' : 'Hidden'}</li>
+                            `).join('')}
+                        </ul>
+                    ` : `
+                        <p><strong>❌ Still no elements found.</strong> This suggests the paths are structured differently than expected.</p>
+                    `}
+                </div>
+                
+                ${result.recommendations.length > 0 ? `
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                        <h5>📋 Recommendations:</h5>
+                        <ul>
+                            ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                
+                <div style="background: #e2e6ea; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                    <h5>💡 What This Proves:</h5>
+                    <p>The confusion between "supported: true" and "elements found: 0" is now clear:</p>
+                    <ul>
+                        <li><strong>Supported:</strong> The CSS syntax "path:nth-of-type(2)" is valid ✅</li>
+                        <li><strong>Elements Found:</strong> Depends on whether matching elements exist on the page</li>
+                        <li><strong>Your original test:</strong> Had no path elements, so 0 results</li>
+                        <li><strong>This test:</strong> Has path elements, so ${result.elements.length} result(s)</li>
+                    </ul>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Auto-run when page loads
+        window.addEventListener('load', () => {
+            console.log('🚀 Path nth-of-type(2) test page with real elements loaded!');
+            
+            // Auto-count paths
+            setTimeout(() => {
+                countPaths();
+                
+                // Show explanation
+                setTimeout(() => {
+                    alert(`📚 Understanding "Supported vs Elements Found":
+
+🟢 SUPPORTED = The CSS syntax is valid
+🔍 ELEMENTS FOUND = Whether matching elements exist on this page
+
+Your confusion was valid! The previous test page had NO <path> elements, so:
+- ✅ Supported: true (valid CSS syntax)  
+- ❌ Elements found: 0 (no path elements existed)
+
+This page HAS <path> elements, so now you'll see the true behavior!
+
+Click the test buttons above to see the difference.`);
+                }, 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

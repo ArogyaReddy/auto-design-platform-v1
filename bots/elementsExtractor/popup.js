@@ -252,7 +252,30 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
         
         console.log('Element AI Extractor: Searching for element:', locatorStr, 'inShadowDOM:', isInShadow);
         
-        // #NOTE: Handle Shadow DOM path syntax "host >> inner"
+        // #ENHANCEMENT: Prioritize DevTools-compatible locators first
+        if (!locatorStr.includes(' >> ')) {
+          // Try simple, DevTools-compatible selector first
+          try {
+            let element = null;
+            if (locatorStr.startsWith('#')) {
+              element = document.querySelector(locatorStr);
+            } else if (locatorStr.startsWith('/')) {
+              let r = document.evaluate(locatorStr, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+              element = r.singleNodeValue;
+            } else {
+              element = document.querySelector(locatorStr);
+            }
+            
+            if (element) {
+              console.log('Element AI Extractor: Found element via DevTools-compatible selector:', element);
+              return element;
+            }
+          } catch (e) {
+            console.warn('Element AI Extractor: DevTools-compatible selector failed:', e);
+          }
+        }
+
+        // #NOTE: Handle Shadow DOM path syntax "host >> inner" (fallback for complex cases)
         if (isInShadow && typeof locatorStr === 'string' && locatorStr.includes(' >> ')) {
           try {
             const pathSegments = locatorStr.split(' >> ');
@@ -290,7 +313,7 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
           }
         }
         
-        // #NOTE: Enhanced shadow search with deep traversal
+        // #ENHANCEMENT: Enhanced shadow search with deep traversal and SVG support
         if (isInShadow) {
           function searchAllShadowRoots(rootNode, selector) {
             if (!rootNode) return null;
@@ -305,6 +328,35 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
                 }
               } catch (e) {
                 console.warn('Element AI Extractor: Error querying selector in shadow root:', e);
+              }
+            }
+            
+            // #ENHANCEMENT: Special handling for SVG elements and icon buttons
+            if (selector.includes('sdf-icon-button') || selector.includes('svg') || selector.includes('[aria-label')) {
+              try {
+                // Try aria-label based search for icons
+                if (selector.includes('[aria-label=')) {
+                  const ariaMatch = selector.match(/\[aria-label="([^"]+)"\]/);
+                  if (ariaMatch) {
+                    const ariaValue = ariaMatch[1];
+                    const ariaElements = rootNode.querySelectorAll ? rootNode.querySelectorAll(`[aria-label="${ariaValue}"]`) : [];
+                    if (ariaElements.length > 0) {
+                      console.log('Element AI Extractor: Found element via aria-label search:', ariaElements[0]);
+                      return ariaElements[0];
+                    }
+                  }
+                }
+                
+                // Try class-based search for complex SVG elements
+                if (selector.includes('.burger') || selector.includes('.hydrated')) {
+                  const classElements = rootNode.querySelectorAll ? rootNode.querySelectorAll(selector) : [];
+                  if (classElements.length > 0) {
+                    console.log('Element AI Extractor: Found SVG element via class search:', classElements[0]);
+                    return classElements[0];
+                  }
+                }
+              } catch (e) {
+                console.warn('Element AI Extractor: SVG-specific search failed:', e);
               }
             }
             
@@ -710,27 +762,129 @@ function domExtractionFunction(filters) {
       }
     }
 
-    // 5. Aria attributes (good for accessibility)
+    // 5. Aria attributes (excellent for accessibility and Shadow DOM compatibility)
     if (el.hasAttribute('aria-label')) {
       const ariaLabel = el.getAttribute('aria-label');
       const ariaSelector = `[aria-label="${ariaLabel}"]`;
       
+      // #ENHANCEMENT: For Shadow DOM elements, check global uniqueness first
+      const isInShadow = el.getRootNode() instanceof ShadowRoot;
+      if (isInShadow) {
+        try {
+          // Check if globally unique - this gives us DevTools compatibility
+          const globalElements = document.querySelectorAll(ariaSelector);
+          if (globalElements.length === 1 && globalElements[0] === el) {
+            return {type: 'aria-label', locator: ariaSelector, reason: 'Globally unique aria-label (DevTools compatible)'};
+          }
+        } catch (e) {
+          console.warn('Element AI Extractor: Error checking global aria-label uniqueness:', e);
+        }
+      }
+      
+      // Fallback to context-based validation
       if (validateSelector(ariaSelector, el)) {
         return {type: 'aria-label', locator: ariaSelector, reason: 'Unique aria-label'};
       }
     }
 
-    // 6. Role attribute (good for semantic elements)
+    // 6. Role attribute (good for semantic elements and Shadow DOM)
     if (el.hasAttribute('role')) {
       const role = el.getAttribute('role');
       const roleSelector = `[role="${role}"]`;
+      
+      // #ENHANCEMENT: For Shadow DOM elements, check global uniqueness first  
+      const isInShadow = el.getRootNode() instanceof ShadowRoot;
+      if (isInShadow) {
+        try {
+          const globalElements = document.querySelectorAll(roleSelector);
+          if (globalElements.length === 1 && globalElements[0] === el) {
+            return {type: 'role', locator: roleSelector, reason: 'Globally unique role (DevTools compatible)'};
+          }
+        } catch (e) {
+          console.warn('Element AI Extractor: Error checking global role uniqueness:', e);
+        }
+      }
       
       if (validateSelector(roleSelector, el)) {
         return {type: 'role', locator: roleSelector, reason: 'Unique role'};
       }
     }
     
-    // 7. Single class (if unique)
+    // 7. SVG and Icon Elements (special handling for Shadow DOM icons)
+    // #ENHANCEMENT: Enhanced SVG/Icon element handling with multiple fallback strategies
+    const isIconElement = el.tagName.toLowerCase().includes('icon') || 
+                         el.tagName.toLowerCase().includes('svg') ||
+                         el.className.includes('icon') ||
+                         el.className.includes('burger') ||
+                         el.hasAttribute('role') && el.getAttribute('role').includes('button');
+    
+    if (isIconElement) {
+      // Try multiple SVG-specific strategies in priority order (DevTools compatibility first)
+      const svgStrategies = [];
+      const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
+      
+      // Strategy 1: Pure aria-label (HIGHEST priority - DevTools compatible)
+      if (el.hasAttribute('aria-label')) {
+        const ariaLabel = el.getAttribute('aria-label');
+        const pureAriaSelector = `[aria-label="${ariaLabel}"]`;
+        svgStrategies.push({selector: pureAriaSelector, type: 'pure-aria', reason: 'Pure aria-label (highest DevTools compatibility)'});
+      }
+      
+      // Strategy 2: Multiple class combination ONLY (DevTools compatible)
+      if (filteredClasses.length >= 2) {
+        const multiClassSelector = `.${filteredClasses.map(c => CSS.escape(c)).join('.')}`;
+        svgStrategies.push({selector: multiClassSelector, type: 'multi-class', reason: 'SVG/Icon multi-class combination (DevTools compatible)'});
+      }
+      
+      // Strategy 3: Tag + aria-label (fallback for when pure aria-label isn't unique)
+      if (el.hasAttribute('aria-label')) {
+        const ariaLabel = el.getAttribute('aria-label');
+        const tagAriaSelector = `${el.tagName.toLowerCase()}[aria-label="${ariaLabel}"]`;
+        svgStrategies.push({selector: tagAriaSelector, type: 'tag+aria', reason: 'SVG/Icon with aria-label'});
+      }
+      
+      // Strategy 4: Tag + role combination
+      if (el.hasAttribute('role')) {
+        const role = el.getAttribute('role');
+        const tagRoleSelector = `${el.tagName.toLowerCase()}[role="${role}"]`;
+        svgStrategies.push({selector: tagRoleSelector, type: 'tag+role', reason: 'SVG/Icon with role'});
+      }
+      
+      // Strategy 5: Single most distinctive class (DevTools compatible)
+      if (filteredClasses.length > 0) {
+        // Prioritize classes that are likely to be unique (burger, hydrated, etc.)
+        const distinctiveClasses = filteredClasses.filter(cls => 
+          cls.includes('burger') || cls.includes('menu') || cls.includes('close') || 
+          cls.includes('icon') || cls.includes('btn') || cls.includes('button') ||
+          cls.includes('hydrated') || cls.includes('active')
+        );
+        
+        if (distinctiveClasses.length > 0) {
+          const singleClassSelector = `.${CSS.escape(distinctiveClasses[0])}`;
+          svgStrategies.push({selector: singleClassSelector, type: 'single-class', reason: 'Single distinctive class (DevTools compatible)'});
+        }
+      }
+      
+      // Try each strategy and return the first globally unique one
+      for (const strategy of svgStrategies) {
+        try {
+          // Check if globally unique first (DevTools compatibility)
+          const globalElements = document.querySelectorAll(strategy.selector);
+          if (globalElements.length === 1 && globalElements[0] === el) {
+            return {type: strategy.type, locator: strategy.selector, reason: `${strategy.reason} (DevTools compatible)`};
+          }
+          
+          // Fallback to context validation
+          if (validateSelector(strategy.selector, el)) {
+            return {type: strategy.type, locator: strategy.selector, reason: strategy.reason};
+          }
+        } catch (e) {
+          console.warn(`Element AI Extractor: SVG strategy failed for ${strategy.selector}:`, e);
+        }
+      }
+    }
+
+    // 8. Single class (if unique)
     const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
     if (filteredClasses.length === 1) {
       const className = filteredClasses[0];
@@ -745,13 +899,13 @@ function domExtractionFunction(filters) {
       }
     }
 
-    // 8. CSS selector (generated) within context
+    // 9. CSS selector (generated) within context
     const cssSelector = getUniqueCssSelector(el, contextNode);
     if (cssSelector && cssSelector.length < 100 && validateSelector(cssSelector, el)) {
       return {type: 'CSS', locator: cssSelector, reason: 'Generated CSS selector'};
     }
 
-    // 9. XPath as fallback within context
+    // 10. XPath as fallback within context
     const xpathSelector = getXPath(el, contextNode);
     if (xpathSelector && xpathSelector.length < 150) {
       return {type: 'XPath', locator: xpathSelector, reason: 'Generated XPath'};
@@ -859,7 +1013,22 @@ function domExtractionFunction(filters) {
         const classes = current.className.split(' ')
           .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
         if (classes.length > 0) {
-          selector += '.' + classes.map(c => CSS.escape(c)).join('.');
+          // For SVG/icon elements, avoid tag+class combinations that don't work in DevTools
+          const isIconElement = current.tagName.toLowerCase().includes('icon') || 
+                               current.tagName.toLowerCase().includes('svg') ||
+                               classes.some(cls => cls.includes('icon') || cls.includes('burger') || cls.includes('menu'));
+          
+          if (isIconElement && classes.length >= 2) {
+            // For icon elements with multiple classes, prioritize class-only selector for DevTools compatibility
+            const multiClassSelector = '.' + classes.map(c => CSS.escape(c)).join('.');
+            if (validateSelector(multiClassSelector, current)) {
+              selector = multiClassSelector; // Use class-only selector, not tag+class
+            } else {
+              selector += '.' + classes.map(c => CSS.escape(c)).join('.');
+            }
+          } else {
+            selector += '.' + classes.map(c => CSS.escape(c)).join('.');
+          }
         }
       }
       
@@ -1012,18 +1181,89 @@ function domExtractionFunction(filters) {
         let localXPath = getXPath(el, contextNode);
         let bestLocatorInfo = getBestLocator(el, contextNode);
 
-        // #SECTION: Build final locators for Shadow DOM elements
+        // #SECTION: Build final locators for Shadow DOM elements with DevTools compatibility
         let finalCssSelector = localCssSelector;
         let finalXPath = localXPath; // Keep local for display
         let finalBestLocator = bestLocatorInfo.locator;
         let hostPathString = isShadowContext ? currentHostPathArray.join(' >> ') : '';
 
-        // #IMPORTANT: Prefix locators with shadow host path for elements in shadow DOM
+        // #CRITICAL: For Shadow DOM elements, prioritize simple, DevTools-compatible locators
         if (isShadowContext && hostPathString) {
-          finalCssSelector = `${hostPathString} >> ${localCssSelector}`;
-          // Prefix best locator if it's a CSS-type locator
-          if (['ID', 'data-testid', 'data-qa', 'data-cy', 'aria-label', 'role', 'class', 'CSS'].includes(bestLocatorInfo.type)) {
-            finalBestLocator = `${hostPathString} >> ${bestLocatorInfo.locator}`;
+          // #ENHANCEMENT: Try to find DevTools-compatible alternatives first
+          let useComplexPath = true;
+          
+          // Check if element has globally unique attributes that work in DevTools
+          if (el.hasAttribute('aria-label')) {
+            const ariaLabel = el.getAttribute('aria-label');
+            try {
+              const globalAriaElements = document.querySelectorAll(`[aria-label="${ariaLabel}"]`);
+              if (globalAriaElements.length === 1 && globalAriaElements[0] === el) {
+                finalBestLocator = `[aria-label="${ariaLabel}"]`;
+                finalCssSelector = `[aria-label="${ariaLabel}"]`;
+                useComplexPath = false;
+                // Update locator info for higher strength score
+                bestLocatorInfo = {type: 'aria-label', locator: finalBestLocator, reason: 'Globally unique aria-label (DevTools compatible)'};
+              }
+            } catch (e) {
+              console.warn('Element AI Extractor: Error checking global aria-label uniqueness:', e);
+            }
+          }
+          
+          // Check for globally unique ID
+          if (useComplexPath && el.id) {
+            try {
+              const globalIdElements = document.querySelectorAll(`#${CSS.escape(el.id)}`);
+              if (globalIdElements.length === 1 && globalIdElements[0] === el) {
+                finalBestLocator = `#${CSS.escape(el.id)}`;
+                finalCssSelector = `#${CSS.escape(el.id)}`;
+                useComplexPath = false;
+                bestLocatorInfo = {type: 'ID', locator: finalBestLocator, reason: 'Globally unique ID (DevTools compatible)'};
+              }
+            } catch (e) {
+              // Try attribute selector for complex IDs
+              try {
+                const globalIdElements = document.querySelectorAll(`[id="${el.id}"]`);
+                if (globalIdElements.length === 1 && globalIdElements[0] === el) {
+                  finalBestLocator = `[id="${el.id}"]`;
+                  finalCssSelector = `[id="${el.id}"]`;
+                  useComplexPath = false;
+                  bestLocatorInfo = {type: 'ID', locator: finalBestLocator, reason: 'Globally unique ID with special chars (DevTools compatible)'};
+                }
+              } catch (e2) {
+                console.warn('Element AI Extractor: Error checking global ID uniqueness:', e2);
+              }
+            }
+          }
+          
+          // Check for other globally unique attributes
+          if (useComplexPath) {
+            const testAttrs = ['data-testid', 'data-qa', 'data-cy', 'role', 'name'];
+            for (const attr of testAttrs) {
+              if (el.hasAttribute(attr)) {
+                const attrValue = el.getAttribute(attr);
+                try {
+                  const globalAttrElements = document.querySelectorAll(`[${attr}="${attrValue}"]`);
+                  if (globalAttrElements.length === 1 && globalAttrElements[0] === el) {
+                    finalBestLocator = `[${attr}="${attrValue}"]`;
+                    finalCssSelector = `[${attr}="${attrValue}"]`;
+                    useComplexPath = false;
+                    bestLocatorInfo = {type: attr, locator: finalBestLocator, reason: `Globally unique ${attr} (DevTools compatible)`};
+                    break;
+                  }
+                } catch (e) {
+                  console.warn(`Element AI Extractor: Error checking global ${attr} uniqueness:`, e);
+                }
+              }
+            }
+          }
+          
+          // Only use complex path if no simple alternative found
+          if (useComplexPath) {
+            finalCssSelector = `${hostPathString} >> ${localCssSelector}`;
+            // Only prefix best locator for non-unique attributes
+            if (['class', 'CSS'].includes(bestLocatorInfo.type)) {
+              finalBestLocator = `${hostPathString} >> ${bestLocatorInfo.locator}`;
+            }
           }
         }
 
@@ -1086,28 +1326,64 @@ function domExtractionFunction(filters) {
     // ULTIMATE scoring system for navigation locators
     else if (type === 'class+href') score = 92; // HIGHEST for navigation elements
     
-    // Accessibility attributes are strong
-    else if (['aria-label', 'aria-labelledby'].includes(type)) score = 85;
+    // #ENHANCEMENT: SVG and Icon Element scoring (HIGH priority for modern apps)
+    else if (['tag+class', 'tag+aria', 'multi-class', 'tag+role'].includes(type)) {
+      // SVG elements are crucial in modern apps, give them high scores if DevTools compatible
+      if (!locator.includes(' >> ')) {
+        score = 88; // High score for globally unique SVG elements
+      } else {
+        score = 75; // Lower score for complex Shadow DOM SVG paths
+      }
+    }
+    
+    // #ENHANCEMENT: Boost scores for DevTools-compatible Shadow DOM locators
+    else if (['aria-label', 'aria-labelledby'].includes(type)) {
+      // Check if this is a simple, DevTools-compatible selector (no >> syntax)
+      if (!locator.includes(' >> ')) {
+        score = 90; // High score for globally unique accessibility attributes
+      } else {
+        score = 85; // Lower score for complex Shadow DOM paths
+      }
+    }
     
     // Href attributes for links are reliable but lower than class+href
     else if (type === 'href') score = 78;
     
-    // Role attributes are good
-    else if (type === 'role') score = 75;
+    // Role attributes - boost for DevTools compatibility
+    else if (type === 'role') {
+      if (!locator.includes(' >> ')) {
+        score = 85; // High score for globally unique roles
+      } else {
+        score = 75; // Lower score for complex Shadow DOM paths
+      }
+    }
+    
+    // Name attribute - boost for DevTools compatibility  
+    else if (type === 'name') {
+      if (!locator.includes(' >> ')) {
+        score = 80; // High score for globally unique names
+      } else {
+        score = 70; // Lower score for complex Shadow DOM paths
+      }
+    }
     
     // Single class is decent
     else if (type === 'class') score = 65;
     
-    // Name attribute is reliable for forms
-    else if (type === 'name') score = 70;
-    
     // Text-based selectors are fragile
     else if (type === 'text') score = 40;
     
-    // CSS selectors depend on complexity
+    // CSS selectors depend on complexity and Shadow DOM usage
     else if (type === 'CSS') {
-      const selectorParts = locator.split(' > ').length;
-      score = Math.max(20, 60 - (selectorParts * 5));
+      if (locator.includes(' >> ')) {
+        // Complex Shadow DOM path - much lower score
+        const pathSegments = locator.split(' >> ').length;
+        score = Math.max(15, 40 - (pathSegments * 8));
+      } else {
+        // Regular CSS selector
+        const selectorParts = locator.split(' > ').length;
+        score = Math.max(20, 60 - (selectorParts * 5));
+      }
     }
     
     // XPath is usually complex and fragile

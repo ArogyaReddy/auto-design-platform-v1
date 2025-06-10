@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Icon Button Fix Test - Elements Extractor</title>
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #21264a 0%, #121327 100%);
+            color: #e4edfc;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            background: linear-gradient(90deg, #59f9d6 20%, #18aaff 60%, #ffc366 95%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(35, 40, 109, 0.3);
+            border: 1px solid rgba(57, 107, 230, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .test-element {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .expected-result {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .problematic-result {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        code {
+            background: rgba(89, 249, 214, 0.1);
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: #59f9d6;
+            font-family: 'Fira Code', monospace;
+        }
+        button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #e55100;
+            transform: translateY(-2px);
+        }
+        .burger-menu {
+            background: #4c7aff;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .test-results {
+            background: rgba(25, 35, 71, 0.8);
+            border: 1px solid #396be6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+        .result-success {
+            color: #28a745;
+        }
+        .result-error {
+            color: #dc3545;
+        }
+        .result-warning {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 SVG Icon Button Fix Test</h1>
+        
+        <div class="test-section">
+            <h2>🔧 Test Objective</h2>
+            <p>Verify that the Elements Extractor generates <strong>DevTools-compatible</strong> locators for SVG icon elements, avoiding problematic <code>tag.class</code> combinations like <code>sdf-icon-button.burger.hydrated</code>.</p>
+            
+            <div class="expected-result">
+                <strong>✅ Expected Results:</strong>
+                <ul>
+                    <li>Pure class selectors: <code>.burger.hydrated</code> (90%+ strength)</li>
+                    <li>Pure aria-label selectors: <code>[aria-label="Menu"]</code> (90%+ strength)</li>
+                    <li>NOT tag+class combinations: <code>sdf-icon-button.burger.hydrated</code> (should be avoided)</li>
+                    <li>All generated selectors should work when copied to browser DevTools console</li>
+                </ul>
+            </div>
+            
+            <div class="problematic-result">
+                <strong>❌ Problematic Results (Fix Should Prevent):</strong>
+                <ul>
+                    <li>Tag+class combinations: <code>sdf-icon-button.burger.hydrated</code></li>
+                    <li>Selectors with strength &lt; 90% for globally unique attributes</li>
+                    <li>Selectors that don't work in DevTools console</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Test Elements</h2>
+            
+            <div class="test-element">
+                <h3>Test 1: SDF Icon Button with Burger and Hydrated Classes</h3>
+                <div class="burger-menu">
+                    <sdf-icon-button class="burger hydrated" aria-label="Open Menu" role="button">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </sdf-icon-button>
+                </div>
+                <p><strong>Element Type:</strong> Custom element with multiple classes and aria-label</p>
+                <p><strong>Expected Locator:</strong> <code>[aria-label="Open Menu"]</code> or <code>.burger.hydrated</code></p>
+                <p><strong>Should NOT Generate:</strong> <code>sdf-icon-button.burger.hydrated</code></p>
+            </div>
+
+            <div class="test-element">
+                <h3>Test 2: Regular Icon Button with Single Class</h3>
+                <div class="burger-menu">
+                    <button class="icon-button" aria-label="Close Dialog">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <p><strong>Element Type:</strong> Regular button with icon class and aria-label</p>
+                <p><strong>Expected Locator:</strong> <code>[aria-label="Close Dialog"]</code></p>
+            </div>
+
+            <div class="test-element">
+                <h3>Test 3: SVG Element with Icon Classes</h3>
+                <div class="burger-menu">
+                    <svg class="icon menu-icon" width="24" height="24" viewBox="0 0 24 24" aria-label="Menu Icon">
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                </div>
+                <p><strong>Element Type:</strong> SVG element with multiple icon-related classes</p>
+                <p><strong>Expected Locator:</strong> <code>[aria-label="Menu Icon"]</code> or <code>.icon.menu-icon</code></p>
+                <p><strong>Should NOT Generate:</strong> <code>svg.icon.menu-icon</code></p>
+            </div>
+
+            <div class="test-element">
+                <h3>Test 4: Complex SDF Icon with Multiple Classes</h3>
+                <div class="burger-menu">
+                    <sdf-icon-button class="burger menu-toggle hydrated active" aria-label="Toggle Navigation" data-testid="nav-toggle">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </sdf-icon-button>
+                </div>
+                <p><strong>Element Type:</strong> Complex custom element with test attributes</p>
+                <p><strong>Expected Locator Priority:</strong></p>
+                <ol>
+                    <li><code>[data-testid="nav-toggle"]</code> (highest priority)</li>
+                    <li><code>[aria-label="Toggle Navigation"]</code></li>
+                    <li><code>.burger.menu-toggle.hydrated.active</code></li>
+                </ol>
+                <p><strong>Should NOT Generate:</strong> <code>sdf-icon-button.burger.menu-toggle.hydrated.active</code></p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🚀 Run Tests</h2>
+            <button onclick="runLocatorTests()">🧪 Test Locator Generation</button>
+            <button onclick="testDevToolsCompatibility()">🔧 Test DevTools Compatibility</button>
+            <button onclick="runAllTests()">🎯 Run All Tests</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+
+        <div id="test-results" class="test-results" style="display: none;">
+            <h3>📊 Test Results</h3>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mock getBestLocator function (simplified version for testing)
+        function mockGetBestLocator(el) {
+            // This simulates the fixed logic from popup.js
+            
+            // 1. Check for test attributes first (highest priority)
+            for (const attr of ['data-testid', 'data-qa', 'data-cy']) {
+                if (el.hasAttribute(attr)) {
+                    const value = el.getAttribute(attr);
+                    const selector = `[${attr}="${value}"]`;
+                    if (document.querySelectorAll(selector).length === 1) {
+                        return {
+                            type: 'data-*',
+                            locator: selector,
+                            reason: `Unique ${attr}`,
+                            strength: 95
+                        };
+                    }
+                }
+            }
+            
+            // 2. Check for aria-label (high priority for icons)
+            if (el.hasAttribute('aria-label')) {
+                const ariaLabel = el.getAttribute('aria-label');
+                const selector = `[aria-label="${ariaLabel}"]`;
+                if (document.querySelectorAll(selector).length === 1) {
+                    return {
+                        type: 'aria-label',
+                        locator: selector,
+                        reason: 'Unique aria-label (DevTools compatible)',
+                        strength: 92
+                    };
+                }
+            }
+            
+            // 3. SVG/Icon element specific logic
+            const isIconElement = el.tagName.toLowerCase().includes('icon') || 
+                                 el.tagName.toLowerCase().includes('svg') ||
+                                 el.className.includes('icon') ||
+                                 el.className.includes('burger') ||
+                                 el.className.includes('menu');
+            
+            if (isIconElement) {
+                const classes = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
+                
+                // Strategy: Multi-class selector (DevTools compatible)
+                if (classes.length >= 2) {
+                    const multiClassSelector = '.' + classes.join('.');
+                    if (document.querySelectorAll(multiClassSelector).length === 1) {
+                        return {
+                            type: 'multi-class',
+                            locator: multiClassSelector,
+                            reason: 'SVG/Icon multi-class combination (DevTools compatible)',
+                            strength: 88
+                        };
+                    }
+                }
+                
+                // Strategy: Single distinctive class
+                const distinctiveClasses = classes.filter(cls => 
+                    cls.includes('burger') || cls.includes('menu') || cls.includes('close') || 
+                    cls.includes('icon') || cls.includes('btn') || cls.includes('button') ||
+                    cls.includes('hydrated') || cls.includes('active')
+                );
+                
+                if (distinctiveClasses.length > 0) {
+                    const singleClassSelector = '.' + distinctiveClasses[0];
+                    if (document.querySelectorAll(singleClassSelector).length === 1) {
+                        return {
+                            type: 'single-class',
+                            locator: singleClassSelector,
+                            reason: 'Single distinctive class (DevTools compatible)',
+                            strength: 85
+                        };
+                    }
+                }
+            }
+            
+            // 4. Fallback: Generate CSS selector with improved logic
+            return generateImprovedCSSSelector(el);
+        }
+        
+        function generateImprovedCSSSelector(el) {
+            const parts = [];
+            let current = el;
+            
+            while (current && current !== document.body) {
+                let selector = current.tagName.toLowerCase();
+                
+                if (current.className && typeof current.className === 'string') {
+                    const classes = current.className.split(' ')
+                        .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
+                    
+                    if (classes.length > 0) {
+                        // For icon elements, avoid tag+class combinations
+                        const isIconElement = selector.includes('icon') || 
+                                             selector.includes('svg') ||
+                                             classes.some(cls => cls.includes('icon') || cls.includes('burger') || cls.includes('menu'));
+                        
+                        if (isIconElement && classes.length >= 2) {
+                            // Use class-only selector for DevTools compatibility
+                            const multiClassSelector = '.' + classes.join('.');
+                            if (document.querySelectorAll(multiClassSelector).length === 1) {
+                                return {
+                                    type: 'CSS',
+                                    locator: multiClassSelector,
+                                    reason: 'Class-only selector for icon element (DevTools compatible)',
+                                    strength: 82
+                                };
+                            }
+                        }
+                        
+                        selector += '.' + classes.join('.');
+                    }
+                }
+                
+                parts.unshift(selector);
+                current = current.parentElement;
+                
+                if (parts.length > 3) break; // Limit depth
+            }
+            
+            const finalSelector = parts.join(' > ');
+            
+            // Check if this would generate a problematic tag+class selector
+            if (finalSelector.includes('sdf-icon-button.') || finalSelector.includes('svg.')) {
+                // This is the problematic case we're trying to fix
+                return {
+                    type: 'CSS',
+                    locator: finalSelector,
+                    reason: '⚠️ PROBLEMATIC: Tag+class combination (DevTools incompatible)',
+                    strength: 25 // Low strength to indicate this is problematic
+                };
+            }
+            
+            return {
+                type: 'CSS',
+                locator: finalSelector,
+                reason: 'Generated CSS selector',
+                strength: 75
+            };
+        }
+        
+        function runLocatorTests() {
+            const resultsDiv = document.getElementById('test-results');
+            const contentDiv = document.getElementById('results-content');
+            resultsDiv.style.display = 'block';
+            
+            let results = '<h4>🧪 Locator Generation Test Results</h4>\n';
+            
+            // Test all elements
+            const testElements = document.querySelectorAll('sdf-icon-button, button, svg');
+            
+            testElements.forEach((el, index) => {
+                const locatorResult = mockGetBestLocator(el);
+                const elementDesc = getElementDescription(el);
+                
+                results += `<div style="margin: 15px 0; padding: 10px; border: 1px solid #396be6; border-radius: 6px;">`;
+                results += `<strong>Test ${index + 1}: ${elementDesc}</strong><br>`;
+                results += `<strong>Generated Locator:</strong> <code>${locatorResult.locator}</code><br>`;
+                results += `<strong>Type:</strong> ${locatorResult.type}<br>`;
+                results += `<strong>Reason:</strong> ${locatorResult.reason}<br>`;
+                
+                // Determine result status
+                const isProblematic = locatorResult.locator.includes('sdf-icon-button.') || 
+                                     locatorResult.locator.includes('svg.');
+                const isHighStrength = locatorResult.strength >= 85;
+                
+                if (isProblematic) {
+                    results += `<span class="result-error"><strong>Strength:</strong> ${locatorResult.strength}% ❌ PROBLEMATIC</span><br>`;
+                    results += `<span class="result-error">⚠️ This selector uses tag+class combination that may not work in DevTools!</span><br>`;
+                } else if (isHighStrength) {
+                    results += `<span class="result-success"><strong>Strength:</strong> ${locatorResult.strength}% ✅ EXCELLENT</span><br>`;
+                    results += `<span class="result-success">✅ DevTools-compatible selector generated successfully!</span><br>`;
+                } else {
+                    results += `<span class="result-warning"><strong>Strength:</strong> ${locatorResult.strength}% ⚠️ ACCEPTABLE</span><br>`;
+                }
+                
+                results += `</div>`;
+            });
+            
+            contentDiv.innerHTML = results;
+        }
+        
+        function testDevToolsCompatibility() {
+            const resultsDiv = document.getElementById('test-results');
+            const contentDiv = document.getElementById('results-content');
+            resultsDiv.style.display = 'block';
+            
+            let results = '<h4>🔧 DevTools Compatibility Test Results</h4>\n';
+            
+            // Test specific problematic selectors
+            const testSelectors = [
+                'sdf-icon-button.burger.hydrated',
+                '.burger.hydrated',
+                '[aria-label="Open Menu"]',
+                '[data-testid="nav-toggle"]',
+                '.icon.menu-icon',
+                'svg.icon.menu-icon'
+            ];
+            
+            testSelectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    const count = elements.length;
+                    
+                    results += `<div style="margin: 10px 0; padding: 8px; border-left: 4px solid ${count === 1 ? '#28a745' : count === 0 ? '#6c757d' : '#dc3545'};">`;
+                    results += `<code>${selector}</code> → `;
+                    
+                    if (count === 1) {
+                        results += `<span class="result-success">✅ Perfect (1 match)</span>`;
+                    } else if (count === 0) {
+                        results += `<span style="color: #6c757d;">⚪ No matches (element not present)</span>`;
+                    } else {
+                        results += `<span class="result-error">❌ Not unique (${count} matches)</span>`;
+                    }
+                    
+                    results += `</div>`;
+                    
+                } catch (e) {
+                    results += `<div style="margin: 10px 0; padding: 8px; border-left: 4px solid #dc3545;">`;
+                    results += `<code>${selector}</code> → <span class="result-error">❌ Invalid CSS: ${e.message}</span>`;
+                    results += `</div>`;
+                }
+            });
+            
+            contentDiv.innerHTML = results;
+        }
+        
+        function runAllTests() {
+            runLocatorTests();
+            setTimeout(() => {
+                const currentResults = document.getElementById('results-content').innerHTML;
+                testDevToolsCompatibility();
+                setTimeout(() => {
+                    const compatResults = document.getElementById('results-content').innerHTML;
+                    document.getElementById('results-content').innerHTML = currentResults + '<hr>' + compatResults;
+                }, 100);
+            }, 100);
+        }
+        
+        function clearResults() {
+            document.getElementById('test-results').style.display = 'none';
+            document.getElementById('results-content').innerHTML = '';
+        }
+        
+        function getElementDescription(el) {
+            const tag = el.tagName.toLowerCase();
+            const classes = el.className ? Array.from(el.classList).join('.') : '';
+            const ariaLabel = el.getAttribute('aria-label') || '';
+            const testId = el.getAttribute('data-testid') || '';
+            
+            let desc = tag;
+            if (classes) desc += '.' + classes;
+            if (ariaLabel) desc += ` [aria-label="${ariaLabel}"]`;
+            if (testId) desc += ` [data-testid="${testId}"]`;
+            
+            return desc;
+        }
+        
+        // Auto-run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

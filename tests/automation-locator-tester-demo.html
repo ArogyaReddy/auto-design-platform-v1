@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Locator Tester - Demo & Testing</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-area {
+            border: 2px dashed #007acc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            background-color: #007acc;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #005c99;
+        }
+        .results {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .score-excellent { color: #28a745; font-weight: bold; }
+        .score-good { color: #17a2b8; font-weight: bold; }
+        .score-fair { color: #ffc107; font-weight: bold; }
+        .score-poor { color: #dc3545; font-weight: bold; }
+        .recommendation { 
+            margin: 5px 0; 
+            padding: 5px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        pre { 
+            background: #2d3748; 
+            color: #e2e8f0; 
+            padding: 15px; 
+            border-radius: 4px; 
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .demo-elements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .demo-element {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .highlight {
+            outline: 3px solid #ff6b6b !important;
+            background-color: rgba(255, 107, 107, 0.1) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Automation Locator Tester</h1>
+        <p><strong>Test your locators for compatibility with Playwright, Selenium, and Cypress!</strong></p>
+        
+        <div class="input-group">
+            <label for="locatorInput">Enter Locator to Test:</label>
+            <input type="text" id="locatorInput" placeholder="path:nth-of-type(2)" value="path:nth-of-type(2)">
+        </div>
+        
+        <button onclick="testSingleLocator()">🔍 Test Single Locator</button>
+        <button onclick="testCommonProblems()">🚨 Test Common Problem Locators</button>
+        <button onclick="generateAlternatives()">💡 Generate Alternatives</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3>Test Results:</h3>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <!-- Test Elements Area -->
+    <div class="container">
+        <h2>🎯 Test Elements (Use these for testing your locators)</h2>
+        <div class="test-area">
+            <div class="demo-elements">
+                <div class="demo-element">
+                    <button id="uniqueButton" data-testid="unique-btn" aria-label="Unique Button">Click Me</button>
+                </div>
+                <div class="demo-element">
+                    <input type="text" class="input-field" placeholder="Test Input" data-testid="test-input">
+                </div>
+                <div class="demo-element">
+                    <a href="#" class="nav-link" role="navigation">Navigation Link</a>
+                </div>
+                <div class="demo-element">
+                    <span class="status-indicator active" data-status="active">Status: Active</span>
+                </div>
+                <div class="demo-element">
+                    <svg width="50" height="50" class="icon menu-icon" aria-label="Menu">
+                        <path d="M10 10h30v5H10zM10 20h30v5H10zM10 30h30v5H10z"/>
+                    </svg>
+                </div>
+                <div class="demo-element">
+                    <div class="card-container">
+                        <div class="card-header">Card Title</div>
+                        <div class="card-body">Card content here</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Problematic elements that cause issues -->
+            <h4>Problematic Elements (test these):</h4>
+            <div class="demo-elements">
+                <path class="svg-path" d="M0 0L10 10"></path>
+                <path class="svg-path" d="M0 10L10 0"></path>
+                <div class="dynamic-class-123">Dynamic Class Element</div>
+                <div class="container-fluid row col-md-6">Bootstrap-like Element</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="container">
+        <h2>📋 How to Use</h2>
+        
+        <h3>Quick Testing:</h3>
+        <pre><code>// In browser console:
+testLocator("path:nth-of-type(2)")
+testLocator("#uniqueButton")
+testLocator("[data-testid='unique-btn']")
+
+// Test multiple locators:
+testLocators([
+    "path:nth-of-type(2)",
+    "#uniqueButton", 
+    "[aria-label='Menu']"
+])</code></pre>
+
+        <h3>Advanced Usage:</h3>
+        <pre><code>// Create tester instance
+const tester = new AutomationLocatorTester();
+tester.enableDebug(); // Enable detailed logging
+
+// Test with context
+const result = tester.testLocator("button", "BUTTON", {
+    page: "demo-page",
+    section: "header"
+});
+
+// Generate alternatives for an element
+const element = document.querySelector('#uniqueButton');
+const alternatives = tester.generateAlternatives(element);
+console.log('Alternative locators:', alternatives);</code></pre>
+
+        <h3>Understanding Results:</h3>
+        <ul>
+            <li><span class="score-excellent">EXCELLENT (90%+)</span> - Works great in all tools</li>
+            <li><span class="score-good">GOOD (75-89%)</span> - Works well in most tools</li>
+            <li><span class="score-fair">FAIR (50-74%)</span> - Limited compatibility</li>
+            <li><span class="score-poor">POOR (&lt;50%)</span> - Significant issues</li>
+        </ul>
+    </div>
+
+    <!-- Load the tester library -->
+    <script src="automation-locator-tester.js"></script>
+    
+    <script>
+        function testSingleLocator() {
+            const locator = document.getElementById('locatorInput').value.trim();
+            if (!locator) {
+                alert('Please enter a locator to test');
+                return;
+            }
+            
+            console.log(`🧪 Testing locator: ${locator}`);
+            const result = testLocator(locator, true);
+            displayResults([result]);
+            
+            // Try to highlight found elements
+            highlightElements(locator);
+        }
+        
+        function testCommonProblems() {
+            const problemLocators = [
+                "path:nth-of-type(2)",
+                "div:nth-child(3) > span:nth-child(2)",
+                ".dynamic-class-123",
+                "svg > path",
+                "[class*='col-']",
+                "body > div > div > button"
+            ];
+            
+            console.log('🚨 Testing common problem locators...');
+            const results = testLocators(problemLocators, true);
+            displayResults(results.results);
+        }
+        
+        function generateAlternatives() {
+            const locator = document.getElementById('locatorInput').value.trim();
+            if (!locator) {
+                alert('Please enter a locator first');
+                return;
+            }
+            
+            try {
+                const elements = document.querySelectorAll(locator);
+                if (elements.length === 0) {
+                    alert('No elements found with that locator');
+                    return;
+                }
+                
+                const tester = new AutomationLocatorTester();
+                const alternatives = tester.generateAlternatives(elements[0]);
+                
+                const resultsDiv = document.getElementById('results');
+                const contentDiv = document.getElementById('resultsContent');
+                
+                contentDiv.innerHTML = `
+                    <h4>💡 Alternative Locators for: ${locator}</h4>
+                    <ul>
+                        ${alternatives.map(alt => `<li><code>${alt}</code></li>`).join('')}
+                    </ul>
+                    <p><em>Test these alternatives to find more reliable locators!</em></p>
+                `;
+                resultsDiv.style.display = 'block';
+                
+            } catch (error) {
+                alert('Error generating alternatives: ' + error.message);
+            }
+        }
+        
+        function highlightElements(locator) {
+            // Clear previous highlights
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+            
+            try {
+                const elements = document.querySelectorAll(locator);
+                elements.forEach(el => el.classList.add('highlight'));
+                
+                if (elements.length > 0) {
+                    elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } catch (error) {
+                console.warn('Could not highlight elements:', error.message);
+            }
+        }
+        
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            
+            let html = '';
+            
+            results.forEach((result, index) => {
+                const scoreClass = `score-${result.overall.toLowerCase()}`;
+                
+                html += `
+                    <div style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px;">
+                        <h4>🧪 Test ${index + 1}: <code>${result.locator}</code></h4>
+                        <p><strong>Overall Rating:</strong> <span class="${scoreClass}">${result.overall}</span></p>
+                        <p><strong>Elements Found:</strong> ${result.elements.length}</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
+                            <div><strong>Browser:</strong> ${result.tests.browser.score || 0}% ${result.tests.browser.supported ? '✅' : '❌'}</div>
+                            <div><strong>Playwright:</strong> ${result.tests.playwright.score}% ✅</div>
+                            <div><strong>Selenium:</strong> ${result.tests.selenium.score}% ${result.tests.selenium.supported ? '✅' : '❌'}</div>
+                            <div><strong>Cypress:</strong> ${result.tests.cypress.score}% ${result.tests.cypress.supported ? '✅' : '❌'}</div>
+                        </div>
+                        
+                        ${result.elements.length > 0 ? `
+                            <details>
+                                <summary>Found Elements (${result.elements.length})</summary>
+                                ${result.elements.map(el => `
+                                    <div style="margin: 5px 0; padding: 5px; background: #f8f9fa;">
+                                        <strong>${el.tagName}</strong> 
+                                        ${el.id ? `#${el.id}` : ''}
+                                        ${el.className ? `.${el.className.split(' ').join('.')}` : ''}
+                                        ${el.textContent ? `- "${el.textContent}"` : ''}
+                                        (${el.isVisible ? 'Visible' : 'Hidden'})
+                                    </div>
+                                `).join('')}
+                            </details>
+                        ` : ''}
+                        
+                        ${result.recommendations.length > 0 ? `
+                            <div>
+                                <strong>📋 Recommendations:</strong>
+                                ${result.recommendations.map(rec => `<div class="recommendation">${rec}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            contentDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+        }
+        
+        // Auto-test the problematic locator on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Automation Locator Tester Demo Ready!');
+            console.log('Try: testLocator("path:nth-of-type(2)")');
+            
+            // Auto-test the problematic locator
+            setTimeout(() => {
+                testSingleLocator();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

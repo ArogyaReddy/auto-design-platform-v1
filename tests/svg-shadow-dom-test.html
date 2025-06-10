@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Shadow DOM Test - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .test-section {
+            margin: 20px;
+            padding: 20px;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .expected-results {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .icon-item {
+            padding: 15px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            text-align: center;
+            background: white;
+        }
+        
+        /* Mock SDF Icon Button styles to simulate real environment */
+        sdf-icon-button {
+            display: inline-block;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        sdf-icon-button:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .burger {
+            color: #333;
+        }
+        
+        .hydrated {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+        .shadow-host {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid #667eea;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <h1>🎯 SVG Shadow DOM Test Suite</h1>
+            <p>Testing SVG/Icon element locator generation in Shadow DOM environments</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>🧪 Test Instructions:</h3>
+            <ol>
+                <li><strong>Open Element AI Extractor</strong> - Click the extension icon</li>
+                <li><strong>Enable Shadow DOM</strong> - Make sure "Shadow DOM" checkbox is checked</li>
+                <li><strong>Extract Elements</strong> - Click "Extract Elements" button</li>
+                <li><strong>Look for SVG elements</strong> - Find entries with `sdf-icon-button` or similar</li>
+                <li><strong>Verify DevTools compatibility</strong> - Copy locators and test in browser console</li>
+            </ol>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎨 Regular DOM SVG Elements</h2>
+            <p>These SVG elements are in the regular DOM (baseline test):</p>
+            
+            <div class="icon-grid">
+                <div class="icon-item">
+                    <h4>Simple SVG with aria-label</h4>
+                    <svg aria-label="Settings" class="settings-icon" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <p><strong>Expected:</strong> <code>[aria-label="Settings"]</code> (90%+ strength)</p>
+                </div>
+                
+                <div class="icon-item">
+                    <h4>Mock SDF Icon Button</h4>
+                    <sdf-icon-button class="burger hydrated" aria-label="Toggle Menu" role="button">
+                        <svg class="menu-icon" viewBox="0 0 24 24">
+                            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                        </svg>
+                    </sdf-icon-button>
+                    <p><strong>Expected:</strong> <code>[aria-label="Toggle Menu"]</code> or <code>sdf-icon-button.burger.hydrated</code> (88%+ strength)</p>
+                </div>
+                
+                <div class="icon-item">
+                    <h4>Complex Multi-class Icon</h4>
+                    <div class="icon-wrapper burger hydrated active" data-testid="menu-toggle">
+                        <svg aria-label="Close Menu" width="20" height="20">
+                            <path d="M18.3 5.71a.996.996 0 00-1.41 0L12 10.59 7.11 5.7A.996.996 0 105.7 7.11L10.59 12 5.7 16.89a.996.996 0 101.41 1.41L12 13.41l4.89 4.89a.996.996 0 001.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/>
+                        </svg>
+                    </div>
+                    <p><strong>Expected:</strong> <code>[aria-label="Close Menu"]</code> or <code>[data-testid="menu-toggle"]</code> (90%+ strength)</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🌟 Shadow DOM SVG Elements</h2>
+            <p>These SVG elements are inside Shadow DOM components:</p>
+            
+            <div class="shadow-host">
+                <h4>Shadow Component 1 - Simple Icons</h4>
+                <shadow-icon-simple id="shadow-simple"></shadow-icon-simple>
+            </div>
+            
+            <div class="shadow-host">
+                <h4>Shadow Component 2 - Complex SDF-style Icons</h4>
+                <shadow-sdf-icons id="shadow-sdf"></shadow-sdf-icons>
+            </div>
+            
+            <div class="shadow-host">
+                <h4>Shadow Component 3 - Nested Icon System</h4>
+                <nested-icon-system id="nested-icons"></nested-icon-system>
+            </div>
+        </div>
+        
+        <div class="expected-results">
+            <h3>✅ Expected Results for SVG Elements:</h3>
+            <ul>
+                <li><strong>High Strength Scores:</strong> 88-95% for SVG elements with good locators</li>
+                <li><strong>DevTools Compatible:</strong> All locators should work when pasted into browser console</li>
+                <li><strong>Aria-label Priority:</strong> <code>[aria-label="..."]</code> should be preferred over complex selectors</li>
+                <li><strong>Tag+Class Combinations:</strong> <code>sdf-icon-button.burger.hydrated</code> for unique combinations</li>
+                <li><strong>Multi-class Support:</strong> <code>.burger.hydrated.active</code> for complex class combinations</li>
+                <li><strong>Global Uniqueness:</strong> Simple selectors should be preferred over Shadow DOM paths</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h2>📋 Manual Verification Steps</h2>
+            <ol>
+                <li><strong>Copy Generated Locators:</strong> Copy the "Best Locator" values from the extension</li>
+                <li><strong>Open Browser Console:</strong> Press F12 → Console tab</li>
+                <li><strong>Test Locators:</strong> Run <code>document.querySelector("YOUR_LOCATOR")</code></li>
+                <li><strong>Verify Results:</strong> Each locator should return exactly one element</li>
+                <li><strong>Check Strength:</strong> Verify strength scores are 88%+ for good SVG locators</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Define Shadow Component 1: Simple Icons
+        class ShadowIconSimple extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                shadow.innerHTML = `
+                    <style>
+                        .icon-container {
+                            display: flex;
+                            gap: 15px;
+                            align-items: center;
+                            padding: 10px;
+                            background: rgba(255,255,255,0.8);
+                            border-radius: 6px;
+                        }
+                        .icon-btn {
+                            padding: 8px;
+                            border: none;
+                            background: transparent;
+                            cursor: pointer;
+                            border-radius: 4px;
+                        }
+                        .icon-btn:hover {
+                            background: rgba(0,0,0,0.1);
+                        }
+                        svg {
+                            display: block;
+                        }
+                    </style>
+                    
+                    <div class="icon-container">
+                        <button class="icon-btn" aria-label="Search">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </button>
+                        
+                        <svg aria-label="Heart" class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="red">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                        
+                        <div class="burger hydrated" aria-label="Menu" role="button">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Define Shadow Component 2: SDF-style Icons (simulating user's environment)
+        class ShadowSdfIcons extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                shadow.innerHTML = `
+                    <style>
+                        .sdf-container {
+                            display: flex;
+                            gap: 10px;
+                            padding: 15px;
+                            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+                            border-radius: 8px;
+                        }
+                        sdf-icon-button {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 8px;
+                            border: none;
+                            background: transparent;
+                            cursor: pointer;
+                            border-radius: 4px;
+                            transition: all 0.2s;
+                        }
+                        sdf-icon-button:hover {
+                            background: rgba(0,0,0,0.1);
+                            transform: scale(1.05);
+                        }
+                        .burger { color: #333; }
+                        .hydrated { opacity: 1; }
+                        .active { background: rgba(102, 126, 234, 0.2); }
+                    </style>
+                    
+                    <div class="sdf-container">
+                        <sdf-icon-button class="burger hydrated" aria-label="Close Menu" role="button">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.3 5.71a.996.996 0 00-1.41 0L12 10.59 7.11 5.7A.996.996 0 105.7 7.11L10.59 12 5.7 16.89a.996.996 0 101.41 1.41L12 13.41l4.89 4.89a.996.996 0 001.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/>
+                            </svg>
+                        </sdf-icon-button>
+                        
+                        <sdf-icon-button class="settings hydrated active" data-testid="settings-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                            </svg>
+                        </sdf-icon-button>
+                        
+                        <sdf-icon-button class="notification bell hydrated" aria-label="Notifications">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                            </svg>
+                        </sdf-icon-button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Define Shadow Component 3: Nested Icon System
+        class NestedIconSystem extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                shadow.innerHTML = `
+                    <style>
+                        .outer-container {
+                            background: linear-gradient(45deg, #667eea, #764ba2);
+                            padding: 20px;
+                            border-radius: 10px;
+                            color: white;
+                        }
+                        .inner-host {
+                            background: rgba(255,255,255,0.2);
+                            padding: 15px;
+                            border-radius: 8px;
+                            margin: 10px 0;
+                        }
+                    </style>
+                    
+                    <div class="outer-container">
+                        <h4>Nested Shadow System</h4>
+                        <div class="inner-host" id="inner-icon-host">
+                            This will contain nested shadow icons
+                        </div>
+                    </div>
+                `;
+                
+                // Create nested shadow DOM
+                const innerHost = shadow.querySelector('#inner-icon-host');
+                const innerShadow = innerHost.attachShadow({mode: 'open'});
+                
+                innerShadow.innerHTML = `
+                    <style>
+                        .deep-icons {
+                            display: flex;
+                            gap: 8px;
+                            padding: 10px;
+                            background: rgba(255,255,255,0.9);
+                            border-radius: 6px;
+                        }
+                        .deep-icon {
+                            width: 24px;
+                            height: 24px;
+                            cursor: pointer;
+                            padding: 4px;
+                            border-radius: 3px;
+                        }
+                        .deep-icon:hover {
+                            background: rgba(0,0,0,0.1);
+                        }
+                    </style>
+                    
+                    <div class="deep-icons">
+                        <svg class="deep-icon burger hydrated" aria-label="Deep Menu" viewBox="0 0 24 24" fill="#333">
+                            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                        </svg>
+                        
+                        <svg class="deep-icon close hydrated" aria-label="Deep Close" viewBox="0 0 24 24" fill="#d32f2f">
+                            <path d="M18.3 5.71a.996.996 0 00-1.41 0L12 10.59 7.11 5.7A.996.996 0 105.7 7.11L10.59 12 5.7 16.89a.996.996 0 101.41 1.41L12 13.41l4.89 4.89a.996.996 0 001.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/>
+                        </svg>
+                        
+                        <div class="icon-wrapper complex multi-state" data-testid="deep-complex-icon" role="button" aria-label="Deep Complex Action">
+                            <svg viewBox="0 0 24 24" fill="#1976d2" width="16" height="16">
+                                <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2.5-5H15V4.5A1.5 1.5 0 0013.5 3h-3A1.5 1.5 0 009 4.5V6H4.5A.5.5 0 004 6.5v1a.5.5 0 00.5.5H5v11.5A1.5 1.5 0 006.5 21h11a1.5 1.5 0 001.5-1.5V8h.5a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5zM11 4.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5V6h-2V4.5z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Register custom elements
+        customElements.define('shadow-icon-simple', ShadowIconSimple);
+        customElements.define('shadow-sdf-icons', ShadowSdfIcons);
+        customElements.define('nested-icon-system', NestedIconSystem);
+        
+        // Add click handlers for testing
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('[aria-label]')) {
+                const element = event.target.closest('[aria-label]');
+                const label = element.getAttribute('aria-label');
+                console.log(`🎯 Clicked SVG element with aria-label: "${label}"`);
+                
+                // Show a visual feedback
+                const feedback = document.createElement('div');
+                feedback.textContent = `✅ Clicked: ${label}`;
+                feedback.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #28a745;
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 5px;
+                    z-index: 10000;
+                    font-weight: bold;
+                `;
+                document.body.appendChild(feedback);
+                
+                setTimeout(() => {
+                    document.body.removeChild(feedback);
+                }, 2000);
+            }
+        });
+        
+        console.log('🎨 SVG Shadow DOM Test Page Loaded');
+        console.log('📊 Test Components Created:');
+        console.log('  - shadow-icon-simple:', document.querySelector('#shadow-simple'));
+        console.log('  - shadow-sdf-icons:', document.querySelector('#shadow-sdf'));
+        console.log('  - nested-icon-system:', document.querySelector('#nested-icons'));
+        
+        // Test function to verify SVG elements are accessible
+        setTimeout(() => {
+            console.log('🔍 Testing SVG element accessibility...');
+            
+            // Test regular DOM SVG elements
+            const regularSvgs = document.querySelectorAll('svg[aria-label], sdf-icon-button[aria-label]');
+            console.log(`✅ Found ${regularSvgs.length} regular DOM SVG elements with aria-label`);
+            
+            // Test shadow DOM SVG elements by traversing shadow roots
+            let shadowSvgs = 0;
+            document.querySelectorAll('*').forEach(el => {
+                if (el.shadowRoot) {
+                    const shadowAriaElements = el.shadowRoot.querySelectorAll('[aria-label]');
+                    shadowSvgs += shadowAriaElements.length;
+                    
+                    // Check for nested shadow roots
+                    el.shadowRoot.querySelectorAll('*').forEach(innerEl => {
+                        if (innerEl.shadowRoot) {
+                            const nestedAriaElements = innerEl.shadowRoot.querySelectorAll('[aria-label]');
+                            shadowSvgs += nestedAriaElements.length;
+                        }
+                    });
+                }
+            });
+            
+            console.log(`✅ Found ${shadowSvgs} shadow DOM elements with aria-label`);
+            console.log('🎯 All SVG elements should be detectable by the Element AI Extractor!');
+        }, 1000);
+    </script>
+</body>
+</html>
