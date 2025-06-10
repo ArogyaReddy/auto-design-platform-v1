@@ -32,6 +32,31 @@ if (window.aiExtractorLoaded) {
   console.log("Element AI Extractor: Page URL:", window.location.href);
   console.log("Element AI Extractor: Frame type:", window === window.top ? 'main frame' : 'iframe');
   console.log("Element AI Extractor: User agent:", navigator.userAgent.substring(0, 100));
+
+  // ========== ML SUGGESTER FUNCTION - EMBEDDED ==========
+  function getMLSuggestedLocators(elementInfo) {
+    console.log('[ML Suggester] Received element info:', elementInfo);
+
+    // Mock suggestions - to be replaced with actual ML model output
+    const mockSuggestions = [
+      { locator: `//${elementInfo.tagName || elementInfo.tag || 'div'}[@id='${elementInfo.id || 'mockId'}']`, confidence: 0.95, type: 'xpath' },
+      { locator: `${elementInfo.tagName || elementInfo.tag || 'div'}.${(elementInfo.className || 'mockClass').split(' ').join('.')}`, confidence: 0.85, type: 'css' },
+      { locator: `//${elementInfo.tagName || elementInfo.tag || 'div'}[contains(text(),'${(elementInfo.text || 'mockText').substring(0, 20)}')]`, confidence: 0.75, type: 'xpath' }
+    ];
+
+    // Simulate some processing delay
+    return new Promise(resolve => {
+      setTimeout(() => {
+        console.log('[ML Suggester] Returning mock suggestions:', mockSuggestions);
+        resolve(mockSuggestions);
+      }, 200);
+    });
+  }
+  
+  // Expose to window as well
+  window.getMLSuggestedLocators = getMLSuggestedLocators;
+  console.log("Element AI Extractor: ML Suggester function embedded and available");
+  // ========== END ML SUGGESTER ==========
   
   // Comprehensive Chrome APIs check
   if (typeof chrome !== 'undefined' && chrome.runtime) {
@@ -279,114 +304,83 @@ function createInspectorBadge() {
   
   // Handle all badge clicks with single event listener using delegation
   inspectorBadge.addEventListener('click', (event) => {
-    console.log("Element AI Extractor: Badge clicked, target:", event.target, "classList:", event.target.classList);
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Check target and closest elements for the classes
+    console.log("Element AI Extractor: Badge clicked, target:", event.target, "classes:", event.target.classList);
     const target = event.target;
     const closestClose = target.closest('.badge-close');
     const closestCopy = target.closest('.badge-copy-btn');
     const closestHighlight = target.closest('.badge-highlight-btn');
     
     // Handle close button click
-    if (closestClose || target.classList.contains('badge-close')) {
+    if (closestClose) {
+      event.preventDefault(); event.stopPropagation();
       console.log("Element AI Extractor: Badge close clicked, stopping inspection");
       stopInspection();
-      // Clear storage state to ensure popup knows we stopped
       chrome.storage.local.set({ isInspecting: false });
-      // Send message to popup if it's open
-      chrome.runtime.sendMessage({
-        action: "inspectionStoppedFromBadge"
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          // Popup might be closed, that's okay
-          console.log("Element AI Extractor: No popup open to notify");
-        }
-      });
+      chrome.runtime.sendMessage({ action: "inspectionStoppedFromBadge" }, () => {});
       return;
     }
-    
+
     // Handle copy button click
-    if (closestCopy || target.classList.contains('badge-copy-btn')) {
+    if (closestCopy) {
+      event.preventDefault(); event.stopPropagation();
       console.log("Element AI Extractor: Copy button clicked");
       const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
-      console.log("Element AI Extractor: Locator value element:", locatorValue);
       if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
-        const textToCopy = locatorValue.title || locatorValue.textContent; // Use full text from title if available
-        console.log("Element AI Extractor: Copying text:", textToCopy);
+        const textToCopy = locatorValue.title || locatorValue.textContent;
         copyToClipboard(textToCopy);
-        const buttonElement = closestCopy || target;
-        buttonElement.textContent = '✅ Copied';
-        setTimeout(() => {
-          buttonElement.textContent = '📋 Copy';
-        }, 1500);
-      } else {
-        console.log("Element AI Extractor: No locator value to copy - locatorValue:", locatorValue, "textContent:", locatorValue?.textContent);
+        const btn = closestCopy;
+        btn.textContent = '✅ Copied';
+        setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
       }
       return;
     }
-    
+
     // Handle highlight button click
-    if (closestHighlight || target.classList.contains('badge-highlight-btn')) {
-      console.log("Element AI Extractor: Highlight button clicked, lastClickedElement:", lastClickedElement);
+    if (closestHighlight) {
+      event.preventDefault(); event.stopPropagation();
+      console.log("Element AI Extractor: Highlight button clicked");
       if (lastClickedElement) {
-        // Highlight the last clicked element
-        console.log("Element AI Extractor: Highlighting element:", lastClickedElement);
         highlightElement(lastClickedElement);
-        const buttonElement = closestHighlight || target;
-        buttonElement.textContent = '✨ Highlighted';
-        setTimeout(() => {
-          buttonElement.textContent = '👁️ Highlight';
-        }, 1500);
-      } else {
-        console.log("Element AI Extractor: No element to highlight");
+        const btn = closestHighlight;
+        btn.textContent = '✨ Highlighted';
+        setTimeout(() => { btn.textContent = '👁️ Highlight'; }, 1500);
       }
       return;
     }
-    
-    console.log("Element AI Extractor: Click not handled - no matching class found");
+
+    // If click not on a button, let events through
+    // console.log("Element AI Extractor: Badge click unhandled");
   });
   
-  // Add direct event listeners to buttons as backup
-  setTimeout(() => {
-    const copyBtn = inspectorBadge.querySelector('.badge-copy-btn');
-    const highlightBtn = inspectorBadge.querySelector('.badge-highlight-btn');
-    
-    if (copyBtn) {
-      copyBtn.addEventListener('click', (e) => {
-        console.log("Element AI Extractor: Direct copy button click");
-        e.stopPropagation();
-        e.preventDefault();
-        // Handle copy functionality directly instead of triggering recursion
-        const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
-        if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
-          const textToCopy = locatorValue.title || locatorValue.textContent;
-          copyToClipboard(textToCopy);
-          e.target.textContent = '✅ Copied';
-          setTimeout(() => {
-            e.target.textContent = '📋 Copy';
-          }, 1500);
-        }
-      });
-    }
-    
-    if (highlightBtn) {
-      highlightBtn.addEventListener('click', (e) => {
-        console.log("Element AI Extractor: Direct highlight button click");
-        e.stopPropagation();
-        e.preventDefault();
-        // Handle highlight functionality directly instead of triggering recursion
-        if (lastClickedElement) {
-          highlightElement(lastClickedElement);
-          e.target.textContent = '✨ Highlighted';
-          setTimeout(() => {
-            e.target.textContent = '👁️ Highlight';
-          }, 1500);
-        }
-      });
-    }
-  }, 100);
+  // Direct listeners as backup for copy/highlight buttons
+  const directCopyBtn = inspectorBadge.querySelector('.badge-copy-btn');
+  if (directCopyBtn) {
+    directCopyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      console.log("Element AI Extractor: Direct copy button click");
+      const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
+      if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
+        const textToCopy = locatorValue.title || locatorValue.textContent;
+        copyToClipboard(textToCopy);
+        directCopyBtn.textContent = '✅ Copied';
+        setTimeout(() => { directCopyBtn.textContent = '📋 Copy'; }, 1500);
+      }
+    });
+  }
+  const directHlBtn = inspectorBadge.querySelector('.badge-highlight-btn');
+  if (directHlBtn) {
+    directHlBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      console.log("Element AI Extractor: Direct highlight button click");
+      if (lastClickedElement) {
+        highlightElement(lastClickedElement);
+        directHlBtn.textContent = '✨ Highlighted';
+        setTimeout(() => { directHlBtn.textContent = '👁️ Highlight'; }, 1500);
+      } else {
+        console.log("Element AI Extractor: No element to highlight (direct)");
+      }
+    });
+  }
   
   document.body.appendChild(inspectorBadge);
 }
@@ -615,7 +609,7 @@ function removeAllHighlights() {
 }
 
 // Get element details for inspection
-function getElementDetails(element) {
+async function getElementDetails(element) { // Added async here
   if (!element || element === document || element === document.body) {
     return null;
   }
@@ -624,6 +618,33 @@ function getElementDetails(element) {
   const elementType = getElementType(element);
   const locators = generateLocators(element);
   const bestLocator = getBestLocator(locators);
+
+  // Prepare elementInfo for ML Suggester
+  const elementInfoForML = {
+    elementName: getElementName(element),
+    elementType: elementType,
+    id: element.id || null,
+    css: locators.css,
+    xpath: locators.xpath,
+    inShadowDOM: isInShadowDOM(element),
+    hostElementPath: getShadowHostPath(element),
+    tagName: tagName,
+    className: element.className || null,
+    text: (element.textContent || '').trim().substring(0, 100) || null,
+    attributes: Array.from(element.attributes).map(attr => ({ name: attr.name, value: attr.value })),
+    parentId: element.parentElement ? element.parentElement.id || null : null,
+    parentTagName: element.parentElement ? element.parentElement.tagName.toLowerCase() : null,
+  };
+
+  let mlSuggestions = [];
+  
+  // Call embedded ML suggester function
+  try {
+    mlSuggestions = await getMLSuggestedLocators(elementInfoForML);
+    console.log("Element AI Extractor: Received ML Suggestions", mlSuggestions);
+  } catch (error) {
+    console.error("Element AI Extractor: Error getting ML suggestions", error);
+  }
   
   return {
     'Element Name': getElementName(element),
@@ -634,6 +655,7 @@ function getElementDetails(element) {
     'ID': element.id || 'N/A',
     'CSS': locators.css,
     'XPATH': locators.xpath,
+    'ML Suggestions': mlSuggestions, // Added ML suggestions here
     'In Shadow DOM': isInShadowDOM(element) ? 'Yes' : 'No',
     'Host Element Path': getShadowHostPath(element),
     'Tag Name': tagName,
@@ -1245,7 +1267,7 @@ function handleMouseOut(event) {
 }
 
 // Handle click events
-function handleClick(event) {
+async function handleClick(event) {
   if (!isInspecting) return;
   
   // Get the actual element under the mouse, including shadow DOM elements
@@ -1288,8 +1310,8 @@ function handleClick(event) {
   event.preventDefault();
   event.stopPropagation();
   
-  // Get element details
-  const elementData = getElementDetails(element);
+  // Get element details (now async)
+  const elementData = await getElementDetails(element);
   
   if (elementData) {
     console.log("Element AI Extractor: Sending element data to popup", elementData);

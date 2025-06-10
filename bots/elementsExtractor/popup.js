@@ -911,12 +911,7 @@ function domExtractionFunction(filters) {
       return {type: 'XPath', locator: xpathSelector, reason: 'Generated XPath'};
     }
 
-    // Final fallback to CSS even if long (with validation)
-    if (cssSelector && validateSelector(cssSelector, el)) {
-      return {type: 'CSS', locator: cssSelector, reason: 'Fallback CSS (validated)'};
-    }
-    
-    // Ultimate fallback - generate a simple, reliable selector that MUST be unique
+    // Final fallback - generate a simple, reliable selector that MUST be unique
     const tagName = el.tagName.toLowerCase();
     const siblings = Array.from(el.parentNode?.children || []).filter(child => child.tagName === el.tagName);
     const index = siblings.indexOf(el) + 1;
@@ -1743,8 +1738,8 @@ function bindTablePreviewButtons() {
     btn.onclick = e => {
       let text = decodeURIComponent(e.target.getAttribute('data-copy') || '');
       copyLocatorToClipboard(text);
-      btn.textContent = '✅';
-      setTimeout(() => (btn.textContent = '📋'), 600);
+      btn.textContent = '✅ Copied';
+      setTimeout(() => (btn.textContent = '📋 Copy'), 600);
     };
   });
   document.querySelectorAll('.hl-btn').forEach(btn => {
@@ -1753,8 +1748,8 @@ function bindTablePreviewButtons() {
       let inShadow = e.target.getAttribute('data-shadow') === '1';
       const {tabId} = await getCurrentTabInfo();
       highlightElementOnTab(tabId, locator, inShadow);
-      btn.textContent = '✨';
-      setTimeout(() => (btn.textContent = '👁️'), 600);
+      btn.textContent = '✨ Highlighted';
+      setTimeout(() => (btn.textContent = '👁️ Highlight'), 600);
     };
   });
 }
@@ -2261,6 +2256,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           <tr><td>ID:</td><td title="${data['ID'] || 'N/A'}">${data['ID'] || 'N/A'}</td></tr>
           <tr><td>CSS Selector:</td><td title="${data['CSS'] || 'N/A'}">${data['CSS'] || 'N/A'}</td></tr>
           <tr><td>XPath:</td><td title="${data['XPATH'] || 'N/A'}">${data['XPATH'] || 'N/A'}</td></tr>
+          <tr><td>ML Suggestions:</td><td>
+            ${Array.isArray(data['ML Suggestions']) && data['ML Suggestions'].length ? `
+              <div class="ml-suggestions-container">
+                ${data['ML Suggestions'].map(s => {
+                  const confidence = Math.round(s.confidence * 100);
+                  const confidenceClass = confidence >= 90 ? 'confidence-high' : confidence >= 70 ? 'confidence-medium' : 'confidence-low';
+                  return `<div class="ml-suggestion-item">
+                    <span class="suggestion-type">${s.type}:</span>
+                    <span class="suggestion-locator" title="${s.locator}">${s.locator}</span>
+                    <span class="suggestion-confidence ${confidenceClass}">(${confidence}%)</span>
+                  </div>`;
+                }).join('')}
+              </div>
+            ` : 'N/A'}
+          </td></tr>
           <tr><td>In Shadow DOM:</td><td>${isInShadow ? '<span class="shadow-badge">Shadow</span>' : 'No'}</td></tr>
         </table>
         <div style="margin-top: 12px; display: flex; gap: 8px;">
@@ -2378,8 +2388,24 @@ function displayInspectedElementData(data) {
       <tr><td>ID:</td><td title="${data['ID'] || 'N/A'}">${data['ID'] || 'N/A'}</td></tr>
       <tr><td>CSS Selector:</td><td title="${data['CSS'] || 'N/A'}">${data['CSS'] || 'N/A'}</td></tr>
       <tr><td>XPath:</td><td title="${data['XPATH'] || 'N/A'}">${data['XPATH'] || 'N/A'}</td></tr>
-      <tr><td>In Shadow DOM:</td><td>${shadowInfo}</td></tr>
+      <tr><td>In Shadow DOM:</td><td>${isInShadow ? '<span class="shadow-badge">Shadow</span>' : 'No'}</td></tr>
     </table>
+    ${Array.isArray(data['ML Suggestions']) && data['ML Suggestions'].length ? `
+      <div class="ml-suggestions-section">
+        <h5 class="ml-suggestions-header">🤖 ML Suggestions</h5>
+        <div class="ml-suggestions-container">
+          ${data['ML Suggestions'].map(s => {
+            const confidence = Math.round(s.confidence * 100);
+            const confidenceClass = confidence >= 90 ? 'confidence-high' : confidence >= 70 ? 'confidence-medium' : 'confidence-low';
+            return `<div class="ml-suggestion-item">
+              <span class="suggestion-type">${s.type}:</span>
+              <span class="suggestion-locator" title="${s.locator}">${s.locator}</span>
+              <span class="suggestion-confidence ${confidenceClass}">(${confidence}%)</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
     <div style="margin-top: 12px; display: flex; gap: 8px;">
       <button class="copy-btn" 
               data-copy="${encodeURIComponent(data['Best Locator'] || '')}" 
