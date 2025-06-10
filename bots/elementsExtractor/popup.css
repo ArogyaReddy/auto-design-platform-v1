@@ -536,6 +536,7 @@ body.expanded .popup-root {
     transition: all 0.2s ease;
 }
 
+/* REMOVED: Hover expansion effects for smooth scrolling
 .host-path:hover {
     overflow: visible;
     white-space: normal;
@@ -549,6 +550,7 @@ body.expanded .popup-root {
     border-radius: 4px;
     padding: 4px 6px;
 }
+*/
 
 /* Enhanced text overflow handling for specific columns */
 .preview-table .element-name {
@@ -561,6 +563,7 @@ body.expanded .popup-root {
     transition: all 0.2s ease;
 }
 
+/* REMOVED: Hover expansion effects for smooth scrolling
 .preview-table .element-name:hover {
     overflow: visible;
     white-space: normal;
@@ -574,6 +577,7 @@ body.expanded .popup-root {
     border-radius: 4px;
     padding: 4px 6px;
 }
+*/
 
 .preview-table .locator-text {
     font-family: 'JetBrains Mono', 'Consolas', monospace;
@@ -590,6 +594,7 @@ body.expanded .popup-root {
     transition: all 0.2s ease;
 }
 
+/* REMOVED: Hover expansion effects for smooth scrolling
 .preview-table .locator-text:hover {
     overflow: visible;
     white-space: normal;
@@ -603,6 +608,7 @@ body.expanded .popup-root {
     border-radius: 6px;
     padding: 6px 8px;
 }
+*/
 
 .preview-table .element-id {
     font-family: 'JetBrains Mono', 'Consolas', monospace;
@@ -615,6 +621,7 @@ body.expanded .popup-root {
     cursor: pointer;
 }
 
+/* REMOVED: Hover expansion effects for smooth scrolling
 .preview-table .element-id:hover {
     overflow: visible;
     white-space: normal;
@@ -627,6 +634,7 @@ body.expanded .popup-root {
     border-radius: 4px;
     padding: 4px 6px;
 }
+*/
 
 .copy-btn,
 .hl-btn {
@@ -1528,4 +1536,106 @@ body.expanded .popup-root {
 
 .ml-suggestions-section .ml-suggestion-item:last-child {
   margin-bottom: 0;
+}
+
+/* Automation Locators Section */
+.automation-locators-section {
+  margin: 12px 0 8px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.automation-locators-header {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.automation-locators-container {
+  margin: 0;
+}
+
+.automation-locator-item {
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #3b82f6;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.automation-locator-item:last-child {
+  margin-bottom: 0;
+}
+
+.locator-framework {
+  font-weight: 600;
+  color: #60a5fa;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.locator-code {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.locator-code code {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+  color: #e2e8f0;
+  font-size: 11px;
+  line-height: 1.4;
+  background: none;
+  padding: 0;
+  margin: 0;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.locator-code code.debug-path {
+  color: #fbbf24;
+  font-style: italic;
+}
+
+.copy-automation-btn {
+  background: rgba(59, 130, 246, 0.8);
+  color: white;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  min-width: 24px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-automation-btn:hover {
+  background: rgba(59, 130, 246, 1);
+}
+
+.copy-automation-btn:active {
+  transform: scale(0.95);
 }

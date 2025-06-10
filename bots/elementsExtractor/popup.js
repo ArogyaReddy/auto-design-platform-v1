@@ -241,10 +241,18 @@ function copyLocatorToClipboard(text) {
 
 // ---- Utility: Highlight Element on Tab ----
 function highlightElementOnTab(tabId, locator, inShadowDOM) {
+  console.log('Element AI Extractor: highlightElementOnTab called with:', {
+    tabId: tabId,
+    locator: locator,
+    inShadowDOM: inShadowDOM
+  });
+  
   chrome.scripting.executeScript({
     target: {tabId},
     args: [locator, inShadowDOM],
     func: (locator, inShadowDOM) => {
+      console.log('Element AI Extractor: Script execution started in tab context');
+      console.log('Element AI Extractor: Received args:', { locator, inShadowDOM });
       // #FUNCTION: findElementWithShadowSupport
       // #DESCRIPTION: Enhanced element finding with comprehensive Shadow DOM support
       function findElementWithShadowSupport(locatorStr, isInShadow) {
@@ -313,58 +321,30 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
           }
         }
         
-        // #ENHANCEMENT: Enhanced shadow search with deep traversal and SVG support
+        // #ENHANCEMENT: For Shadow DOM elements, try automation-compatible finding first
         if (isInShadow) {
-          function searchAllShadowRoots(rootNode, selector) {
+          // Try to find using piercing techniques
+          function findInShadowDOM(rootNode, selector) {
             if (!rootNode) return null;
             
-            // Try to find in current context
+            // Try direct search in current root
             if (rootNode.querySelector) {
               try {
-                let found = rootNode.querySelector(selector);
+                const found = rootNode.querySelector(selector);
                 if (found) {
-                  console.log('Element AI Extractor: Found element in shadow root:', found);
+                  console.log('Element AI Extractor: Found in shadow root:', found);
                   return found;
                 }
               } catch (e) {
-                console.warn('Element AI Extractor: Error querying selector in shadow root:', e);
+                console.warn('Element AI Extractor: Shadow query failed:', e);
               }
             }
             
-            // #ENHANCEMENT: Special handling for SVG elements and icon buttons
-            if (selector.includes('sdf-icon-button') || selector.includes('svg') || selector.includes('[aria-label')) {
-              try {
-                // Try aria-label based search for icons
-                if (selector.includes('[aria-label=')) {
-                  const ariaMatch = selector.match(/\[aria-label="([^"]+)"\]/);
-                  if (ariaMatch) {
-                    const ariaValue = ariaMatch[1];
-                    const ariaElements = rootNode.querySelectorAll ? rootNode.querySelectorAll(`[aria-label="${ariaValue}"]`) : [];
-                    if (ariaElements.length > 0) {
-                      console.log('Element AI Extractor: Found element via aria-label search:', ariaElements[0]);
-                      return ariaElements[0];
-                    }
-                  }
-                }
-                
-                // Try class-based search for complex SVG elements
-                if (selector.includes('.burger') || selector.includes('.hydrated')) {
-                  const classElements = rootNode.querySelectorAll ? rootNode.querySelectorAll(selector) : [];
-                  if (classElements.length > 0) {
-                    console.log('Element AI Extractor: Found SVG element via class search:', classElements[0]);
-                    return classElements[0];
-                  }
-                }
-              } catch (e) {
-                console.warn('Element AI Extractor: SVG-specific search failed:', e);
-              }
-            }
-            
-            // Recursively search in all shadow roots
-            const elements = rootNode.querySelectorAll ? rootNode.querySelectorAll('*') : [];
-            for (let element of elements) {
+            // Recursively search all shadow roots
+            const allElements = rootNode.querySelectorAll ? rootNode.querySelectorAll('*') : [];
+            for (let element of allElements) {
               if (element.shadowRoot) {
-                let found = searchAllShadowRoots(element.shadowRoot, selector);
+                const found = findInShadowDOM(element.shadowRoot, selector);
                 if (found) return found;
               }
             }
@@ -372,11 +352,11 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
             return null;
           }
           
-          // Search starting from document
-          let result = searchAllShadowRoots(document, locatorStr);
-          if (result) {
-            console.log('Element AI Extractor: Found element via shadow search:', result);
-            return result;
+          // Search starting from document and all shadow roots
+          const shadowResult = findInShadowDOM(document, locatorStr);
+          if (shadowResult) {
+            console.log('Element AI Extractor: Found element in shadow DOM:', shadowResult);
+            return shadowResult;
           }
         }
         
@@ -405,12 +385,58 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
       let el = findElementWithShadowSupport(locator, inShadowDOM);
       if (el) {
         console.log('Element AI Extractor: Successfully found element, highlighting:', el);
+        console.log('Element AI Extractor: Element tag:', el.tagName);
+        console.log('Element AI Extractor: Element id:', el.id);
+        console.log('Element AI Extractor: Element classes:', el.className);
+        
+        // Scroll into view
         el.scrollIntoView({behavior: 'smooth', block: 'center'});
-        el.style.outline = '3px solid #ff0000';
-        el.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+        
+        // Apply highlighting styles with !important
+        console.log('Element AI Extractor: Applying highlight styles...');
+        el.style.setProperty('outline', '3px solid #ff0000', 'important');
+        el.style.setProperty('background-color', 'rgba(255, 0, 0, 0.1)', 'important');
+        el.style.setProperty('z-index', '999999', 'important');
+        
+        // Also add a distinctive class for additional styling
+        el.classList.add('ai-extractor-highlighted');
+        
+        // Inject CSS to ensure highlighting is visible
+        const style = document.createElement('style');
+        style.id = 'ai-extractor-highlight-style';
+        style.textContent = `
+          .ai-extractor-highlighted {
+            outline: 3px solid #ff0000 !important;
+            background-color: rgba(255, 0, 0, 0.1) !important;
+            z-index: 999999 !important;
+            position: relative !important;
+          }
+        `;
+        document.head.appendChild(style);
+        
+        // Verify styles were applied
         setTimeout(() => {
-          el.style.outline = '';
-          el.style.backgroundColor = '';
+          const computedStyle = window.getComputedStyle(el);
+          console.log('Element AI Extractor: Applied styles verification:');
+          console.log('  - outline:', computedStyle.outline);
+          console.log('  - backgroundColor:', computedStyle.backgroundColor);
+          console.log('  - element.style.outline:', el.style.outline);
+          console.log('  - element.style.backgroundColor:', el.style.backgroundColor);
+        }, 100);
+        
+        // Remove highlighting after 2 seconds
+        setTimeout(() => {
+          console.log('Element AI Extractor: Removing highlight styles...');
+          el.style.removeProperty('outline');
+          el.style.removeProperty('background-color');
+          el.style.removeProperty('z-index');
+          el.classList.remove('ai-extractor-highlighted');
+          
+          // Remove the style element
+          const styleEl = document.getElementById('ai-extractor-highlight-style');
+          if (styleEl) {
+            styleEl.remove();
+          }
         }, 2000);
       } else {
         console.warn('Element AI Extractor: Could not find element with locator:', locator, 'inShadowDOM:', inShadowDOM);
@@ -423,19 +449,48 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
             if (fallbackEl) {
               console.log('Element AI Extractor: Found element via fallback search:', fallbackEl);
               fallbackEl.scrollIntoView({behavior: 'smooth', block: 'center'});
-              fallbackEl.style.outline = '3px solid #ff0000';
-              fallbackEl.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+              fallbackEl.style.setProperty('outline', '3px solid #ff0000', 'important');
+              fallbackEl.style.setProperty('background-color', 'rgba(255, 0, 0, 0.1)', 'important');
               setTimeout(() => {
-                fallbackEl.style.outline = '';
-                fallbackEl.style.backgroundColor = '';
+                fallbackEl.style.removeProperty('outline');
+                fallbackEl.style.removeProperty('background-color');
               }, 2000);
+            } else {
+              console.error('Element AI Extractor: Fallback search also failed for locator:', locator);
             }
-          } catch (e) {
-            console.warn('Element AI Extractor: Fallback search also failed:', e);
+          } catch (fallbackError) {
+            console.error('Element AI Extractor: Fallback search error:', fallbackError);
           }
+        } else {
+          console.error('Element AI Extractor: Element not found and not in shadow DOM, no fallback available');
         }
       }
+      
+      // Return result for debugging
+      return {
+        success: !!el,
+        locator: locator,
+        inShadowDOM: inShadowDOM,
+        elementFound: el ? {
+          tagName: el.tagName,
+          id: el.id,
+          className: el.className
+        } : null
+      };
     }
+  }).then(result => {
+    console.log('Element AI Extractor: Highlight script executed successfully:', result);
+    if (result && result[0] && result[0].result) {
+      console.log('Element AI Extractor: Script result:', result[0].result);
+    }
+  }).catch(error => {
+    console.error('Element AI Extractor: Error executing highlight script:', error);
+    console.error('Element AI Extractor: Error details:', {
+      tabId: tabId,
+      locator: locator,
+      inShadowDOM: inShadowDOM,
+      error: error.toString()
+    });
   });
 }
 
@@ -1742,11 +1797,36 @@ function bindTablePreviewButtons() {
       setTimeout(() => (btn.textContent = '📋 Copy'), 600);
     };
   });
+  
+  // Handle automation locator copy buttons
+  document.querySelectorAll('.copy-automation-btn').forEach(btn => {
+    btn.onclick = e => {
+      let text = decodeURIComponent(e.target.getAttribute('data-copy') || '');
+      copyLocatorToClipboard(text);
+      btn.textContent = '✅';
+      setTimeout(() => (btn.textContent = '📋'), 600);
+    };
+  });
+  
   document.querySelectorAll('.hl-btn').forEach(btn => {
     btn.onclick = async e => {
       let locator = decodeURIComponent(e.target.getAttribute('data-hl') || '');
       let inShadow = e.target.getAttribute('data-shadow') === '1';
+      
+      // Debug logging
+      console.log('Element AI Extractor: Highlight button clicked!');
+      console.log('Element AI Extractor: Raw data-hl:', e.target.getAttribute('data-hl'));
+      console.log('Element AI Extractor: Decoded locator:', locator);
+      console.log('Element AI Extractor: inShadow:', inShadow);
+      
       const {tabId} = await getCurrentTabInfo();
+      console.log('Element AI Extractor: Tab ID:', tabId);
+      
+      if (!locator) {
+        console.error('Element AI Extractor: No locator found!');
+        return;
+      }
+      
       highlightElementOnTab(tabId, locator, inShadow);
       btn.textContent = '✨ Highlighted';
       setTimeout(() => (btn.textContent = '👁️ Highlight'), 600);
@@ -2390,6 +2470,40 @@ function displayInspectedElementData(data) {
       <tr><td>XPath:</td><td title="${data['XPATH'] || 'N/A'}">${data['XPATH'] || 'N/A'}</td></tr>
       <tr><td>In Shadow DOM:</td><td>${isInShadow ? '<span class="shadow-badge">Shadow</span>' : 'No'}</td></tr>
     </table>
+    ${data['Automation Locators'] ? `
+      <div class="automation-locators-section">
+        <h5 class="automation-locators-header">🤖 Automation Framework Locators</h5>
+        <div class="automation-locators-container">
+          ${data['Automation Locators'].playwrightLocator ? `
+            <div class="automation-locator-item">
+              <span class="locator-framework">Playwright:</span>
+              <div class="locator-code">
+                <code>${data['Automation Locators'].playwrightLocator}</code>
+                <button class="copy-automation-btn" data-copy="${encodeURIComponent(data['Automation Locators'].playwrightLocator)}" title="Copy Playwright locator">📋</button>
+              </div>
+            </div>
+          ` : ''}
+          ${data['Automation Locators'].seleniumJavaScript ? `
+            <div class="automation-locator-item">
+              <span class="locator-framework">Selenium (JS):</span>
+              <div class="locator-code">
+                <code>${data['Automation Locators'].seleniumJavaScript.replace(/\n/g, '<br>')}</code>
+                <button class="copy-automation-btn" data-copy="${encodeURIComponent(data['Automation Locators'].seleniumJavaScript)}" title="Copy Selenium JavaScript">📋</button>
+              </div>
+            </div>
+          ` : ''}
+          ${data['Automation Locators'].cypressLocator ? `
+            <div class="automation-locator-item">
+              <span class="locator-framework">Cypress:</span>
+              <div class="locator-code">
+                <code>${data['Automation Locators'].cypressLocator}</code>
+                <button class="copy-automation-btn" data-copy="${encodeURIComponent(data['Automation Locators'].cypressLocator)}" title="Copy Cypress locator">📋</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    ` : ''}
     ${Array.isArray(data['ML Suggestions']) && data['ML Suggestions'].length ? `
       <div class="ml-suggestions-section">
         <h5 class="ml-suggestions-header">🤖 ML Suggestions</h5>

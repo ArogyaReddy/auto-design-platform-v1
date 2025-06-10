@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Inspector Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .debug-output {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Inspector Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Extension Status</h2>
+        <p>This page will help debug the inspector highlighting issue.</p>
+        <button onclick="checkInspectorStatus()">Check Inspector Status</button>
+        <div id="status-output" class="debug-output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Elements</h2>
+        <p>Try hovering over these elements with the inspector active:</p>
+        <button id="test-button-1">Test Button 1</button>
+        <button id="test-button-2">Test Button 2</button>
+        <div id="test-div" style="background: #e8f4f8; padding: 10px; margin: 10px 0;">
+            Test Div Element
+        </div>
+        <span id="test-span" style="background: #fff3cd; padding: 5px;">Test Span Element</span>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manual CSS Test</h2>
+        <button onclick="testManualHighlight()">Test Manual Highlight</button>
+        <button onclick="clearManualHighlight()">Clear Manual Highlight</button>
+        <div id="manual-test-output" class="debug-output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <p>Check the browser console for detailed logs. Press F12 and look at the Console tab.</p>
+        <div id="console-logs" class="debug-output"></div>
+    </div>
+
+    <script>
+        // Global variables to track debugging
+        let originalConsoleLog = console.log;
+        let logBuffer = [];
+        
+        // Override console.log to capture AI Extractor messages
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            
+            // Capture AI Extractor related logs
+            const message = args.join(' ');
+            if (message.includes('Element AI Extractor')) {
+                logBuffer.push(new Date().toLocaleTimeString() + ': ' + message);
+                updateConsoleDisplay();
+            }
+        };
+        
+        function updateConsoleDisplay() {
+            const consoleElement = document.getElementById('console-logs');
+            consoleElement.textContent = logBuffer.slice(-20).join('\n'); // Show last 20 logs
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        }
+        
+        function checkInspectorStatus() {
+            const output = document.getElementById('status-output');
+            let status = '';
+            
+            // Check if content script is loaded
+            status += 'Content Script Loaded: ' + (window.aiExtractorLoaded ? 'YES' : 'NO') + '\n';
+            status += 'Is Inspecting: ' + (window.aiExtractorIsInspecting ? 'YES' : 'NO') + '\n';
+            
+            // Check if styles are injected
+            const styleElement = document.getElementById('ai-extractor-styles');
+            status += 'Styles Injected: ' + (styleElement ? 'YES' : 'NO') + '\n';
+            if (styleElement) {
+                status += 'Style Content Length: ' + styleElement.textContent.length + '\n';
+            }
+            
+            // Check for inspector badge
+            const badge = document.querySelector('.ai-extractor-inspector-badge');
+            status += 'Inspector Badge Present: ' + (badge ? 'YES' : 'NO') + '\n';
+            
+            // Check cursor class
+            const hasInspectingClass = document.body.classList.contains('ai-extractor-inspecting');
+            status += 'Body has inspecting class: ' + (hasInspectingClass ? 'YES' : 'NO') + '\n';
+            
+            output.textContent = status;
+        }
+        
+        function testManualHighlight() {
+            const testElement = document.getElementById('test-button-1');
+            const output = document.getElementById('manual-test-output');
+            
+            // Try to add the highlight class manually
+            testElement.classList.add('ai-extractor-highlight');
+            
+            let result = 'Manual highlight test:\n';
+            result += 'Class added: ' + testElement.classList.contains('ai-extractor-highlight') + '\n';
+            
+            // Check computed styles
+            const computedStyle = window.getComputedStyle(testElement);
+            result += 'Computed outline: ' + computedStyle.outline + '\n';
+            result += 'Computed outline-color: ' + computedStyle.outlineColor + '\n';
+            result += 'Computed outline-style: ' + computedStyle.outlineStyle + '\n';
+            result += 'Computed outline-width: ' + computedStyle.outlineWidth + '\n';
+            result += 'Computed background: ' + computedStyle.backgroundColor + '\n';
+            
+            output.textContent = result;
+        }
+        
+        function clearManualHighlight() {
+            const testElement = document.getElementById('test-button-1');
+            testElement.classList.remove('ai-extractor-highlight');
+            document.getElementById('manual-test-output').textContent = 'Manual highlight cleared.';
+        }
+        
+        // Add some mouse event logging to test elements
+        document.querySelectorAll('[id^="test-"]').forEach(element => {
+            element.addEventListener('mouseover', function(e) {
+                console.log('Element AI Extractor: DEBUG - Mouse over test element:', this.id, this);
+            });
+        });
+        
+        // Log when page loads
+        window.addEventListener('load', function() {
+            console.log('Element AI Extractor: DEBUG - Test page loaded');
+            setTimeout(checkInspectorStatus, 1000); // Auto-check status after 1 second
+        });
+    </script>
+</body>
+</html>

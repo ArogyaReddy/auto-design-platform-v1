@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Highlighting Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+        }
+        
+        .test-element {
+            padding: 15px;
+            margin: 10px;
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .test-button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Inspector Highlighting Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>🎯 Test Elements</h2>
+        <p>Use these elements to test highlighting behavior:</p>
+        
+        <div class="test-element" id="simple-test">
+            <h3>Simple Test Element</h3>
+            <p><strong>ID:</strong> simple-test</p>
+            <p><strong>Best Locator:</strong> #simple-test</p>
+            <p>This element should be easy to highlight with a simple ID selector.</p>
+        </div>
+        
+        <div class="test-element" id="complex-test-element-with-special-chars.()[]">
+            <h3>Complex Test Element</h3>
+            <p><strong>ID:</strong> complex-test-element-with-special-chars.()</p>
+            <p><strong>Best Locator:</strong> [id="complex-test-element-with-special-chars.()[]"]</p>
+            <p>This element has special characters that might cause CSS selector issues.</p>
+        </div>
+        
+        <div class="test-element">
+            <h3>No ID Test Element</h3>
+            <p><strong>ID:</strong> (none)</p>
+            <p><strong>Best Locator:</strong> (will be generated)</p>
+            <p>This element has no ID and will use a generated selector.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Manual Highlighting Tests</h2>
+        <p>Test highlighting manually to isolate issues:</p>
+        
+        <button class="test-button" onclick="testDirectHighlight('simple-test')">
+            Test Direct Highlight (Simple)
+        </button>
+        
+        <button class="test-button" onclick="testDirectHighlight('complex-test-element-with-special-chars.()')">
+            Test Direct Highlight (Complex)
+        </button>
+        
+        <button class="test-button" onclick="testSelectorMethods()">
+            Test Selector Methods
+        </button>
+        
+        <button class="test-button" onclick="clearHighlights()">
+            Clear All Highlights
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Console Output</h2>
+        <div id="console-output" class="console-output">
+            Test output will appear here...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Instructions</h2>
+        <ol>
+            <li><strong>Load the extension</strong> and make sure it's working</li>
+            <li><strong>Use Inspector mode</strong> to inspect the test elements above</li>
+            <li><strong>Try the highlight button</strong> in the popup inspector details</li>
+            <li><strong>Use manual tests</strong> above to compare behavior</li>
+            <li><strong>Check console output</strong> for detailed debugging information</li>
+        </ol>
+        <p><strong>Expected behavior:</strong> Elements should highlight with red border and background for 2 seconds</p>
+    </div>
+
+    <script>
+        // Enhanced logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const output = document.getElementById('console-output');
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️';
+            
+            console.log(message);
+            output.innerHTML += `[${timestamp}] ${prefix} ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Test direct highlighting (mimics extension behavior)
+        function testDirectHighlight(elementId) {
+            log(`Starting direct highlight test for: ${elementId}`);
+            
+            try {
+                // Try to find element using different methods
+                let element = null;
+                
+                // Method 1: Direct getElementById
+                element = document.getElementById(elementId);
+                if (element) {
+                    log(`✅ Found element using getElementById: ${element.tagName}#${element.id}`, 'success');
+                } else {
+                    log(`❌ getElementById failed for: ${elementId}`, 'error');
+                }
+                
+                // Method 2: querySelector with ID
+                if (!element) {
+                    try {
+                        element = document.querySelector(`#${CSS.escape(elementId)}`);
+                        if (element) {
+                            log(`✅ Found element using querySelector with CSS.escape: ${element.tagName}#${element.id}`, 'success');
+                        }
+                    } catch (e) {
+                        log(`❌ querySelector with CSS.escape failed: ${e.message}`, 'error');
+                    }
+                }
+                
+                // Method 3: querySelector with attribute selector
+                if (!element) {
+                    try {
+                        element = document.querySelector(`[id="${elementId}"]`);
+                        if (element) {
+                            log(`✅ Found element using attribute selector: ${element.tagName}[id="${element.id}"]`, 'success');
+                        }
+                    } catch (e) {
+                        log(`❌ Attribute selector failed: ${e.message}`, 'error');
+                    }
+                }
+                
+                if (!element) {
+                    log(`❌ Could not find element with any method!`, 'error');
+                    return;
+                }
+                
+                // Apply highlighting styles (mimics extension)
+                log(`Applying highlight styles to element...`);
+                
+                // Method 1: Basic styles
+                element.style.outline = '3px solid #ff0000';
+                element.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+                
+                // Method 2: Enhanced styles with !important
+                element.style.setProperty('outline', '3px solid #ff0000', 'important');
+                element.style.setProperty('background-color', 'rgba(255, 0, 0, 0.1)', 'important');
+                element.style.setProperty('z-index', '999999', 'important');
+                
+                // Method 3: Add CSS class
+                element.classList.add('manual-highlight');
+                
+                // Inject CSS for class
+                if (!document.getElementById('manual-highlight-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'manual-highlight-style';
+                    style.textContent = `
+                        .manual-highlight {
+                            outline: 3px solid #ff0000 !important;
+                            background-color: rgba(255, 0, 0, 0.1) !important;
+                            z-index: 999999 !important;
+                            position: relative !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                log(`✅ Applied all highlighting methods`, 'success');
+                
+                // Verify styles
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(element);
+                    log(`Style verification:`, 'info');
+                    log(`  - outline: ${computedStyle.outline}`, 'info');
+                    log(`  - backgroundColor: ${computedStyle.backgroundColor}`, 'info');
+                    log(`  - zIndex: ${computedStyle.zIndex}`, 'info');
+                    log(`  - element.style.outline: ${element.style.outline}`, 'info');
+                    log(`  - hasClass: ${element.classList.contains('manual-highlight')}`, 'info');
+                }, 100);
+                
+                // Remove highlighting after 3 seconds
+                setTimeout(() => {
+                    element.style.removeProperty('outline');
+                    element.style.removeProperty('background-color');
+                    element.style.removeProperty('z-index');
+                    element.classList.remove('manual-highlight');
+                    log(`🔄 Removed highlight from element`, 'info');
+                }, 3000);
+                
+            } catch (error) {
+                log(`❌ Error in testDirectHighlight: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            }
+        }
+
+        // Test different selector methods
+        function testSelectorMethods() {
+            log(`Testing different selector methods...`);
+            
+            const testCases = [
+                { id: 'simple-test', selector: '#simple-test' },
+                { id: 'simple-test', selector: '[id="simple-test"]' },
+                { id: 'complex-test-element-with-special-chars.()', selector: '#complex-test-element-with-special-chars\\28\\29\\5B\\5D' },
+                { id: 'complex-test-element-with-special-chars.()', selector: '[id="complex-test-element-with-special-chars.()[]"]' }
+            ];
+            
+            testCases.forEach((testCase, index) => {
+                try {
+                    const element = document.querySelector(testCase.selector);
+                    if (element) {
+                        log(`✅ Test ${index + 1}: "${testCase.selector}" found element: ${element.tagName}#${element.id}`, 'success');
+                    } else {
+                        log(`❌ Test ${index + 1}: "${testCase.selector}" found no element`, 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Test ${index + 1}: "${testCase.selector}" threw error: ${e.message}`, 'error');
+                }
+            });
+        }
+
+        // Clear all highlights
+        function clearHighlights() {
+            log(`Clearing all highlights...`);
+            
+            document.querySelectorAll('*').forEach(el => {
+                el.style.removeProperty('outline');
+                el.style.removeProperty('background-color');
+                el.style.removeProperty('z-index');
+                el.classList.remove('manual-highlight');
+            });
+            
+            const style = document.getElementById('manual-highlight-style');
+            if (style) {
+                style.remove();
+            }
+            
+            log(`✅ All highlights cleared`, 'success');
+        }
+
+        // Add click listeners to test elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const testElements = document.querySelectorAll('.test-element');
+            testElements.forEach((element, index) => {
+                element.addEventListener('click', (e) => {
+                    const elementId = element.id || `element-${index}`;
+                    log(`🎯 Test element clicked: ${elementId}`);
+                    
+                    // Log element details
+                    log(`Element details: ${element.tagName}, ID: "${element.id}", Classes: "${element.className}"`);
+                });
+            });
+            
+            log(`🚀 Debug test page loaded. Ready for testing!`, 'success');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Inspector Highlighting Fix Verification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .regular-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196f3;
+        }
+        .shadow-section {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left: 5px solid #9c27b0;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .status-card {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .status-pass {
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+            border: 2px solid #4caf50;
+        }
+        .status-fail {
+            background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%);
+            border: 2px solid #f44336;
+        }
+        .status-pending {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%);
+            border: 2px solid #ff9800;
+        }
+        .instructions {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        .instructions ol {
+            color: #388e3c;
+            line-height: 1.6;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+        .results-log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .log-error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .log-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .shadow-host {
+            background: rgba(156, 39, 176, 0.1);
+            border: 2px dashed #9c27b0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+        }
+        .fix-status {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Inspector Highlighting Fix Verification</h1>
+            <div class="subtitle">Comprehensive Shadow DOM Highlighting Test Suite</div>
+        </div>
+        
+        <div class="content">
+            <div class="fix-status">
+                ✅ SHADOW DOM INSPECTOR HIGHLIGHTING FIX APPLIED
+                <br><small>Inspector mode now uses aggressive setProperty styling with !important flag</small>
+            </div>
+
+            <div class="instructions">
+                <h3>🧪 Testing Instructions</h3>
+                <ol>
+                    <li><strong>Open Element AI Extractor:</strong> Click the extension icon in Chrome</li>
+                    <li><strong>Test Regular DOM Elements:</strong>
+                        <ul>
+                            <li>Click "🔬 Inspect Element" button</li>
+                            <li>Hover over blue buttons below - should highlight with orange dashed outline</li>
+                            <li>Click "Stop Inspecting" and test "🔍 AI Inspector Active" mode</li>
+                        </ul>
+                    </li>
+                    <li><strong>Test Shadow DOM Elements:</strong>
+                        <ul>
+                            <li>Use both inspection modes on purple Shadow DOM buttons</li>
+                            <li>BEFORE FIX: Inspector mode would NOT highlight Shadow DOM elements</li>
+                            <li>AFTER FIX: Both modes should highlight Shadow DOM elements equally</li>
+                        </ul>
+                    </li>
+                    <li><strong>Document Results:</strong> Click buttons below to record test outcomes</li>
+                </ol>
+            </div>
+
+            <div class="test-section regular-section">
+                <h3>📋 Regular DOM Elements</h3>
+                <p>These buttons exist in the normal DOM tree:</p>
+                <button id="regular-btn-1" class="test-button" onclick="logClick('regular-btn-1')">Regular Button 1</button>
+                <button id="regular-btn-2" class="test-button" onclick="logClick('regular-btn-2')">Regular Button 2</button>
+                <button id="regular-btn-3" class="test-button" onclick="logClick('regular-btn-3')">Regular Button 3</button>
+                
+                <div class="status-grid">
+                    <div class="status-card status-pass">
+                        <h4>🔬 Inspect Element Mode</h4>
+                        <p>✅ Should highlight regular DOM elements</p>
+                        <button onclick="recordTest('inspector-regular', true)">✅ Pass</button>
+                        <button onclick="recordTest('inspector-regular', false)">❌ Fail</button>
+                    </div>
+                    <div class="status-card status-pass">
+                        <h4>🔍 AI Inspector Active Mode</h4>
+                        <p>✅ Should highlight regular DOM elements</p>
+                        <button onclick="recordTest('active-regular', true)">✅ Pass</button>
+                        <button onclick="recordTest('active-regular', false)">❌ Fail</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section shadow-section">
+                <h3>🌟 Shadow DOM Elements</h3>
+                <p>These components contain buttons inside Shadow DOM:</p>
+                
+                <div class="shadow-host">
+                    <p><strong>Shadow Component A:</strong></p>
+                    <shadow-button-a data-label="Shadow Button A"></shadow-button-a>
+                </div>
+                
+                <div class="shadow-host">
+                    <p><strong>Shadow Component B:</strong></p>
+                    <shadow-button-b data-label="Shadow Button B"></shadow-button-b>
+                </div>
+                
+                <div class="shadow-host">
+                    <p><strong>Nested Shadow Component:</strong></p>
+                    <nested-shadow-button data-label="Nested Shadow Button"></nested-shadow-button>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-card status-pending" id="inspector-shadow-card">
+                        <h4>🔬 Inspect Element Mode</h4>
+                        <p id="inspector-shadow-text">⚠️ CRITICAL TEST - Should now highlight Shadow DOM elements</p>
+                        <button onclick="recordTest('inspector-shadow', true)">✅ Pass (Fixed!)</button>
+                        <button onclick="recordTest('inspector-shadow', false)">❌ Still Fails</button>
+                    </div>
+                    <div class="status-card status-pass">
+                        <h4>🔍 AI Inspector Active Mode</h4>
+                        <p>✅ Should highlight Shadow DOM elements (already worked)</p>
+                        <button onclick="recordTest('active-shadow', true)">✅ Pass</button>
+                        <button onclick="recordTest('active-shadow', false)">❌ Fail</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h3>📊 Test Results Log</h3>
+                <div class="results-log" id="results-log">
+                    <div class="log-entry log-info">🚀 Test session started. Please perform the tests above and record results.</div>
+                    <div class="log-entry log-info">✅ Fix applied: Inspector highlighting now uses setProperty with !important flag</div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h3>🔧 Technical Fix Details</h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007acc;">
+                    <h4>Applied Changes:</h4>
+                    <ul>
+                        <li><strong>Enhanced Inspector Highlighting:</strong> Now uses <code>setProperty('outline', '3px dashed #ff6b35', 'important')</code></li>
+                        <li><strong>Shadow Host Enhancement:</strong> Adds subtle highlight to shadow hosts for better visibility</li>
+                        <li><strong>Proper Cleanup:</strong> Uses <code>removeProperty()</code> for styles set with !important</li>
+                        <li><strong>Consistent Behavior:</strong> Inspector mode now matches Element Extractor highlighting</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test results storage
+        const testResults = {
+            'inspector-regular': null,
+            'active-regular': null,
+            'inspector-shadow': null,
+            'active-shadow': null
+        };
+
+        // Define Shadow Button Component A
+        class ShadowButtonA extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    button {
+                        background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+                        color: white;
+                        border: none;
+                        padding: 15px 30px;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    }
+                    button:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+                    }
+                    .container {
+                        padding: 10px;
+                        background: rgba(156, 39, 176, 0.05);
+                        border-radius: 8px;
+                    }
+                `;
+                
+                const container = document.createElement('div');
+                container.className = 'container';
+                
+                const button = document.createElement('button');
+                button.id = 'shadow-btn-a';
+                button.textContent = this.getAttribute('data-label') || 'Shadow Button A';
+                button.onclick = () => logClick('shadow-btn-a');
+                
+                container.appendChild(button);
+                shadow.appendChild(style);
+                shadow.appendChild(container);
+            }
+        }
+
+        // Define Shadow Button Component B
+        class ShadowButtonB extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    button {
+                        background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);
+                        color: white;
+                        border: none;
+                        padding: 12px 25px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+                    }
+                    button:hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+                    }
+                `;
+                
+                const button = document.createElement('button');
+                button.id = 'shadow-btn-b';
+                button.textContent = this.getAttribute('data-label') || 'Shadow Button B';
+                button.onclick = () => logClick('shadow-btn-b');
+                
+                shadow.appendChild(style);
+                shadow.appendChild(button);
+            }
+        }
+
+        // Define Nested Shadow Component
+        class NestedShadowButton extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    .outer-container {
+                        background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%);
+                        padding: 15px;
+                        border-radius: 10px;
+                        color: white;
+                    }
+                    .inner-host {
+                        background: rgba(255, 255, 255, 0.1);
+                        padding: 10px;
+                        border-radius: 8px;
+                        margin-top: 10px;
+                    }
+                `;
+                
+                const outerContainer = document.createElement('div');
+                outerContainer.className = 'outer-container';
+                outerContainer.innerHTML = '<h4>Nested Shadow DOM</h4>';
+                
+                const innerHost = document.createElement('div');
+                innerHost.className = 'inner-host';
+                
+                // Create inner shadow DOM
+                const innerShadow = innerHost.attachShadow({mode: 'open'});
+                
+                const innerStyle = document.createElement('style');
+                innerStyle.textContent = `
+                    button {
+                        background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    }
+                    button:hover {
+                        transform: scale(1.05);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                    }
+                `;
+                
+                const innerButton = document.createElement('button');
+                innerButton.id = 'nested-shadow-btn';
+                innerButton.textContent = this.getAttribute('data-label') || 'Nested Shadow Button';
+                innerButton.onclick = () => logClick('nested-shadow-btn');
+                
+                innerShadow.appendChild(innerStyle);
+                innerShadow.appendChild(innerButton);
+                
+                outerContainer.appendChild(innerHost);
+                shadow.appendChild(style);
+                shadow.appendChild(outerContainer);
+            }
+        }
+
+        // Register custom elements
+        customElements.define('shadow-button-a', ShadowButtonA);
+        customElements.define('shadow-button-b', ShadowButtonB);
+        customElements.define('nested-shadow-button', NestedShadowButton);
+
+        // Logging functions
+        function logClick(buttonId) {
+            const timestamp = new Date().toLocaleTimeString();
+            const log = document.getElementById('results-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-success';
+            entry.innerHTML = `🖱️ ${timestamp}: Button clicked - ${buttonId}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function recordTest(testType, passed) {
+            testResults[testType] = passed;
+            const timestamp = new Date().toLocaleTimeString();
+            const log = document.getElementById('results-log');
+            const entry = document.createElement('div');
+            entry.className = passed ? 'log-entry log-success' : 'log-entry log-error';
+            
+            let testName = '';
+            switch(testType) {
+                case 'inspector-regular': testName = 'Inspector Mode - Regular DOM'; break;
+                case 'active-regular': testName = 'Active Inspector - Regular DOM'; break;
+                case 'inspector-shadow': testName = 'Inspector Mode - Shadow DOM (CRITICAL)'; break;
+                case 'active-shadow': testName = 'Active Inspector - Shadow DOM'; break;
+            }
+            
+            entry.innerHTML = `${passed ? '✅' : '❌'} ${timestamp}: ${testName} - ${passed ? 'PASSED' : 'FAILED'}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+
+            // Update the critical Shadow DOM inspector test card
+            if (testType === 'inspector-shadow') {
+                const card = document.getElementById('inspector-shadow-card');
+                const text = document.getElementById('inspector-shadow-text');
+                
+                if (passed) {
+                    card.className = 'status-card status-pass';
+                    text.innerHTML = '✅ FIXED! Inspector mode now highlights Shadow DOM elements';
+                    
+                    // Add celebration entry
+                    setTimeout(() => {
+                        const celebrationEntry = document.createElement('div');
+                        celebrationEntry.className = 'log-entry log-success';
+                        celebrationEntry.innerHTML = '🎉 CRITICAL FIX VERIFIED: Inspector highlighting now works with Shadow DOM!';
+                        log.appendChild(celebrationEntry);
+                        log.scrollTop = log.scrollHeight;
+                    }, 500);
+                } else {
+                    card.className = 'status-card status-fail';
+                    text.innerHTML = '❌ Fix may need more work - Inspector mode still not highlighting Shadow DOM';
+                }
+            }
+
+            // Check if all tests are complete
+            const completedTests = Object.values(testResults).filter(result => result !== null).length;
+            if (completedTests === 4) {
+                setTimeout(() => {
+                    const summaryEntry = document.createElement('div');
+                    summaryEntry.className = 'log-entry log-info';
+                    const passedTests = Object.values(testResults).filter(result => result === true).length;
+                    summaryEntry.innerHTML = `📊 TESTING COMPLETE: ${passedTests}/4 tests passed`;
+                    log.appendChild(summaryEntry);
+                    log.scrollTop = log.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        // Initialize
+        console.log('🔍 Inspector Highlighting Fix Verification Page Loaded');
+        console.log('🎯 CRITICAL TEST: Verify that Inspector mode can now highlight Shadow DOM elements');
+        
+        // Log Shadow DOM structure for debugging
+        setTimeout(() => {
+            console.log('🌟 Shadow DOM Components Created:', {
+                'shadow-button-a': document.querySelector('shadow-button-a'),
+                'shadow-button-b': document.querySelector('shadow-button-b'),
+                'nested-shadow-button': document.querySelector('nested-shadow-button')
+            });
+        }, 1000);
+    </script>
+</body>
+</html>
