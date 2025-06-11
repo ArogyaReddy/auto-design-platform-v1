@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "test": "cucumber-js",
-    "test:teamA-projectA": "cucumber-js features/TeamA/ProjectA/sample.feature"
+    "test:teamA-projectA": "cucumber-js features/TeamA/ProjectA/sample.feature",
+    "test:playwright": "node complete-integration-test.js",
+    "demo:playwright": "node playwright-validator-demo.js",
+    "validate:quick": "node -e \"require('./complete-integration-test').quickValidateLocator(process.argv[1] || 'button', process.argv[2])\" --"
   },
   "keywords": [],
   "author": "",

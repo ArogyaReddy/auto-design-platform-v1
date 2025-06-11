@@ -117,6 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('filterAll').checked = true;
   elementTypeList.forEach(type => (document.getElementById(type.id).checked = false));
 
+  // Initialize Playwright settings and UI
+  initializePlaywrightSettings();
+  setupPlaywrightValidationButtons();
+  handlePlaywrightSettingsChange();
+
   // Check for recent inspection data and display it
   checkForRecentInspectionData();
 
@@ -1709,7 +1714,8 @@ function renderElementsTable(data) {
     <th>Shadow</th>
     <th>Host Path</th>
     <th>Copy</th>
-    <th>Highlight</th></tr>`;
+    <th>Highlight</th>
+    <th class="playwright-header">🎭 Playwright</th></tr>`;
     
   for (let i = 0; i < itemsToShow.length; i++) {
     let r = itemsToShow[i];
@@ -1728,6 +1734,9 @@ function renderElementsTable(data) {
       <td title="${hostPath}" class="host-path">${hostPath ? hostPath.substring(0, 25) + (hostPath.length > 25 ? '...' : '') : ''}</td>
       <td><button class="copy-btn" data-copy="${encodeURIComponent(r['Best Locator'])}" title="Copy to clipboard">📋</button></td>
       <td><button class="hl-btn" data-hl="${encodeURIComponent(r['Best Locator'])}" data-shadow="${isInShadow ? '1' : '0'}" title="Highlight element">👁️</button></td>
+      <td class="playwright-column">
+        <button class="validate-single-btn" data-element-index="${startIndex + i}" title="Validate with Playwright">🎭 Validate</button>
+      </td>
     </tr>`;
   }
   previewHTML += '</table>';
@@ -1830,6 +1839,73 @@ function bindTablePreviewButtons() {
       highlightElementOnTab(tabId, locator, inShadow);
       btn.textContent = '✨ Highlighted';
       setTimeout(() => (btn.textContent = '👁️ Highlight'), 600);
+    };
+  });
+
+  // Handle Playwright validation buttons
+  document.querySelectorAll('.validate-single-btn').forEach(btn => {
+    btn.onclick = async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!playwrightSettings.enabled) {
+        updateStatusMessage('Playwright validation is disabled', 'warning');
+        return;
+      }
+      
+      const elementIndex = parseInt(e.target.getAttribute('data-element-index'));
+      const elements = currentFilteredData.length > 0 ? currentFilteredData : allOriginalData;
+      const element = elements[elementIndex];
+      
+      if (!element) {
+        updateStatusMessage('Element not found for validation', 'error');
+        return;
+      }
+      
+      // Update button state
+      const originalText = btn.textContent;
+      btn.textContent = '🎭 Validating...';
+      btn.disabled = true;
+      
+      try {
+        const result = await validateElementWithPlaywright(element, elementIndex);
+        
+        // Store result
+        playwrightValidationResults.set(elementIndex, result);
+        
+        // Update button to show result
+        btn.innerHTML = `
+          <div class="playwright-score">
+            <div class="score-number">${result.score}</div>
+            <div class="score-grade grade-${result.grade.toLowerCase().replace('+', '-plus')}">${result.grade}</div>
+          </div>
+        `;
+        
+        // Update row styling
+        const row = btn.closest('tr');
+        if (row) {
+          row.classList.remove('playwright-excellent', 'playwright-good', 'playwright-poor');
+          if (result.grade === 'A+' || result.grade === 'A') {
+            row.classList.add('playwright-excellent');
+          } else if (result.grade === 'B' || result.grade === 'C') {
+            row.classList.add('playwright-good');
+          } else {
+            row.classList.add('playwright-poor');
+          }
+        }
+        
+        // Update stats
+        updatePlaywrightStatsDisplay();
+        
+        updateStatusMessage(`✅ Element validated: ${result.grade} (${result.score}%)`, 'success');
+        
+      } catch (error) {
+        console.error('Single element validation error:', error);
+        btn.textContent = originalText;
+        updateStatusMessage(`❌ Validation failed: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+      }
     };
   });
 }
@@ -2678,4 +2754,351 @@ function initializeOpenInNewTab() {
       });
     });
   });
+}
+
+// ---- PLAYWRIGHT VALIDATION INTEGRATION ----
+
+// Global state for Playwright validation
+let playwrightValidationResults = new Map();
+let playwrightSettings = {
+  enabled: true,
+  autoValidate: false
+};
+
+// Initialize Playwright settings on startup
+function initializePlaywrightSettings() {
+  chrome.runtime.sendMessage({ action: 'getPlaywrightSettings' }, (response) => {
+    if (response) {
+      playwrightSettings = response;
+      updatePlaywrightUI();
+    }
+  });
+}
+
+// Update Playwright UI elements
+function updatePlaywrightUI() {
+  const playwrightEnabled = document.getElementById('playwrightEnabled');
+  const autoValidate = document.getElementById('autoValidate');
+  const playwrightStats = document.getElementById('playwrightStats');
+  
+  if (playwrightEnabled) {
+    playwrightEnabled.checked = playwrightSettings.enabled;
+  }
+  
+  if (autoValidate) {
+    autoValidate.checked = playwrightSettings.autoValidate;
+  }
+  
+  // Show/hide stats panel based on whether we have validation results
+  if (playwrightStats) {
+    playwrightStats.style.display = playwrightValidationResults.size > 0 ? 'block' : 'none';
+  }
+}
+
+// Validate single element with Playwright
+async function validateElementWithPlaywright(element, index) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({
+      action: 'validateWithPlaywright',
+      locator: element['Best Locator'],
+      url: window.location.href,
+      elementData: {
+        elementName: element['Element Name'],
+        elementType: element['Element Type'],
+        locatorType: element['Locator Type'],
+        id: element['ID'],
+        index: index
+      }
+    }, (response) => {
+      if (response && response.success) {
+        resolve(response.result);
+      } else {
+        resolve({
+          isValid: false,
+          score: 0,
+          grade: 'F',
+          issues: ['Validation failed'],
+          recommendations: ['Check Playwright setup']
+        });
+      }
+    });
+  });
+}
+
+// Validate all elements with Playwright
+async function validateAllElementsWithPlaywright() {
+  if (!playwrightSettings.enabled) {
+    updateStatusMessage('Playwright validation is disabled', 'warning');
+    return;
+  }
+  
+  const elements = currentFilteredData.length > 0 ? currentFilteredData : allOriginalData;
+  if (elements.length === 0) {
+    updateStatusMessage('No elements to validate', 'info');
+    return;
+  }
+  
+  updateStatusMessage(`Validating ${elements.length} elements with Playwright...`, 'info');
+  
+  // Disable validation buttons during processing
+  const validateAllBtn = document.getElementById('validateAllBtn');
+  const validateSelectedBtn = document.getElementById('validateSelectedBtn');
+  if (validateAllBtn) validateAllBtn.disabled = true;
+  if (validateSelectedBtn) validateSelectedBtn.disabled = true;
+  
+  try {
+    // Send batch validation request
+    const response = await new Promise((resolve) => {
+      chrome.runtime.sendMessage({
+        action: 'batchValidateWithPlaywright',
+        elements: elements.map((el, index) => ({
+          locator: el['Best Locator'],
+          elementName: el['Element Name'],
+          elementType: el['Element Type'],
+          locatorType: el['Locator Type'],
+          id: el['ID'],
+          index: index
+        })),
+        url: window.location.href
+      }, resolve);
+    });
+    
+    if (response && response.success) {
+      // Store validation results
+      response.results.forEach(result => {
+        playwrightValidationResults.set(result.elementIndex, result.result);
+      });
+      
+      // Update UI
+      updatePlaywrightStatsDisplay();
+      updateTableWithPlaywrightResults();
+      
+      updateStatusMessage(`✅ Playwright validation completed for ${response.results.length} elements`, 'success');
+    } else {
+      updateStatusMessage(`❌ Playwright validation failed: ${response.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    console.error('Playwright validation error:', error);
+    updateStatusMessage(`❌ Playwright validation failed: ${error.message}`, 'error');
+  } finally {
+    // Re-enable validation buttons
+    if (validateAllBtn) validateAllBtn.disabled = false;
+    if (validateSelectedBtn) validateSelectedBtn.disabled = false;
+  }
+}
+
+// Update Playwright statistics display
+function updatePlaywrightStatsDisplay() {
+  const excellentCount = document.getElementById('excellentCount');
+  const goodCount = document.getElementById('goodCount');
+  const poorCount = document.getElementById('poorCount');
+  const avgScore = document.getElementById('avgScore');
+  
+  if (playwrightValidationResults.size === 0) {
+    if (excellentCount) excellentCount.textContent = '0';
+    if (goodCount) goodCount.textContent = '0';
+    if (poorCount) poorCount.textContent = '0';
+    if (avgScore) avgScore.textContent = '0';
+    return;
+  }
+  
+  const results = Array.from(playwrightValidationResults.values());
+  const excellent = results.filter(r => r.grade === 'A+' || r.grade === 'A').length;
+  const good = results.filter(r => r.grade === 'B' || r.grade === 'C').length;
+  const poor = results.filter(r => r.grade === 'D' || r.grade === 'F').length;
+  const totalScore = results.reduce((sum, r) => sum + r.score, 0);
+  const averageScore = Math.round(totalScore / results.length);
+  
+  if (excellentCount) excellentCount.textContent = excellent;
+  if (goodCount) goodCount.textContent = good;
+  if (poorCount) poorCount.textContent = poor;
+  if (avgScore) avgScore.textContent = averageScore;
+  
+  // Show stats panel
+  const playwrightStats = document.getElementById('playwrightStats');
+  if (playwrightStats) {
+    playwrightStats.style.display = 'block';
+  }
+}
+
+// Update table with Playwright validation results
+function updateTableWithPlaywrightResults() {
+  const tableRows = document.querySelectorAll('#preview table tr');
+  
+  tableRows.forEach((row, index) => {
+    if (index === 0) return; // Skip header row
+    
+    const dataIndex = index - 1;
+    const result = playwrightValidationResults.get(dataIndex);
+    
+    if (result) {
+      // Remove existing Playwright classes
+      row.classList.remove('playwright-excellent', 'playwright-good', 'playwright-poor');
+      
+      // Add new class based on score
+      if (result.grade === 'A+' || result.grade === 'A') {
+        row.classList.add('playwright-excellent');
+      } else if (result.grade === 'B' || result.grade === 'C') {
+        row.classList.add('playwright-good');
+      } else {
+        row.classList.add('playwright-poor');
+      }
+      
+      // Add Playwright score column if it doesn't exist
+      let playwrightCell = row.querySelector('.playwright-column');
+      if (!playwrightCell) {
+        playwrightCell = document.createElement('td');
+        playwrightCell.className = 'playwright-column';
+        row.appendChild(playwrightCell);
+      }
+      
+      playwrightCell.innerHTML = `
+        <div class="playwright-score">
+          <div class="score-number">${result.score}</div>
+          <div class="score-grade grade-${result.grade.toLowerCase().replace('+', '-plus')}">${result.grade}</div>
+        </div>
+      `;
+    }
+  });
+  
+  // Add Playwright header if it doesn't exist
+  const headerRow = document.querySelector('#preview table tr:first-child');
+  if (headerRow && !headerRow.querySelector('.playwright-header')) {
+    const headerCell = document.createElement('th');
+    headerCell.className = 'playwright-header';
+    headerCell.textContent = '🎭 Playwright';
+    headerRow.appendChild(headerCell);
+  }
+}
+
+// Update status message with different types
+function updateStatusMessage(message, type = 'info') {
+  const statusElement = document.getElementById('status');
+  if (statusElement) {
+    const icon = {
+      'info': 'ℹ️',
+      'success': '✅',
+      'warning': '⚠️',
+      'error': '❌'
+    }[type] || 'ℹ️';
+    
+    statusElement.innerHTML = `${icon} ${message}`;
+    statusElement.className = `status-row ${type}`;
+  }
+}
+
+// Playwright settings handlers
+function handlePlaywrightSettingsChange() {
+  const playwrightEnabled = document.getElementById('playwrightEnabled');
+  const autoValidate = document.getElementById('autoValidate');
+  
+  if (playwrightEnabled) {
+    playwrightEnabled.addEventListener('change', (e) => {
+      playwrightSettings.enabled = e.target.checked;
+      chrome.runtime.sendMessage({
+        action: 'setPlaywrightSettings',
+        enabled: playwrightSettings.enabled,
+        autoValidate: playwrightSettings.autoValidate
+      });
+    });
+  }
+  
+  if (autoValidate) {
+    autoValidate.addEventListener('change', (e) => {
+      playwrightSettings.autoValidate = e.target.checked;
+      chrome.runtime.sendMessage({
+        action: 'setPlaywrightSettings',
+        enabled: playwrightSettings.enabled,
+        autoValidate: playwrightSettings.autoValidate
+      });
+    });
+  }
+}
+
+// Playwright validation button handlers
+function setupPlaywrightValidationButtons() {
+  const validateAllBtn = document.getElementById('validateAllBtn');
+  const validateSelectedBtn = document.getElementById('validateSelectedBtn');
+  
+  if (validateAllBtn) {
+    validateAllBtn.addEventListener('click', () => {
+      validateAllElementsWithPlaywright();
+    });
+  }
+  
+  if (validateSelectedBtn) {
+    validateSelectedBtn.addEventListener('click', () => {
+      // For now, validate all since we don't have row selection
+      // This could be enhanced to validate only selected rows
+      validateAllElementsWithPlaywright();
+    });
+  }
+}
+
+// Enhanced renderElementsTable function with Playwright integration
+function renderElementsTableWithPlaywright(data) {
+  // Call original render function
+  renderElementsTable(data);
+  
+  // Add Playwright validation if auto-validate is enabled
+  if (playwrightSettings.autoValidate && playwrightSettings.enabled) {
+    setTimeout(() => {
+      validateAllElementsWithPlaywright();
+    }, 500);
+  }
+}
+
+// Override the CSV download to include Playwright scores
+function downloadCSVFileWithPlaywright(elementList, filename) {
+  const headers = [
+    'Element Name', 'Element Type', 'Best Locator', 'Locator Type', 'Strength', 
+    'ID', 'CSS', 'XPATH', 'In Shadow DOM', 'Host Element Path',
+    'Playwright Score', 'Playwright Grade', 'Playwright Valid', 'Playwright Issues'
+  ];
+  
+  const csvRows = [headers.join(',')];
+  
+  elementList.forEach((row, index) => {
+    const result = playwrightValidationResults.get(index);
+    const playwrightData = result ? {
+      score: result.score,
+      grade: result.grade,
+      valid: result.isValid ? 'Yes' : 'No',
+      issues: result.issues.join('; ')
+    } : {
+      score: 'N/A',
+      grade: 'N/A',
+      valid: 'N/A',
+      issues: 'N/A'
+    };
+    
+    const csvRow = [
+      `"${(row['Element Name'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Element Type'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Best Locator'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Locator Type'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Strength'] || '').toString().replace(/"/g, '""')}"`,
+      `"${(row['ID'] || '').replace(/"/g, '""')}"`,
+      `"${(row['CSS'] || '').replace(/"/g, '""')}"`,
+      `"${(row['XPATH'] || '').replace(/"/g, '""')}"`,
+      `"${(row['In Shadow DOM'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Host Element Path'] || '').replace(/"/g, '""')}"`,
+      `"${playwrightData.score}"`,
+      `"${playwrightData.grade}"`,
+      `"${playwrightData.valid}"`,
+      `"${playwrightData.issues}"`
+    ];
+    
+    csvRows.push(csvRow.join(','));
+  });
+  
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.replace('.csv', '_with_playwright.csv');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
