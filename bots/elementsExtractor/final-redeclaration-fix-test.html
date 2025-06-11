@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Redeclaration Fix Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Final Redeclaration Fix Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-output"></div>
+    </div>
+
+    <script>
+        let testsPassed = 0;
+        let testsTotal = 0;
+        const output = document.getElementById('test-output');
+
+        function logTest(message, status = 'info') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.className = status;
+            output.appendChild(div);
+            console.log(message);
+        }
+
+        function runTest(name, testFn) {
+            testsTotal++;
+            try {
+                testFn();
+                testsPassed++;
+                logTest(`✅ ${name}`, 'success');
+            } catch (error) {
+                logTest(`❌ ${name}: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 1: Load script first time
+        logTest('🧪 Test 1: Loading scoring-alignment-fix.js for the first time');
+    </script>
+
+    <!-- Load the script -->
+    <script src="scoring-alignment-fix.js"></script>
+
+    <script>
+        runTest('First load creates ScoringAlignmentFix', () => {
+            if (typeof window.ScoringAlignmentFix === 'undefined') {
+                throw new Error('ScoringAlignmentFix not available after first load');
+            }
+        });
+
+        // Test 2: Try to load again - should not cause redeclaration error
+        logTest('🧪 Test 2: Loading scoring-alignment-fix.js again (should skip redeclaration)');
+        
+        const script2 = document.createElement('script');
+        script2.src = 'scoring-alignment-fix.js';
+        script2.onload = () => {
+            runTest('Second load does not cause errors', () => {
+                if (typeof window.ScoringAlignmentFix === 'undefined') {
+                    throw new Error('ScoringAlignmentFix lost after second load');
+                }
+            });
+
+            // Test 3: Test functionality
+            runTest('ScoringAlignmentFix functionality works', () => {
+                const alignmentFix = new window.ScoringAlignmentFix();
+                if (!alignmentFix.alignScoring) {
+                    throw new Error('alignScoring method not available');
+                }
+            });
+
+            // Test 4: Load integration
+            logTest('🧪 Test 3: Loading scoring-integration.js');
+            const script3 = document.createElement('script');
+            script3.src = 'scoring-integration.js';
+            script3.onload = () => {
+                runTest('Integration loads without errors', () => {
+                    if (typeof window.ScoringIntegration === 'undefined') {
+                        throw new Error('ScoringIntegration not available');
+                    }
+                });
+
+                // Test 5: Load init
+                logTest('🧪 Test 4: Loading scoring-alignment-init.js');
+                const script4 = document.createElement('script');
+                script4.src = 'scoring-alignment-init.js';
+                script4.onload = () => {
+                    setTimeout(() => {
+                        runTest('Init script completes without errors', () => {
+                            if (!window.testScoringAlignment) {
+                                throw new Error('testScoringAlignment function not available');
+                            }
+                        });
+
+                        // Final summary
+                        setTimeout(() => {
+                            logTest(`📊 Final Results: ${testsPassed}/${testsTotal} tests passed`);
+                            if (testsPassed === testsTotal) {
+                                logTest('🎉 ALL TESTS PASSED! Redeclaration issue is FIXED!', 'success');
+                            } else {
+                                logTest('❌ Some tests failed. Check console for details.', 'error');
+                            }
+                        }, 500);
+                    }, 1000);
+                };
+                script4.onerror = () => logTest('❌ Failed to load scoring-alignment-init.js', 'error');
+                document.head.appendChild(script4);
+            };
+            script3.onerror = () => logTest('❌ Failed to load scoring-integration.js', 'error');
+            document.head.appendChild(script3);
+        };
+        script2.onerror = () => logTest('❌ Failed to load scoring-alignment-fix.js (second time)', 'error');
+        document.head.appendChild(script2);
+    </script>
+</body>
+</html>

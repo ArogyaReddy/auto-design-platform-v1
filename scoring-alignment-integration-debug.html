@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring Alignment Integration Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; line-height: 1.6; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        pre { background: #f8f9fa; padding: 10px; overflow: auto; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Scoring Alignment Integration Debug</h1>
+    
+    <div class="test-section">
+        <h2>📋 Integration Test Results</h2>
+        <div id="testResults">Running tests...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎯 Test Specific Case</h2>
+        <button onclick="testSpecificCase()">Test 95% vs 40% Case</button>
+        <div id="specificResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Debug Information</h2>
+        <button onclick="showDebugInfo()">Show Debug Info</button>
+        <div id="debugInfo"></div>
+    </div>
+
+    <!-- Load scoring alignment components in correct order -->
+    <script src="utils/scoring-alignment-fix.js"></script>
+    <script src="utils/scoring-integration.js"></script>
+    <script src="bots/elementsExtractor/scoring-alignment-fix.js"></script>
+    <script src="bots/elementsExtractor/scoring-integration.js"></script>
+
+    <script>
+        function updateResults(elementId, content, className) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = content;
+            element.className = className || '';
+        }
+
+        function runIntegrationTests() {
+            const results = [];
+            
+            // Test 1: Check if classes are available
+            results.push({
+                test: 'ScoringAlignmentFix class available',
+                passed: typeof window.ScoringAlignmentFix !== 'undefined',
+                details: typeof window.ScoringAlignmentFix
+            });
+            
+            results.push({
+                test: 'ScoringIntegration class available',
+                passed: typeof window.ScoringIntegration !== 'undefined',
+                details: typeof window.ScoringIntegration
+            });
+            
+            results.push({
+                test: 'Global scoringIntegration instance available',
+                passed: typeof window.scoringIntegration !== 'undefined',
+                details: typeof window.scoringIntegration
+            });
+            
+            // Test 2: Check if integration functions exist
+            if (window.scoringIntegration) {
+                results.push({
+                    test: 'alignElementResult function exists',
+                    passed: typeof window.scoringIntegration.alignElementResult === 'function',
+                    details: typeof window.scoringIntegration.alignElementResult
+                });
+                
+                results.push({
+                    test: 'integrateWithElementExtractor function exists',
+                    passed: typeof window.scoringIntegration.integrateWithElementExtractor === 'function',
+                    details: typeof window.scoringIntegration.integrateWithElementExtractor
+                });
+            }
+            
+            // Test 3: Check if validateWithPlaywright function exists
+            results.push({
+                test: 'validateWithPlaywright function available',
+                passed: typeof window.validateWithPlaywright === 'function',
+                details: typeof window.validateWithPlaywright
+            });
+            
+            // Display results
+            let output = '<h3>Test Results:</h3>';
+            results.forEach(result => {
+                const icon = result.passed ? '✅' : '❌';
+                output += `<div class="${result.passed ? 'success' : 'error'}">${icon} ${result.test}: ${result.details}</div>`;
+            });
+            
+            // Summary
+            const passed = results.filter(r => r.passed).length;
+            const total = results.length;
+            output += `<br><strong>Summary: ${passed}/${total} tests passed</strong>`;
+            
+            if (passed === total) {
+                output += '<div class="success">🎉 All integration tests passed! Scoring alignment should be working.</div>';
+            } else {
+                output += '<div class="error">⚠️ Integration issues detected. Scoring alignment may not work properly.</div>';
+            }
+            
+            updateResults('testResults', output);
+        }
+
+        function testSpecificCase() {
+            if (!window.scoringIntegration) {
+                updateResults('specificResults', '❌ ScoringIntegration not available', 'error');
+                return;
+            }
+
+            try {
+                // Test the exact problematic case
+                const elementExtractorData = {
+                    'Element Name': 'Sign In Button',
+                    'Element Type': 'BUTTON',
+                    'Best Locator': '[id="signin.securepopTextBtnId"]',
+                    'Locator Type': 'ID',
+                    'Strength': 95,
+                    'ID': 'signin.securepopTextBtnId'
+                };
+
+                const playwrightResult = {
+                    locator: '[id="signin.securepopTextBtnId"]',
+                    overall: {
+                        score: 40,
+                        grade: 'D',
+                        passed: false
+                    },
+                    tests: {
+                        existence: { passed: true, score: 20 },
+                        visibility: { passed: false, score: 0 },
+                        clickability: { passed: false, score: 0 },
+                        enabled: { passed: true, score: 15 },
+                        text: { passed: false, score: 0 },
+                        locatorQuality: { passed: true, score: 5, rating: 'FAIR' }
+                    }
+                };
+
+                // Apply alignment
+                const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+
+                let output = '<h3>Specific Case Test Results:</h3>';
+                output += `<div class="success">✅ Alignment successfully applied!</div>`;
+                output += `<pre>
+Original Scores:
+  Element Extractor: ${elementExtractorData.Strength}%
+  Playwright: ${playwrightResult.overall.score}%
+  Discrepancy: ${Math.abs(elementExtractorData.Strength - playwrightResult.overall.score)}%
+
+Aligned Result:
+  Aligned Score: ${alignedResult.aligned_result.Strength}%
+  Strategy: ${alignedResult.aligned_result["Alignment Strategy"]}
+  Adjustments: ${alignedResult.aligned_result["Score Adjustments"]}
+  
+New Discrepancy: ${Math.abs(alignedResult.aligned_result.Strength - playwrightResult.overall.score)}%
+Improvement: ${Math.abs(elementExtractorData.Strength - playwrightResult.overall.score) - Math.abs(alignedResult.aligned_result.Strength - playwrightResult.overall.score)}% reduction
+</pre>`;
+
+                updateResults('specificResults', output, 'success');
+
+            } catch (error) {
+                updateResults('specificResults', `❌ Error testing specific case: ${error.message}`, 'error');
+                console.error('Specific case test error:', error);
+            }
+        }
+
+        function showDebugInfo() {
+            let output = '<h3>Debug Information:</h3>';
+            
+            // Window properties
+            const scoringProps = Object.keys(window).filter(key => 
+                key.toLowerCase().includes('scoring') || key.toLowerCase().includes('alignment')
+            );
+            
+            output += `<div><strong>Scoring-related window properties:</strong><br>${scoringProps.join(', ') || 'None found'}</div>`;
+            
+            // Instance details
+            if (window.scoringIntegration) {
+                output += `<div><strong>ScoringIntegration instance properties:</strong><br>`;
+                output += Object.getOwnPropertyNames(window.scoringIntegration).join(', ');
+                output += `</div>`;
+                
+                // Statistics
+                if (window.scoringIntegration.statistics) {
+                    output += `<div><strong>Alignment statistics:</strong><br>`;
+                    output += `<pre>${JSON.stringify(window.scoringIntegration.statistics, null, 2)}</pre>`;
+                    output += `</div>`;
+                }
+            }
+            
+            // Available helper functions
+            const helperFunctions = ['testScoringAlignment', 'getScoringReport', 'demonstrateAlignment'];
+            output += `<div><strong>Helper functions available:</strong><br>`;
+            helperFunctions.forEach(func => {
+                const available = typeof window[func] === 'function';
+                output += `${available ? '✅' : '❌'} ${func}<br>`;
+            });
+            output += `</div>`;
+            
+            updateResults('debugInfo', output);
+        }
+
+        // Auto-run integration tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runIntegrationTests, 100);
+        });
+
+        // Test helper functions
+        window.testAlignment = testSpecificCase;
+        window.debugAlignment = showDebugInfo;
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring Alignment Test</title>
+</head>
+<body>
+    <h1>Scoring Alignment Test</h1>
+    <div id="test-content">
+        <button id="test-button" class="btn btn-primary">Test Button</button>
+        <a href="#examples" class="nav-link">Examples Link</a>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="scoring-alignment-fix.js"></script>
+    <script src="scoring-integration.js"></script>
+    <script src="scoring-alignment-init.js"></script>
+
+    <script>
+        // Test the scoring alignment
+        console.log('🧪 Testing Scoring Alignment...');
+        
+        // Wait for everything to load
+        setTimeout(() => {
+            console.log('🔍 Checking if ScoringAlignmentFix is available:', typeof window.ScoringAlignmentFix !== 'undefined');
+            console.log('🔍 Checking if scoringIntegration is available:', typeof window.scoringIntegration !== 'undefined');
+            
+            if (window.testScoringAlignment) {
+                console.log('🧪 Running test alignment...');
+                window.testScoringAlignment();
+            } else {
+                console.warn('⚠️ testScoringAlignment function not available');
+            }
+            
+            if (window.runScoringAlignmentDiagnostic) {
+                console.log('🩺 Running diagnostic...');
+                window.runScoringAlignmentDiagnostic();
+            } else {
+                console.warn('⚠️ runScoringAlignmentDiagnostic function not available');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

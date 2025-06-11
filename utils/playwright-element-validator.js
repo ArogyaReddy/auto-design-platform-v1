@@ -281,15 +281,17 @@ class PlaywrightElementValidator {
             // Test 6: Locator Quality Assessment
             if (validationOptions.checkLocatorQuality) {
                 const qualityAssessment = this.assessLocatorQuality(locator);
+                // Fix: Improve scoring weight for locator quality - DOM elements need fair assessment
+                const qualityScore = Math.round(qualityAssessment.score * 0.25); // Max 25 points instead of 20
                 results.tests.locatorQuality = {
-                    passed: qualityAssessment.score >= 60,
+                    passed: qualityAssessment.score >= 50, // Lower threshold for DOM elements
                     message: qualityAssessment.message,
-                    score: Math.round(qualityAssessment.score * 0.2), // Max 20 points
+                    score: qualityScore,
                     rating: qualityAssessment.rating,
                     details: qualityAssessment.details
                 };
                 
-                this.log(`📊 Locator quality: ${qualityAssessment.rating} (${qualityAssessment.score}%)`);
+                this.log(`📊 Locator quality: ${qualityAssessment.rating} (${qualityAssessment.score}%) → ${qualityScore} points`);
             }
 
             // Generate alternative locators if requested
@@ -405,10 +407,16 @@ class PlaywrightElementValidator {
             details.push('✅ Uses ARIA attributes');
         }
 
-        // Class selectors (moderate score)
+        // Class selectors (moderate score) - Improved scoring for DOM navigation
         if (locator.includes('.') && !locator.includes(' > ')) {
             score += 20;
             details.push('✅ Uses class selectors');
+        }
+
+        // Special bonus for class+href navigation patterns (commonly high-performing)
+        if (locator.includes('.') && locator.includes('[href') && !locator.includes(' > ')) {
+            score += 15; // Extra bonus for navigation elements
+            details.push('🚀 Navigation element (class+href)');
         }
 
         // Attribute selectors (decent)
@@ -652,10 +660,20 @@ class PlaywrightElementValidator {
         let totalScore = 0;
         let maxScore = 0;
 
-        Object.values(results.tests).forEach(test => {
+        // Define proper maximum scores for each test type
+        const testMaxScores = {
+            existence: 20,
+            visibility: 20, 
+            clickability: 15,
+            enabled: 15,
+            text: 10,
+            locatorQuality: 25 // Updated to match the new scoring
+        };
+
+        Object.entries(results.tests).forEach(([testName, test]) => {
             if (test.score !== undefined) {
                 totalScore += test.score;
-                maxScore += 20; // Assuming max 20 points per test
+                maxScore += testMaxScores[testName] || 20;
             }
         });
 

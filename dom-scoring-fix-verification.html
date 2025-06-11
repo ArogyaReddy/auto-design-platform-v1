@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Scoring Fix Verification - Real World Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #fff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .navigation {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .nav-link {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .form-group {
+            margin: 20px 0;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .navbar-brand {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .instructions {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .expected-results {
+            background: rgba(33, 150, 243, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .scoring-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .score-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .score-before {
+            border-left: 4px solid #f44336;
+        }
+        
+        .score-after {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .highlight {
+            background: rgba(255, 255, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 DOM Scoring Fix Verification</h1>
+            <p>Test page for verifying the 50% DOM scoring discrepancy fix</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to Test the Fix:</h3>
+            <ol>
+                <li><strong>Open Element Extractor extension</strong> (click the extension icon)</li>
+                <li><strong>Extract elements</strong> from this page</li>
+                <li><strong>Focus on DOM elements</strong> (class+href navigation, class-based buttons, etc.)</li>
+                <li><strong>Compare scores</strong>:
+                    <ul>
+                        <li>Check Element Extractor strength scores</li>
+                        <li>Run Playwright validation on same elements</li>
+                        <li>Verify discrepancies are now ≤ 20% (previously ~50%)</li>
+                    </ul>
+                </li>
+                <li><strong>Pay special attention</strong> to navigation elements with class+href patterns</li>
+            </ol>
+        </div>
+
+        <!-- Navigation Section - Primary Test Case -->
+        <div class="test-section">
+            <h3>🚀 Navigation Elements (Primary Test Case)</h3>
+            <p>These class+href elements previously scored ~50% lower in Playwright vs Element Extractor</p>
+            <div class="navigation">
+                <a href="#home" class="brand-link navbar-brand">TestApp</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <a href="/signup" class="nav-link btn-success">Sign Up</a>
+            </div>
+            <p><strong>Expected:</strong> These should now score much closer between EE and PW (within 20% difference)</p>
+        </div>
+
+        <!-- Button Section - Class-based DOM Elements -->
+        <div class="test-section">
+            <h3>🔘 Button Elements (Class-based DOM)</h3>
+            <p>Class-based buttons that should benefit from improved DOM scoring</p>
+            <button class="btn btn-primary">Primary Action</button>
+            <button class="btn btn-success">Success Action</button>
+            <button class="btn btn-warning">Warning Action</button>
+            <a href="/dashboard" class="btn btn-primary">Dashboard Link</a>
+            <p><strong>Expected:</strong> Improved scoring alignment for class-based selectors</p>
+        </div>
+
+        <!-- Form Section - Complex DOM Elements -->
+        <div class="test-section">
+            <h3>📝 Form Elements (Complex DOM)</h3>
+            <p>Form elements with class+attribute combinations</p>
+            <div class="form-group">
+                <input type="email" class="form-control" name="email" placeholder="Email Address">
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" name="password" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <select class="form-control" name="country">
+                    <option>Select Country</option>
+                    <option>United States</option>
+                    <option>Canada</option>
+                </select>
+            </div>
+            <p><strong>Expected:</strong> Better recognition of form element patterns</p>
+        </div>
+
+        <!-- Card Section - Mixed DOM Elements -->
+        <div class="test-section">
+            <h3>🎴 Card Components (Mixed DOM)</h3>
+            <div class="card">
+                <h4 class="card-title">Feature Card</h4>
+                <p>This card contains various DOM elements that should benefit from the scoring fix.</p>
+                <a href="#feature1" class="btn btn-primary">Learn More</a>
+            </div>
+            <div class="card">
+                <h4 class="card-title">Pricing Card</h4>
+                <p>Another card with class-based elements for testing.</p>
+                <a href="/pricing" class="btn btn-success">View Pricing</a>
+            </div>
+            <p><strong>Expected:</strong> Card titles and links should score more consistently</p>
+        </div>
+
+        <!-- Expected Results Section -->
+        <div class="expected-results">
+            <h3>✅ Expected Results After Fix</h3>
+            <div class="scoring-comparison">
+                <div class="score-box score-before">
+                    <h4>❌ Before Fix</h4>
+                    <p><strong>Navigation Link:</strong></p>
+                    <p>EE: 95% | PW: ~45%</p>
+                    <p class="highlight">50% Discrepancy!</p>
+                </div>
+                <div class="score-box score-after">
+                    <h4>✅ After Fix</h4>
+                    <p><strong>Navigation Link:</strong></p>
+                    <p>EE: 95% | PW: ~78%</p>
+                    <p class="highlight">17% Discrepancy</p>
+                </div>
+            </div>
+            
+            <h4>🎯 Specific Improvements to Look For:</h4>
+            <ul>
+                <li><strong>Navigation Elements:</strong> <code>.nav-link[href="#features"]</code> should score ~78% in PW (vs ~45% before)</li>
+                <li><strong>Class+Href Buttons:</strong> <code>.btn.btn-success[href="/signup"]</code> should score ~80% in PW</li>
+                <li><strong>Class-based Elements:</strong> <code>.btn-primary</code> should score ~72% in PW</li>
+                <li><strong>Form Controls:</strong> <code>.form-control[name="email"]</code> should score ~72% in PW</li>
+                <li><strong>Card Titles:</strong> <code>.card-title</code> should score ~68% in PW</li>
+            </ul>
+        </div>
+
+        <!-- Testing Instructions -->
+        <div class="test-section">
+            <h3>🔧 Detailed Testing Steps</h3>
+            <ol>
+                <li><strong>Extract Elements:</strong> Use Element Extractor to scan this page</li>
+                <li><strong>Identify Key Elements:</strong> Look for the navigation links, buttons, and form elements</li>
+                <li><strong>Check Element Extractor Scores:</strong> Note the strength scores (should be high for most elements)</li>
+                <li><strong>Run Playwright Validation:</strong> Use "Validate with Playwright" on each element</li>
+                <li><strong>Compare Scores:</strong> Verify the discrepancy is now much smaller</li>
+                <li><strong>Look for Alignment Info:</strong> Check console logs for alignment strategy information</li>
+            </ol>
+            
+            <h4>📊 Success Criteria:</h4>
+            <ul>
+                <li>✅ Navigation elements (class+href): Discrepancy ≤ 20%</li>
+                <li>✅ Class-based buttons: Discrepancy ≤ 15%</li>
+                <li>✅ Form elements: Discrepancy ≤ 18%</li>
+                <li>✅ Card components: Discrepancy ≤ 15%</li>
+                <li>✅ Overall average: Discrepancy ≤ 17%</li>
+            </ul>
+        </div>
+
+        <!-- Test Results Section -->
+        <div class="test-section">
+            <h3>📈 Test Results</h3>
+            <p>After running the tests, you should see:</p>
+            <ul>
+                <li><strong>Consistent Scoring:</strong> No more 50% discrepancies</li>
+                <li><strong>DOM Recognition:</strong> class+href patterns properly valued</li>
+                <li><strong>Balanced Assessment:</strong> Both systems complement each other</li>
+                <li><strong>Alignment Logs:</strong> Console shows scoring adjustments applied</li>
+            </ul>
+            
+            <div id="testResults" class="card">
+                <h4 class="card-title">🎯 Your Test Results</h4>
+                <p>Record your findings here as you test:</p>
+                <textarea style="width: 100%; height: 100px; padding: 10px; border-radius: 5px; border: 1px solid #ddd; background: rgba(255,255,255,0.9); color: #333;" placeholder="Paste your test results here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 DOM Scoring Fix Verification Page Loaded');
+            console.log('This page contains various DOM elements to test the scoring fix');
+            
+            // Log element information for easy reference
+            const testElements = [
+                { selector: '.nav-link[href="#features"]', type: 'Navigation (class+href)', expectedImprovement: 'High' },
+                { selector: '.btn.btn-primary', type: 'Class-based button', expectedImprovement: 'Medium' },
+                { selector: '.form-control[name="email"]', type: 'Form element', expectedImprovement: 'Medium' },
+                { selector: '.card-title', type: 'Card component', expectedImprovement: 'Medium' },
+                { selector: '.navbar-brand', type: 'Brand link', expectedImprovement: 'High' }
+            ];
+            
+            console.log('🔍 Key Test Elements:');
+            testElements.forEach((element, index) => {
+                console.log(`${index + 1}. ${element.selector} (${element.type}) - Expected: ${element.expectedImprovement} improvement`);
+            });
+            
+            console.log('\n📊 How to verify the fix:');
+            console.log('1. Use Element Extractor to scan this page');
+            console.log('2. Compare EE strength scores with PW validation scores');
+            console.log('3. Look for discrepancies ≤ 20% (previously ~50%)');
+            console.log('4. Check console for alignment strategy logs');
+        });
+    </script>
+</body>
+</html>

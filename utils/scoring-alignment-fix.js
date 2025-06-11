@@ -5,6 +5,11 @@
  * and Playwright Utility (75%) to produce consistent results.
  */
 
+// Check if ScoringAlignmentFix is already defined to prevent redeclaration
+if (typeof window !== 'undefined' && window.ScoringAlignmentFix) {
+    console.log('🎯 ScoringAlignmentFix already loaded, skipping redeclaration');
+} else {
+
 class ScoringAlignmentFix {
     constructor() {
         this.alignmentStrategy = 'hybrid'; // 'element-extractor-priority', 'playwright-priority', 'hybrid'
@@ -217,13 +222,21 @@ class ScoringAlignmentFix {
 
         // Apply intelligent adjustments
         if (analysis.reasons.some(r => r.type === 'ee_optimistic' && r.impact === 'high')) {
-            alignedScore -= 5;
-            adjustments.push('EE optimism adjustment (-5)');
+            alignedScore -= 3; // Reduced penalty - EE is usually quite accurate
+            adjustments.push('EE optimism adjustment (-3)');
         }
 
+        // DOM Navigation Elements: Boost recognition (this was a major issue)
         if (analysis.reasons.some(r => r.type === 'class_href_quality_mismatch')) {
-            alignedScore += 7;
-            adjustments.push('Navigation strategy recognition (+7)');
+            alignedScore += 12; // Increased bonus for navigation elements
+            adjustments.push('DOM navigation strategy recognition (+12)');
+        }
+
+        // General DOM element boost if PW is being too harsh
+        if ((eeResult.type === 'class+href' || eeResult.locatorType === 'class+href') && 
+            pwResult.overall.score < eeResult.strength - 20) {
+            alignedScore += 8;
+            adjustments.push('DOM element fairness adjustment (+8)');
         }
 
         // Critical failures override
@@ -242,7 +255,7 @@ class ScoringAlignmentFix {
             originalEEScore: eeResult.strength,
             originalPWScore: pwResult.overall.score,
             adjustments,
-            reasoning: `Balanced approach: ${Math.round(eeWeight * 100)}% EE + ${Math.round(pwWeight * 100)}% PW with intelligent adjustments`
+            reasoning: `Balanced approach: ${Math.round(eeWeight * 100)}% EE + ${Math.round(pwWeight * 100)}% PW with DOM-aware adjustments`
         };
     }
 
@@ -250,33 +263,38 @@ class ScoringAlignmentFix {
      * Calculate Element Extractor weight for hybrid approach
      */
     getElementExtractorWeight(eeResult, pwResult) {
-        let weight = 0.6; // Default: slightly favor Element Extractor's proven approach
+        let weight = 0.65; // Default: favor Element Extractor more (it's proven)
 
-        // Increase EE weight for navigation elements
+        // Increase EE weight for navigation elements (major fix for DOM scoring)
         if (eeResult.type === 'class+href' || eeResult.locatorType === 'class+href') {
-            weight += 0.2;
+            weight += 0.25; // Significantly boost navigation elements
         }
 
         // Increase EE weight for ID selectors
         if (eeResult.type === 'ID') {
+            weight += 0.15;
+        }
+
+        // Increase EE weight for class-based DOM selectors
+        if (eeResult.type === 'class' || eeResult.locatorType === 'class') {
             weight += 0.1;
         }
 
-        // Decrease EE weight if Playwright finds critical issues
+        // Decrease EE weight only for critical Playwright issues
         if (!pwResult.tests.existence?.passed) {
-            weight -= 0.4;
+            weight -= 0.5; // Major penalty for non-existent elements
         } else if (!pwResult.tests.visibility?.passed) {
-            weight -= 0.2;
+            weight -= 0.15; // Minor penalty for visibility issues
         }
 
-        // Adjust based on locator quality
+        // Adjust based on locator quality (but don't over-penalize DOM elements)
         if (pwResult.tests.locatorQuality?.rating === 'EXCELLENT') {
-            weight -= 0.1;
+            weight -= 0.05; // Small penalty if PW says locator is excellent
         } else if (pwResult.tests.locatorQuality?.rating === 'POOR') {
-            weight += 0.1;
+            weight += 0.05; // Small boost if PW is being harsh
         }
 
-        return Math.max(0.2, Math.min(0.8, weight));
+        return Math.max(0.2, Math.min(0.9, weight)); // Keep within reasonable bounds
     }
 
     /**
@@ -408,6 +426,8 @@ class ScoringAlignmentFix {
 // Export for use in both Node.js and browser environments
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ScoringAlignmentFix;
-} else if (typeof window !== 'undefined') {
+} else if (typeof window !== 'undefined' && !window.ScoringAlignmentFix) {
     window.ScoringAlignmentFix = ScoringAlignmentFix;
 }
+
+} // End of conditional declaration check
