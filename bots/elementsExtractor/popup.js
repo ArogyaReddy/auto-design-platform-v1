@@ -86,18 +86,6 @@ function startInspectionDirectly(tabId) {
   });
 }
 
-// Helper function to reset inspection state
-function resetInspectionState() {
-  isInspectingGlobal = false;
-  // Clear inspection state from storage
-  chrome.storage.local.set({ isInspecting: false });
-  const inspectElementBtn = document.getElementById('inspectElement');
-  if (inspectElementBtn) {
-    inspectElementBtn.classList.remove('inspecting');
-    inspectElementBtn.textContent = '🔬 Inspect Element';
-  }
-}
-
 // ---- Pagination State ----
 let currentPage = 1;
 let itemsPerPage = 12;
@@ -124,6 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for recent inspection data and display it
   checkForRecentInspectionData();
+
+  // Initialize auto-filler functionality
+  initializeAutoFiller();
 
   // Only initialize popup-specific features if we're in popup context (not fullpage)
   if (!document.body.classList.contains('fullpage-mode')) {
@@ -2318,7 +2309,7 @@ document.addEventListener('DOMContentLoaded', () => {
           chrome.tabs.sendMessage(tabId, { action: "ping" }, (pingResponse) => {
             clearTimeout(timeoutId);
             
-            if (chrome.runtime.lastError || !pingResponse) {
+            if (chrome.runtime.lastError) {
               console.warn("Element AI Extractor: Content script still not responsive after injection");
               console.log("Element AI Extractor: Ping error:", chrome.runtime.lastError?.message);
               console.log("Element AI Extractor: Ping response:", pingResponse);
@@ -2373,10 +2364,11 @@ document.addEventListener('DOMContentLoaded', () => {
         inspectorStatusDiv.textContent = '❌ Error: Cannot connect to page. Try reloading the page/extension.';
         resetInspectionState();
       } else if (response && response.status === 'listening') {
-        console.log("Element AI Extractor: Content script is now listening after manual injection.");
+        console.log("Element AI Extractor: Direct inspection started successfully");
         inspectorStatusDiv.textContent = '🔬 Inspect Mode: Click an element on the page.';
-      } else if (response && response.status === 'error') {
-        inspectorStatusDiv.textContent = `❌ Error: ${response.message}`;
+      } else {
+        console.error("Element AI Extractor: Unexpected inspection response:", response);
+        inspectorStatusDiv.textContent = '❌ Unexpected response. Please try again.';
         resetInspectionState();
       }
     });
@@ -2480,6 +2472,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     
     sendResponse({status: "popupUpdated"});
+    return true;
+  }
+  
+  // Handle auto-filler log messages
+  if (message.action === "autoFillerLog") {
+    console.log("Popup received auto-filler log:", message.data);
+    addAutoFillerLogEntry(message.data);
+    return true;
+  }
+  
+  // Handle auto-fill completion
+  if (message.action === "autoFillComplete") {
+    console.log("Popup received auto-fill completion:", message.data);
+    const stats = message.data;
+    showAutoFillerStatus(`✅ Auto-fill complete: ${stats.filled}/${stats.total} filled (${stats.errors} errors)`, 'success');
+    return true;
+  }
+  
+  // Handle auto-interact completion
+  if (message.action === "autoInteractComplete") {
+    console.log("Popup received auto-interact completion:", message.data);
+    const stats = message.data;
+    showAutoFillerStatus(`✅ Auto-interact complete: ${stats.interacted}/${stats.total} interactions (${stats.errors} errors)`, 'success');
     return true;
   }
 });
@@ -2643,35 +2658,438 @@ async function bulletproofStartInspection(tabId) {
   
   try {
     console.log("Element AI Extractor: BULLETPROOF - Starting reliable inspection...");
-    inspectorStatusDiv.textContent = '🔄 Loading...';
+    inspectorStatusDiv.textContent = '🔄 Connecting to page...';
     
-    // ALWAYS inject content script first - this eliminates connection errors
-    console.log("Element AI Extractor: BULLETPROOF - Injecting content script...");
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['contentScript.js']
+    // Use the robust content script readiness check
+    await ensureContentScriptReady(tabId);
+    
+    console.log("Element AI Extractor: BULLETPROOF - Content script ready, starting inspection");
+    inspectorStatusDiv.textContent = '🔄 Starting inspection...';
+    
+    // Start inspection with verified content script
+    const inspectionResult = await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve({ success: false, error: 'Inspection start timeout' });
+      }, 5000);
+      
+      chrome.tabs.sendMessage(tabId, { action: "startInspectingAiExtractor" }, (response) => {
+        clearTimeout(timeout);
+        
+        if (chrome.runtime.lastError) {
+          resolve({ success: false, error: chrome.runtime.lastError.message });
+        } else if (response && response.status === 'listening') {
+          resolve({ success: true });
+        } else {
+          resolve({ success: false, error: response?.message || 'Unknown error' });
+        }
+      });
     });
     
-    console.log("Element AI Extractor: BULLETPROOF - Content script loaded, waiting for initialization...");
-    inspectorStatusDiv.textContent = '🔄 Initializing...';
-    
-    // Wait for content script to initialize properly
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Start inspection directly without complex testing
-    console.log("Element AI Extractor: BULLETPROOF - Starting inspection");
-    inspectorStatusDiv.textContent = '✅ Ready! Click an element to inspect...';
-    
-    // Call the existing startInspectionDirectly function
-    startInspectionDirectly(tabId);
-    
-    console.log("Element AI Extractor: BULLETPROOF - Inspection started successfully");
+    if (inspectionResult.success) {
+      inspectorStatusDiv.textContent = '🔬 Inspect Mode: Click an element on the page.';
+      console.log("Element AI Extractor: BULLETPROOF - Inspection started successfully");
+    } else {
+      throw new Error(inspectionResult.error);
+    }
     
   } catch (error) {
     console.error("Element AI Extractor: BULLETPROOF - Error:", error);
-    inspectorStatusDiv.textContent = '❌ Failed to start. Please reload and try again.';
+    inspectorStatusDiv.textContent = '❌ Connection failed. Please reload the page and try again.';
     resetInspectionState();
   }
+}
+
+// Reset inspection state helper
+function resetInspectionState() {
+  isInspectingGlobal = false;
+  const inspectElementBtn = document.getElementById('inspectElement');
+  if (inspectElementBtn) {
+    inspectElementBtn.classList.remove('inspecting');
+    inspectElementBtn.textContent = '🔬 Inspect Element';
+  }
+  
+  // Clear inspection state from storage
+  chrome.storage.local.set({ isInspecting: false });
+}
+
+// Direct inspection start (used by bulletproof function)
+function startInspectionDirectly(tabId) {
+  const inspectorStatusDiv = document.getElementById('inspector-status');
+  
+  chrome.tabs.sendMessage(tabId, { action: "startInspectingAiExtractor" }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error("Element AI Extractor: Direct inspection start failed:", chrome.runtime.lastError.message);
+      inspectorStatusDiv.textContent = '❌ Failed to start inspection. Please try again.';
+      resetInspectionState();
+    } else if (response && response.status === 'listening') {
+      console.log("Element AI Extractor: Direct inspection started successfully");
+      inspectorStatusDiv.textContent = '🔬 Inspect Mode: Click an element on the page.';
+    } else {
+      console.error("Element AI Extractor: Unexpected inspection response:", response);
+      inspectorStatusDiv.textContent = '❌ Unexpected response. Please try again.';
+      resetInspectionState();
+    }
+  });
+}
+
+// ---- Auto-Filler Functionality ----
+let isTestModeEnabled = false;
+let autoFillerLogVisible = false;
+
+function initializeAutoFiller() {
+  const autoFillBtn = document.getElementById('autoFillBtn');
+  const autoInteractBtn = document.getElementById('autoInteractBtn');
+  const testModeBtn = document.getElementById('testModeBtn');
+  const autoFillerSettings = document.getElementById('autoFillerSettings');
+  const autoFillerStatus = document.getElementById('auto-filler-status');
+  const autoFillerLog = document.getElementById('auto-filler-log');
+
+  if (!autoFillBtn || !autoInteractBtn || !testModeBtn) {
+    console.warn('Auto-filler elements not found in DOM');
+    return;
+  }
+
+  // Load saved test mode state
+  chrome.storage.local.get(['autoFillerTestMode'], (result) => {
+    if (result.autoFillerTestMode) {
+      enableTestMode();
+    }
+  });
+
+  // Auto-fill button event
+  autoFillBtn.addEventListener('click', async () => {
+    if (autoFillBtn.disabled) return;
+    
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) {
+        showAutoFillerStatus('❌ No active tab found', 'error');
+        return;
+      }
+
+      autoFillBtn.disabled = true;
+      autoInteractBtn.disabled = true;
+      showAutoFillerStatus('🔄 Preparing auto-filler...', 'info');
+      clearAutoFillerLog();
+
+      // Ensure auto-filler script is loaded
+      await ensureAutoFillerScript(tab.id);
+      
+      showAutoFillerStatus('🔄 Auto-filling forms...', 'info');
+
+      // Execute auto-fill with timeout
+      const result = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Auto-fill timeout after 30 seconds'));
+        }, 30000);
+
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'autoFillForms',
+          testMode: isTestModeEnabled
+        }, (response) => {
+          clearTimeout(timeout);
+          
+          if (chrome.runtime.lastError) {
+            reject(new Error(`Communication error: ${chrome.runtime.lastError.message}`));
+          } else if (response && response.status === 'success') {
+            resolve(response);
+          } else {
+            reject(new Error(response?.message || 'Auto-fill failed with unknown error'));
+          }
+        });
+      });
+      
+      showAutoFillerStatus('✅ Auto-fill completed successfully', 'success');
+      
+    } catch (error) {
+      console.error('Auto-fill error:', error);
+      showAutoFillerStatus(`❌ Error: ${error.message}`, 'error');
+    } finally {
+      autoFillBtn.disabled = false;
+      autoInteractBtn.disabled = false;
+    }
+  });
+
+  // Auto-interact button event
+  autoInteractBtn.addEventListener('click', async () => {
+    if (autoInteractBtn.disabled) return;
+    
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) {
+        showAutoFillerStatus('❌ No active tab found', 'error');
+        return;
+      }
+
+      autoFillBtn.disabled = true;
+      autoInteractBtn.disabled = true;
+      showAutoFillerStatus('🔄 Preparing auto-interaction...', 'info');
+      clearAutoFillerLog();
+
+      // Ensure auto-filler script is loaded
+      await ensureAutoFillerScript(tab.id);
+      
+      showAutoFillerStatus('🔄 Auto-interacting with elements...', 'info');
+
+      // Execute auto-interact with timeout
+      const result = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Auto-interact timeout after 30 seconds'));
+        }, 30000);
+
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'autoInteract',
+          testMode: isTestModeEnabled
+        }, (response) => {
+          clearTimeout(timeout);
+          
+          if (chrome.runtime.lastError) {
+            reject(new Error(`Communication error: ${chrome.runtime.lastError.message}`));
+          } else if (response && response.status === 'success') {
+            resolve(response);
+          } else {
+            reject(new Error(response?.message || 'Auto-interact failed with unknown error'));
+          }
+        });
+      });
+      
+      showAutoFillerStatus('✅ Auto-interact completed successfully', 'success');
+      
+    } catch (error) {
+      console.error('Auto-interact error:', error);
+      showAutoFillerStatus(`❌ Error: ${error.message}`, 'error');
+    } finally {
+      autoFillBtn.disabled = false;
+      autoInteractBtn.disabled = false;
+    }
+  });
+
+  // Test mode button event
+  testModeBtn.addEventListener('click', () => {
+    if (isTestModeEnabled) {
+      disableTestMode();
+    } else {
+      enableTestMode();
+    }
+  });
+
+  // Settings button event
+  if (autoFillerSettings) {
+    autoFillerSettings.addEventListener('click', () => {
+      openAutoFillerSettings();
+    });
+  }
+
+  // Toggle log visibility when status is clicked
+  if (autoFillerStatus) {
+    autoFillerStatus.addEventListener('click', () => {
+      toggleAutoFillerLog();
+    });
+  }
+}
+
+function enableTestMode() {
+  isTestModeEnabled = true;
+  const testModeBtn = document.getElementById('testModeBtn');
+  const testModeIcon = document.getElementById('testModeIcon');
+  const testModeText = document.getElementById('testModeText');
+  
+  if (testModeBtn) {
+    testModeBtn.classList.add('active');
+    if (testModeIcon) testModeIcon.textContent = '🟡';
+    if (testModeText) testModeText.textContent = 'Test Mode ON';
+    testModeBtn.title = 'Test mode enabled - Safe interactions only';
+  }
+  
+  // Save state
+  chrome.storage.local.set({ autoFillerTestMode: true });
+  showAutoFillerStatus('🧪 Test mode enabled - Safe interactions only', 'info');
+}
+
+function disableTestMode() {
+  isTestModeEnabled = false;
+  const testModeBtn = document.getElementById('testModeBtn');
+  const testModeIcon = document.getElementById('testModeIcon');
+  const testModeText = document.getElementById('testModeText');
+  
+  if (testModeBtn) {
+    testModeBtn.classList.remove('active');
+    if (testModeIcon) testModeIcon.textContent = '🧪';
+    if (testModeText) testModeText.textContent = 'Test Mode';
+    testModeBtn.title = 'Enable test mode for safe interaction';
+  }
+  
+  // Save state
+  chrome.storage.local.set({ autoFillerTestMode: false });
+  showAutoFillerStatus('⚠️ Test mode disabled - Full interactions enabled', 'info');
+}
+
+function showAutoFillerStatus(message, type = 'info') {
+  const statusElement = document.getElementById('auto-filler-status');
+  if (statusElement) {
+    statusElement.textContent = message;
+    statusElement.className = `auto-filler-status ${type}`;
+    
+    // Clear status after 5 seconds for non-error messages
+    if (type !== 'error') {
+      setTimeout(() => {
+        statusElement.textContent = '';
+        statusElement.className = 'auto-filler-status';
+      }, 5000);
+    }
+  }
+}
+
+function toggleAutoFillerLog() {
+  const logElement = document.getElementById('auto-filler-log');
+  if (logElement) {
+    autoFillerLogVisible = !autoFillerLogVisible;
+    logElement.style.display = autoFillerLogVisible ? 'block' : 'none';
+  }
+}
+
+function clearAutoFillerLog() {
+  const logElement = document.getElementById('auto-filler-log');
+  if (logElement) {
+    logElement.innerHTML = '';
+    logElement.style.display = 'none';
+    autoFillerLogVisible = false;
+  }
+}
+
+function addAutoFillerLogEntry(entry) {
+  const logElement = document.getElementById('auto-filler-log');
+  if (logElement) {
+    const logEntry = document.createElement('div');
+    logEntry.className = `log-entry ${entry.type}`;
+    logEntry.textContent = `[${entry.timestamp}] ${entry.message}`;
+    logElement.appendChild(logEntry);
+    
+    // Auto-scroll to bottom
+    logElement.scrollTop = logElement.scrollHeight;
+    
+    // Show log if hidden
+    if (!autoFillerLogVisible) {
+      logElement.style.display = 'block';
+      autoFillerLogVisible = true;
+    }
+  }
+}
+
+async function ensureAutoFillerScript(tabId) {
+  try {
+    console.log('Auto-filler: Starting bulletproof script initialization for tab:', tabId);
+    
+    // Step 1: Ensure content script is ready first (this fixes the "receiving end does not exist" error)
+    console.log('Auto-filler: Ensuring content script is ready...');
+    await ensureContentScriptReady(tabId);
+    
+    // Step 2: Inject auto-filler script
+    console.log('Auto-filler: Injecting auto-filler script...');
+    await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['autoFiller.js']
+    });
+    
+    console.log('Auto-filler: Script injection completed, verifying...');
+    
+    // Step 3: Wait for initialization
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Step 4: Verify auto-filler is ready
+    const verifyResult = await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        console.warn('Auto-filler: Verification timeout after 5 seconds');
+        resolve({ autoFillerReady: false, error: 'Verification timeout' });
+      }, 5000);
+      
+      chrome.tabs.sendMessage(tabId, { action: 'pingAutoFiller' }, (response) => {
+        clearTimeout(timeout);
+        if (chrome.runtime.lastError) {
+          console.log('Auto-filler: Ping failed:', chrome.runtime.lastError.message);
+          resolve({ autoFillerReady: false, error: chrome.runtime.lastError.message });
+        } else {
+          console.log('Auto-filler: Ping response:', response);
+          resolve(response || { autoFillerReady: false, error: 'No response' });
+        }
+      });
+    });
+    
+    if (!verifyResult.autoFillerReady) {
+      const errorMessage = verifyResult.autoFillerError || verifyResult.error || 'Auto-filler failed to initialize properly';
+      throw new Error(errorMessage);
+    }
+    
+    console.log('Auto-filler: Script verified and ready successfully');
+    
+  } catch (error) {
+    console.error('Auto-filler: Error ensuring script:', error);
+    throw new Error(`Failed to load auto-filler: ${error.message}`);
+  }
+}
+
+// Bulletproof content script readiness check - fixes communication errors
+async function ensureContentScriptReady(tabId) {
+  console.log('Auto-filler: Ensuring content script is ready for tab:', tabId);
+  
+  // First, verify the tab is accessible
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab || tab.url.startsWith('chrome://') || tab.url.startsWith('moz-extension://')) {
+      throw new Error('Cannot access restricted page');
+    }
+  } catch (error) {
+    throw new Error(`Tab access failed: ${error.message}`);
+  }
+  
+  // Test communication multiple times with progressive delays
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    console.log(`Auto-filler: Content script readiness attempt ${attempt}/3`);
+    
+    const isReady = await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        console.log(`Auto-filler: Attempt ${attempt} - timeout after 3 seconds`);
+        resolve(false);
+      }, 3000);
+      
+      chrome.tabs.sendMessage(tabId, { action: 'ping' }, (response) => {
+        clearTimeout(timeout);
+        
+        if (chrome.runtime.lastError) {
+          console.log(`Auto-filler: Attempt ${attempt} - ping error:`, chrome.runtime.lastError.message);
+          resolve(false);
+        } else if (response && response.status === 'alive') {
+          console.log(`Auto-filler: Attempt ${attempt} - content script is ready:`, response);
+          resolve(true);
+        } else {
+          console.log(`Auto-filler: Attempt ${attempt} - invalid response:`, response);
+          resolve(false);
+        }
+      });
+    });
+    
+    if (isReady) {
+      console.log('Auto-filler: Content script confirmed ready');
+      return;
+    }
+    
+    // If not ready and this isn't the last attempt, try injecting content script
+    if (attempt < 3) {
+      console.log(`Auto-filler: Content script not ready, injecting (attempt ${attempt})`);
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['contentScript.js']
+        });
+        console.log('Auto-filler: Content script injected, waiting...');
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Progressive delay
+      } catch (injectError) {
+        console.warn(`Auto-filler: Content script injection failed:`, injectError);
+      }
+    }
+  }
+  
+  throw new Error('Content script failed to respond after 3 attempts');
 }
 
 // ---- Expand/Collapse Functionality ----
@@ -3219,4 +3637,342 @@ function downloadCSVFileWithPlaywright(elementList, filename) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// Auto-Filler Settings Management
+function openAutoFillerSettings() {
+  // Create settings modal
+  createAutoFillerSettingsModal();
+}
+
+function createAutoFillerSettingsModal() {
+  // Remove existing modal if present
+  const existingModal = document.getElementById('autoFillerSettingsModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Create modal container
+  const modal = document.createElement('div');
+  modal.id = 'autoFillerSettingsModal';
+  modal.className = 'auto-filler-settings-modal';
+  
+  // Load saved custom data
+  chrome.storage.local.get(['autoFillerCustomData'], (result) => {
+    const savedData = result.autoFillerCustomData || getDefaultCustomData();
+    
+    modal.innerHTML = `
+      <div class="settings-modal-overlay">
+        <div class="settings-modal-content">
+          <div class="settings-modal-header">
+            <h3>🤖 Auto-Filler Settings</h3>
+            <button class="close-settings-btn" id="closeSettingsBtn">✕</button>
+          </div>
+          
+          <div class="settings-modal-body">
+            <div class="settings-section">
+              <h4>📝 Custom Fill Data</h4>
+              <p class="settings-description">
+                Configure the data used to automatically fill forms. Use JSON format.
+              </p>
+              
+              <div class="custom-data-editor">
+                <textarea id="customDataTextarea" class="custom-data-textarea" 
+                          placeholder="Enter custom data in JSON format...">${JSON.stringify(savedData, null, 2)}</textarea>
+              </div>
+              
+              <div class="settings-actions">
+                <button class="settings-btn preset-btn" id="loadPresetBtn">📋 Load Preset</button>
+                <button class="settings-btn reset-btn" id="resetDataBtn">🔄 Reset to Default</button>
+                <button class="settings-btn validate-btn" id="validateDataBtn">✅ Validate JSON</button>
+              </div>
+            </div>
+            
+            <div class="settings-section">
+              <h4>🎯 Quick Presets</h4>
+              <div class="preset-buttons">
+                <button class="preset-option-btn" data-preset="personal">👤 Personal Info</button>
+                <button class="preset-option-btn" data-preset="business">🏢 Business Info</button>
+                <button class="preset-option-btn" data-preset="testing">🧪 Testing Data</button>
+              </div>
+            </div>
+            
+            <div class="settings-section">
+              <h4>⚙️ Fill Options</h4>
+              <div class="fill-options">
+                <label class="option-label">
+                  <input type="checkbox" id="enableAnimations" checked>
+                  Enable fill animations
+                </label>
+                <label class="option-label">
+                  <input type="checkbox" id="enableSounds" checked>
+                  Enable sound feedback
+                </label>
+                <label class="option-label">
+                  <input type="checkbox" id="logDetails" checked>
+                  Log detailed results
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="settings-modal-footer">
+            <button class="settings-btn cancel-btn" id="cancelSettingsBtn">Cancel</button>
+            <button class="settings-btn save-btn" id="saveSettingsBtn">💾 Save Settings</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listeners
+    setupSettingsModalEventListeners();
+    
+    // Show modal with animation
+    setTimeout(() => modal.classList.add('visible'), 10);
+  });
+}
+
+function setupSettingsModalEventListeners() {
+  const modal = document.getElementById('autoFillerSettingsModal');
+  const closeBtn = document.getElementById('closeSettingsBtn');
+  const cancelBtn = document.getElementById('cancelSettingsBtn');
+  const saveBtn = document.getElementById('saveSettingsBtn');
+  const validateBtn = document.getElementById('validateDataBtn');
+  const resetBtn = document.getElementById('resetDataBtn');
+  const loadPresetBtn = document.getElementById('loadPresetBtn');
+  const presetBtns = document.querySelectorAll('.preset-option-btn');
+  const textarea = document.getElementById('customDataTextarea');
+  
+  // Close modal events
+  [closeBtn, cancelBtn].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', closeAutoFillerSettings);
+    }
+  });
+  
+  // Click outside to close
+  modal.addEventListener('click', (e) => {
+    if (e.target.classList.contains('settings-modal-overlay')) {
+      closeAutoFillerSettings();
+    }
+  });
+  
+  // Save settings
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveAutoFillerSettings);
+  }
+  
+  // Validate JSON
+  if (validateBtn) {
+    validateBtn.addEventListener('click', validateCustomData);
+  }
+  
+  // Reset to default
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Reset to default data? This will overwrite your current settings.')) {
+        textarea.value = JSON.stringify(getDefaultCustomData(), null, 2);
+        showSettingsMessage('✅ Reset to default data', 'success');
+      }
+    });
+  }
+  
+  // Preset buttons
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const preset = e.target.dataset.preset;
+      loadPresetData(preset);
+    });
+  });
+  
+  // Load current options
+  loadSettingsOptions();
+}
+
+function saveAutoFillerSettings() {
+  const textarea = document.getElementById('customDataTextarea');
+  const enableAnimations = document.getElementById('enableAnimations')?.checked;
+  const enableSounds = document.getElementById('enableSounds')?.checked;
+  const logDetails = document.getElementById('logDetails')?.checked;
+  
+  try {
+    // Validate JSON first
+    const customData = JSON.parse(textarea.value);
+    
+    // Save to Chrome storage
+    chrome.storage.local.set({
+      autoFillerCustomData: customData,
+      autoFillerOptions: {
+        enableAnimations,
+        enableSounds,
+        logDetails
+      }
+    }, () => {
+      if (chrome.runtime.lastError) {
+        showSettingsMessage('❌ Error saving settings: ' + chrome.runtime.lastError.message, 'error');
+      } else {
+        showSettingsMessage('✅ Settings saved successfully!', 'success');
+        
+        // Refresh auto-filler data in the current tab
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, { 
+              action: 'refreshAutoFillerData' 
+            }, (response) => {
+              // Ignore response - just attempt to refresh
+            });
+          }
+        });
+        
+        setTimeout(() => {
+          closeAutoFillerSettings();
+          showAutoFillerStatus('⚙️ Settings updated successfully', 'success');
+        }, 1000);
+      }
+    });
+    
+  } catch (error) {
+    showSettingsMessage('❌ Invalid JSON format: ' + error.message, 'error');
+  }
+}
+
+function validateCustomData() {
+  const textarea = document.getElementById('customDataTextarea');
+  
+  try {
+    const data = JSON.parse(textarea.value);
+    const fieldCount = Object.keys(data).length;
+    showSettingsMessage(`✅ Valid JSON with ${fieldCount} fields`, 'success');
+  } catch (error) {
+    showSettingsMessage('❌ Invalid JSON: ' + error.message, 'error');
+  }
+}
+
+function loadPresetData(presetType) {
+  const textarea = document.getElementById('customDataTextarea');
+  let presetData;
+  
+  switch (presetType) {
+    case 'personal':
+      presetData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        fullName: 'John Doe',
+        email: 'john.doe@email.com',
+        phone: '+1-555-123-4567',
+        address: '123 Main Street',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        country: 'United States'
+      };
+      break;
+      
+    case 'business':
+      presetData = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        fullName: 'Jane Smith',
+        email: 'jane.smith@company.com',
+        phone: '+1-555-987-6543',
+        company: 'Tech Solutions Inc',
+        jobTitle: 'Senior Manager',
+        website: 'https://company.com',
+        industry: 'Technology'
+      };
+      break;
+      
+    case 'testing':
+      presetData = {
+        firstName: 'Test',
+        lastName: 'User',
+        fullName: 'Test User',
+        email: 'test@example.com',
+        phone: '+1-555-000-0000',
+        company: 'Test Company',
+        message: 'This is test data for form filling validation.',
+        comments: 'Auto-generated test content'
+      };
+      break;
+      
+    default:
+      presetData = getDefaultCustomData();
+  }
+  
+  textarea.value = JSON.stringify(presetData, null, 2);
+  showSettingsMessage(`📋 ${presetType.charAt(0).toUpperCase() + presetType.slice(1)} preset loaded`, 'info');
+}
+
+function loadSettingsOptions() {
+  chrome.storage.local.get(['autoFillerOptions'], (result) => {
+    const options = result.autoFillerOptions || {
+      enableAnimations: true,
+      enableSounds: true,
+      logDetails: true
+    };
+    
+    const enableAnimations = document.getElementById('enableAnimations');
+    const enableSounds = document.getElementById('enableSounds');
+    const logDetails = document.getElementById('logDetails');
+    
+    if (enableAnimations) enableAnimations.checked = options.enableAnimations;
+    if (enableSounds) enableSounds.checked = options.enableSounds;
+    if (logDetails) logDetails.checked = options.logDetails;
+  });
+}
+
+function getDefaultCustomData() {
+  return {
+    firstName: 'John',
+    lastName: 'Doe',
+    fullName: 'John Doe',
+    email: 'john.doe@example.com',
+    phone: '+1-555-123-4567',
+    address: '123 Main Street',
+    city: 'New York',
+    state: 'NY',
+    zip: '10001',
+    country: 'United States',
+    company: 'Example Corp',
+    jobTitle: 'Software Engineer',
+    website: 'https://example.com',
+    bio: 'Sample bio text for form filling.',
+    message: 'This is a sample message for testing form auto-fill functionality.',
+    comments: 'Auto-generated comment for testing purposes.'
+  };
+}
+
+function closeAutoFillerSettings() {
+  const modal = document.getElementById('autoFillerSettingsModal');
+  if (modal) {
+    modal.classList.remove('visible');
+    setTimeout(() => modal.remove(), 300);
+  }
+}
+
+function showSettingsMessage(message, type) {
+  // Remove existing message
+  const existingMessage = document.querySelector('.settings-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  // Create new message
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `settings-message ${type}`;
+  messageDiv.textContent = message;
+  
+  const modalBody = document.querySelector('.settings-modal-body');
+  if (modalBody) {
+    modalBody.insertBefore(messageDiv, modalBody.firstChild);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.remove();
+      }
+    }, 3000);
+  }
 }

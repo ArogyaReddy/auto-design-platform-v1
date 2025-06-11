@@ -1752,6 +1752,169 @@ window.aiExtractorMessageListener = (message, sender, sendResponse) => {
         }
         return true; // Keep channel open
         
+      case 'pingAutoFiller':
+        console.log("Element AI Extractor: Auto-filler ping received");
+        
+        // Force a response even if auto-filler is not ready
+        let pingResponse;
+        
+        try {
+          // Check if auto-filler exists and is ready
+          const autoFillerExists = !!(window.aiExtractorAutoFiller);
+          const autoFillerReady = autoFillerExists && 
+                                 typeof window.aiExtractorAutoFiller.autoFillForms === 'function' &&
+                                 !window.aiExtractorAutoFillerError;
+          
+          pingResponse = { 
+            status: 'success', 
+            autoFillerReady: autoFillerReady,
+            autoFillerLoaded: !!window.aiExtractorAutoFillerLoaded,
+            autoFillerInitialized: !!window.aiExtractorAutoFillerInitialized,
+            autoFillerExists: autoFillerExists,
+            autoFillerScript: !!window.aiExtractorAutoFillerScript,
+            autoFillerError: window.aiExtractorAutoFillerError || null,
+            windowVars: {
+              aiExtractorAutoFiller: !!window.aiExtractorAutoFiller,
+              aiExtractorAutoFillerLoaded: !!window.aiExtractorAutoFillerLoaded,
+              aiExtractorAutoFillerInitialized: !!window.aiExtractorAutoFillerInitialized,
+              aiExtractorAutoFillerScript: !!window.aiExtractorAutoFillerScript,
+              aiExtractorAutoFillerError: window.aiExtractorAutoFillerError
+            },
+            timestamp: Date.now(),
+            url: window.location.href
+          };
+          
+          console.log("Element AI Extractor: Auto-filler ping response prepared:", pingResponse);
+          
+        } catch (error) {
+          console.error("Element AI Extractor: Error preparing auto-filler ping response:", error);
+          pingResponse = { 
+            status: 'error', 
+            autoFillerReady: false, 
+            error: error.message,
+            timestamp: Date.now(),
+            url: window.location.href
+          };
+        }
+        
+        // Always try to send response with multiple fallback attempts
+        try {
+          sendResponse(pingResponse);
+          console.log("Element AI Extractor: Auto-filler ping response sent successfully");
+        } catch (sendError) {
+          console.error("Element AI Extractor: Error sending ping response:", sendError);
+          
+          // Try alternative response method after a delay
+          setTimeout(() => {
+            try {
+              sendResponse(pingResponse);
+              console.log("Element AI Extractor: Auto-filler ping response sent on retry");
+            } catch (retryError) {
+              console.error("Element AI Extractor: Retry send response failed:", retryError);
+            }
+          }, 100);
+        }
+        
+        return true; // Keep channel open
+        
+      case 'autoFillForms':
+        console.log("Element AI Extractor: Auto-fill forms request received");
+        try {
+          if (window.aiExtractorAutoFiller) {
+            window.aiExtractorAutoFiller.setTestMode(message.testMode || false);
+            window.aiExtractorAutoFiller.autoFillForms()
+              .then(() => {
+                try {
+                  sendResponse({ status: 'success', message: 'Auto-fill completed' });
+                } catch (responseError) {
+                  console.error("Element AI Extractor: Error sending auto-fill success response:", responseError);
+                }
+              })
+              .catch((error) => {
+                try {
+                  sendResponse({ status: 'error', message: 'Auto-fill failed: ' + error.message });
+                } catch (responseError) {
+                  console.error("Element AI Extractor: Error sending auto-fill error response:", responseError);
+                }
+              });
+          } else {
+            sendResponse({ status: 'error', message: 'Auto-filler not available' });
+          }
+        } catch (error) {
+          console.error("Element AI Extractor: Error during auto-fill:", error);
+          try {
+            sendResponse({ status: 'error', message: 'Auto-fill error: ' + error.message });
+          } catch (responseError) {
+            console.error("Element AI Extractor: Error sending auto-fill error response:", responseError);
+          }
+        }
+        return true; // Keep channel open for async response
+        
+      case 'autoInteract':
+        console.log("Element AI Extractor: Auto-interact request received");
+        try {
+          if (window.aiExtractorAutoFiller) {
+            window.aiExtractorAutoFiller.setTestMode(message.testMode || false);
+            window.aiExtractorAutoFiller.autoInteract()
+              .then(() => {
+                try {
+                  sendResponse({ status: 'success', message: 'Auto-interact completed' });
+                } catch (responseError) {
+                  console.error("Element AI Extractor: Error sending auto-interact success response:", responseError);
+                }
+              })
+              .catch((error) => {
+                try {
+                  sendResponse({ status: 'error', message: 'Auto-interact failed: ' + error.message });
+                } catch (responseError) {
+                  console.error("Element AI Extractor: Error sending auto-interact error response:", responseError);
+                }
+              });
+          } else {
+            sendResponse({ status: 'error', message: 'Auto-filler not available' });
+          }
+        } catch (error) {
+          console.error("Element AI Extractor: Error during auto-interact:", error);
+          try {
+            sendResponse({ status: 'error', message: 'Auto-interact error: ' + error.message });
+          } catch (responseError) {
+            console.error("Element AI Extractor: Error sending auto-interact error response:", responseError);
+          }
+        }
+        return true; // Keep channel open for async response
+        
+      case 'refreshAutoFillerData':
+        console.log("Element AI Extractor: Refresh auto-filler data request received");
+        try {
+          if (window.aiExtractorAutoFiller && window.aiExtractorAutoFiller.refreshFillData) {
+            window.aiExtractorAutoFiller.refreshFillData()
+              .then(() => {
+                try {
+                  sendResponse({ status: 'success', message: 'Auto-filler data refreshed' });
+                } catch (responseError) {
+                  console.error("Element AI Extractor: Error sending refresh response:", responseError);
+                }
+              })
+              .catch((error) => {
+                try {
+                  sendResponse({ status: 'error', message: 'Refresh failed: ' + error.message });
+                } catch (responseError) {
+                  console.error("Element AI Extractor: Error sending refresh error response:", responseError);
+                }
+              });
+          } else {
+            sendResponse({ status: 'info', message: 'Auto-filler not available for refresh' });
+          }
+        } catch (error) {
+          console.error("Element AI Extractor: Error during refresh:", error);
+          try {
+            sendResponse({ status: 'error', message: 'Refresh error: ' + error.message });
+          } catch (responseError) {
+            console.error("Element AI Extractor: Error sending refresh error response:", responseError);
+          }
+        }
+        return true; // Keep channel open for async response
+        
       default:
         console.log("Element AI Extractor: Unknown message action", message.action);
         try {

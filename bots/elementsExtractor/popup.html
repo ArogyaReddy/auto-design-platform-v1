@@ -140,6 +140,28 @@
             <div id="inspector-status" class="inspector-status"></div>
         </div>
 
+        <!-- Auto-Filler Section -->
+        <div class="auto-filler-section">
+            <div class="auto-filler-header">
+                <span class="auto-filler-icon">🤖</span>
+                <span class="auto-filler-title">Smart Auto-Filler</span>
+                <button class="settings-btn" id="autoFillerSettings" title="Configure auto-fill data">⚙️</button>
+            </div>
+            <div class="auto-filler-controls">
+                <button class="auto-fill-btn" id="autoFillBtn" title="Automatically fill forms on current page">
+                    <span>✏️</span> Auto Fill Forms
+                </button>
+                <button class="auto-interact-btn" id="autoInteractBtn" title="Auto-interact with page elements">
+                    <span>🎯</span> Auto Interact
+                </button>
+                <button class="test-mode-btn" id="testModeBtn" title="Enable test mode for safe interaction">
+                    <span id="testModeIcon">🧪</span> <span id="testModeText">Test Mode</span>
+                </button>
+            </div>
+            <div id="auto-filler-status" class="auto-filler-status"></div>
+            <div id="auto-filler-log" class="auto-filler-log" style="display: none;"></div>
+        </div>
+
         <!-- Inspected Element Details -->
         <div id="inspected-element-details" class="inspected-element-details" style="display: none;"></div>
 
