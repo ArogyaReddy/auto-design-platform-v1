@@ -2126,55 +2126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Robust content script connection testing with multiple strategies
-  // BULLETPROOF content script initialization - this WILL work
-  async function ensureContentScriptReady(tabId) {
-    const maxAttempts = 3;
-    const inspectorStatusDiv = document.getElementById('inspector-status');
-    
-    console.log("Element AI Extractor: Starting bulletproof content script initialization");
-    
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      console.log(`Element AI Extractor: Initialization attempt ${attempt}/${maxAttempts}`);
-      inspectorStatusDiv.textContent = `🔄 Initializing (${attempt}/${maxAttempts})...`;
-      
-      try {
-        // Step 1: Always inject the content script (this handles refresh/reload cases)
-        console.log("Element AI Extractor: Injecting content script...");
-        await chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          files: ['contentScript.js']
-        });
-        
-        console.log("Element AI Extractor: Content script injected successfully");
-        
-        // Step 2: Wait for script initialization
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Step 3: Test communication with guaranteed response
-        console.log("Element AI Extractor: Testing communication...");
-        const isReady = await testCommunication(tabId);
-        
-        if (isReady) {
-          console.log("Element AI Extractor: Content script is ready and responsive");
-          inspectorStatusDiv.textContent = '✅ Ready! Starting inspection...';
-          startInspectionDirectly(tabId);
-          return; // Success!
-        } else {
-          console.warn(`Element AI Extractor: Attempt ${attempt} - Communication test failed`);
-        }
-        
-      } catch (error) {
-        console.error(`Element AI Extractor: Attempt ${attempt} failed:`, error);
-      }
-    }
-    
-    // If we get here, all attempts failed
-    console.error("Element AI Extractor: All initialization attempts failed");
-    inspectorStatusDiv.textContent = '❌ Failed to initialize. Please reload the page and try again.';
-    resetInspectionState();
-  }
-  
   // Simple, reliable communication test
   function testCommunication(tabId) {
     return new Promise((resolve) => {
@@ -2652,7 +2603,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-// BULLETPROOF connection fix - eliminates "Receiving end does not exist" errors
 async function bulletproofStartInspection(tabId) {
   const inspectorStatusDiv = document.getElementById('inspector-status');
   
@@ -2660,8 +2610,32 @@ async function bulletproofStartInspection(tabId) {
     console.log("Element AI Extractor: BULLETPROOF - Starting reliable inspection...");
     inspectorStatusDiv.textContent = '🔄 Connecting to page...';
     
-    // Use the robust content script readiness check
-    await ensureContentScriptReady(tabId);
+    // Use unified content script readiness check (same as auto-filler)
+    const contentScriptReady = await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve(false);
+      }, 3000);
+      
+      chrome.tabs.sendMessage(tabId, { action: 'ping' }, (response) => {
+        clearTimeout(timeout);
+        resolve(response && response.status === 'alive');
+      });
+    });
+    
+    if (!contentScriptReady) {
+      console.log("Element AI Extractor: Content script not ready, injecting...");
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['contentScript.js']
+        });
+        // Wait for initialization
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (injectError) {
+        console.warn("Element AI Extractor: Content script injection failed:", injectError);
+        throw new Error('Could not initialize content script');
+      }
+    }
     
     console.log("Element AI Extractor: BULLETPROOF - Content script ready, starting inspection");
     inspectorStatusDiv.textContent = '🔄 Starting inspection...';
@@ -2756,6 +2730,9 @@ function initializeAutoFiller() {
     }
   });
 
+  // Show ready status
+  showAutoFillerStatus('✅ Auto-filler ready', 'success');
+
   // Auto-fill button event
   autoFillBtn.addEventListener('click', async () => {
     if (autoFillBtn.disabled) return;
@@ -2764,6 +2741,13 @@ function initializeAutoFiller() {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab) {
         showAutoFillerStatus('❌ No active tab found', 'error');
+        return;
+      }
+
+      // Check if this is a restricted page
+      if (tab.url.startsWith('chrome://') || tab.url.startsWith('moz-extension://') || 
+          tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
+        showAutoFillerStatus('❌ Cannot access restricted pages', 'error');
         return;
       }
 
@@ -2818,6 +2802,13 @@ function initializeAutoFiller() {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab) {
         showAutoFillerStatus('❌ No active tab found', 'error');
+        return;
+      }
+
+      // Check if this is a restricted page
+      if (tab.url.startsWith('chrome://') || tab.url.startsWith('moz-extension://') || 
+          tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
+        showAutoFillerStatus('❌ Cannot access restricted pages', 'error');
         return;
       }
 
@@ -2978,118 +2969,84 @@ function addAutoFillerLogEntry(entry) {
 
 async function ensureAutoFillerScript(tabId) {
   try {
-    console.log('Auto-filler: Starting bulletproof script initialization for tab:', tabId);
+    console.log('Auto-filler: Using unified script initialization for tab:', tabId);
     
-    // Step 1: Ensure content script is ready first (this fixes the "receiving end does not exist" error)
-    console.log('Auto-filler: Ensuring content script is ready...');
-    await ensureContentScriptReady(tabId);
-    
-    // Step 2: Inject auto-filler script
-    console.log('Auto-filler: Injecting auto-filler script...');
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['autoFiller.js']
-    });
-    
-    console.log('Auto-filler: Script injection completed, verifying...');
-    
-    // Step 3: Wait for initialization
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Step 4: Verify auto-filler is ready
-    const verifyResult = await new Promise((resolve) => {
+    // Step 1: Check if content script is ready (either feature can use the same script)
+    const contentScriptReady = await new Promise((resolve) => {
       const timeout = setTimeout(() => {
-        console.warn('Auto-filler: Verification timeout after 5 seconds');
-        resolve({ autoFillerReady: false, error: 'Verification timeout' });
-      }, 5000);
-      
-      chrome.tabs.sendMessage(tabId, { action: 'pingAutoFiller' }, (response) => {
-        clearTimeout(timeout);
-        if (chrome.runtime.lastError) {
-          console.log('Auto-filler: Ping failed:', chrome.runtime.lastError.message);
-          resolve({ autoFillerReady: false, error: chrome.runtime.lastError.message });
-        } else {
-          console.log('Auto-filler: Ping response:', response);
-          resolve(response || { autoFillerReady: false, error: 'No response' });
-        }
-      });
-    });
-    
-    if (!verifyResult.autoFillerReady) {
-      const errorMessage = verifyResult.autoFillerError || verifyResult.error || 'Auto-filler failed to initialize properly';
-      throw new Error(errorMessage);
-    }
-    
-    console.log('Auto-filler: Script verified and ready successfully');
-    
-  } catch (error) {
-    console.error('Auto-filler: Error ensuring script:', error);
-    throw new Error(`Failed to load auto-filler: ${error.message}`);
-  }
-}
-
-// Bulletproof content script readiness check - fixes communication errors
-async function ensureContentScriptReady(tabId) {
-  console.log('Auto-filler: Ensuring content script is ready for tab:', tabId);
-  
-  // First, verify the tab is accessible
-  try {
-    const tab = await chrome.tabs.get(tabId);
-    if (!tab || tab.url.startsWith('chrome://') || tab.url.startsWith('moz-extension://')) {
-      throw new Error('Cannot access restricted page');
-    }
-  } catch (error) {
-    throw new Error(`Tab access failed: ${error.message}`);
-  }
-  
-  // Test communication multiple times with progressive delays
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    console.log(`Auto-filler: Content script readiness attempt ${attempt}/3`);
-    
-    const isReady = await new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        console.log(`Auto-filler: Attempt ${attempt} - timeout after 3 seconds`);
         resolve(false);
       }, 3000);
       
       chrome.tabs.sendMessage(tabId, { action: 'ping' }, (response) => {
         clearTimeout(timeout);
-        
+        resolve(response && response.status === 'alive');
+      });
+    });
+    
+    // Step 2: If content script not ready, inject it
+    if (!contentScriptReady) {
+      console.log('Auto-filler: Content script not ready, injecting...');
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['contentScript.js']
+      });
+      // Wait for content script to initialize
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // Step 3: Check if auto-filler is already loaded
+    const autoFillerCheck = await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve({ autoFillerReady: false, error: 'Auto-filler ping timeout' });
+      }, 3000);
+      
+      chrome.tabs.sendMessage(tabId, { action: 'pingAutoFiller' }, (response) => {
+        clearTimeout(timeout);
         if (chrome.runtime.lastError) {
-          console.log(`Auto-filler: Attempt ${attempt} - ping error:`, chrome.runtime.lastError.message);
-          resolve(false);
-        } else if (response && response.status === 'alive') {
-          console.log(`Auto-filler: Attempt ${attempt} - content script is ready:`, response);
-          resolve(true);
+          resolve({ autoFillerReady: false, error: chrome.runtime.lastError.message });
         } else {
-          console.log(`Auto-filler: Attempt ${attempt} - invalid response:`, response);
-          resolve(false);
+          resolve(response || { autoFillerReady: false, error: 'No response' });
         }
       });
     });
     
-    if (isReady) {
-      console.log('Auto-filler: Content script confirmed ready');
-      return;
-    }
-    
-    // If not ready and this isn't the last attempt, try injecting content script
-    if (attempt < 3) {
-      console.log(`Auto-filler: Content script not ready, injecting (attempt ${attempt})`);
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          files: ['contentScript.js']
+    // Step 4: If auto-filler not ready, inject it
+    if (!autoFillerCheck.autoFillerReady) {
+      console.log('Auto-filler: Auto-filler script not ready, injecting...');
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['autoFiller.js']
+      });
+      // Wait for auto-filler to initialize
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Verify it's working now
+      const verifyResult = await new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          resolve({ autoFillerReady: false, error: 'Verification timeout' });
+        }, 3000);
+        
+        chrome.tabs.sendMessage(tabId, { action: 'pingAutoFiller' }, (response) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError) {
+            resolve({ autoFillerReady: false, error: chrome.runtime.lastError.message });
+          } else {
+            resolve(response || { autoFillerReady: false, error: 'No response' });
+          }
         });
-        console.log('Auto-filler: Content script injected, waiting...');
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Progressive delay
-      } catch (injectError) {
-        console.warn(`Auto-filler: Content script injection failed:`, injectError);
+      });
+      
+      if (!verifyResult.autoFillerReady) {
+        throw new Error(verifyResult.autoFillerError || verifyResult.error || 'Auto-filler failed to initialize');
       }
     }
+    
+    console.log('Auto-filler: Successfully initialized and verified');
+    
+  } catch (error) {
+    console.error('Auto-filler: Error ensuring script:', error);
+    throw new Error(`Failed to load auto-filler: ${error.message}`);
   }
-  
-  throw new Error('Content script failed to respond after 3 attempts');
 }
 
 // ---- Expand/Collapse Functionality ----

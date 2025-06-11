@@ -8,8 +8,8 @@
  */
 
 const { chromium } = require('playwright');
-const ScoringAlignmentFix = require('./utils/scoring-alignment-fix');
-const ScoringIntegration = require('./utils/scoring-integration');
+const ScoringAlignmentFix = require('../../utils/scoring-alignment-fix');
+const ScoringIntegration = require('../../utils/scoring-integration');
 
 class BrowserIntegrationTest {
     constructor() {

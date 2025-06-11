@@ -5,7 +5,7 @@
  * as a utility/library with your Element Extractor project.
  */
 
-const { ElementExtractorPlaywrightIntegration } = require('./utils/element-extractor-playwright-integration');
+const { ElementExtractorPlaywrightIntegration } = require('../../utils/element-extractor-playwright-integration');
 
 async function runCompleteTest() {
     console.log('🎭 Starting Complete Element Extractor + Playwright Integration Test\n');

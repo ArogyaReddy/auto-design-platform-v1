@@ -5,7 +5,7 @@
  * with your Element Extractor project.
  */
 
-const { PlaywrightElementValidator } = require('./utils/playwright-element-validator');
+const { PlaywrightElementValidator } = require('../../utils/playwright-element-validator');
 
 async function main() {
     const validator = new PlaywrightElementValidator({
