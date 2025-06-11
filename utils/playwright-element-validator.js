@@ -10,9 +10,19 @@
  * - Integration with Element Extractor
  * - Shadow DOM support
  * - Comprehensive element analysis
+ * - Scoring alignment with Element Extractor
  */
 
 const { chromium } = require('playwright');
+
+// Import scoring alignment fix if available
+let ScoringAlignmentFix;
+try {
+    ScoringAlignmentFix = require('./scoring-alignment-fix');
+} catch (error) {
+    // Scoring alignment not available, continue without it
+    ScoringAlignmentFix = null;
+}
 
 class PlaywrightElementValidator {
     constructor(options = {}) {
@@ -23,6 +33,8 @@ class PlaywrightElementValidator {
             waitForLoadState: 'domcontentloaded',
             viewport: { width: 1280, height: 720 },
             enableLogging: true,
+            enableScoringAlignment: true, // New option for scoring alignment
+            alignmentStrategy: 'hybrid', // 'element-extractor-priority', 'playwright-priority', 'hybrid'
             ...options
         };
         
@@ -37,6 +49,14 @@ class PlaywrightElementValidator {
             locatorsGenerated: 0,
             startTime: Date.now()
         };
+        
+        // Initialize scoring alignment if available
+        this.scoringAlignment = null;
+        if (ScoringAlignmentFix && this.options.enableScoringAlignment) {
+            this.scoringAlignment = new ScoringAlignmentFix();
+            this.scoringAlignment.setAlignmentStrategy(this.options.alignmentStrategy);
+            this.log('🎯 Scoring alignment enabled with strategy:', this.options.alignmentStrategy);
+        }
         
         this.log('🎭 Playwright Element Validator initialized');
     }

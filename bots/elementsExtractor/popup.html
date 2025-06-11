@@ -179,7 +179,15 @@
             <span> by <span class="ai-gradient">Arogya Reddy</span></span>
         </div>
     </div>
+    <!-- Include scoring alignment fix BEFORE popup.js -->
+    <script src="scoring-alignment-fix.js"></script>
+    <script src="scoring-integration.js"></script>
+    
     <script src="popup.js"></script>
+    
+    <!-- Initialize scoring alignment AFTER popup.js -->
+    <script src="scoring-alignment-init.js"></script>
+    <script src="scoring-alignment-diagnostic.js"></script>
 
 </body>
 

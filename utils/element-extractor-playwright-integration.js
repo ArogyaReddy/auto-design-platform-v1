@@ -2,16 +2,27 @@
  * Element Extractor + Playwright Validator Integration
  * 
  * This script integrates the Playwright Element Validator directly with your
- * Element Extractor project to provide enhanced element validation.
+ * Element Extractor project to provide enhanced element validation with scoring alignment.
  */
 
-const { PlaywrightElementValidator } = require('./utils/playwright-element-validator');
+const { PlaywrightElementValidator } = require('./playwright-element-validator');
+
+// Import scoring alignment fix
+let ScoringAlignmentFix;
+try {
+    ScoringAlignmentFix = require('./scoring-alignment-fix');
+} catch (error) {
+    console.warn('⚠️ Scoring alignment fix not found. Continuing without alignment.');
+    ScoringAlignmentFix = null;
+}
 
 class ElementExtractorPlaywrightIntegration {
     constructor(options = {}) {
         this.validator = new PlaywrightElementValidator({
             headless: false,
             enableLogging: true,
+            enableScoringAlignment: true,
+            alignmentStrategy: options.alignmentStrategy || 'hybrid',
             ...options
         });
         
@@ -20,8 +31,21 @@ class ElementExtractorPlaywrightIntegration {
             totalValidations: 0,
             improvedLocators: 0,
             excellentLocators: 0,
-            poorLocators: 0
+            poorLocators: 0,
+            alignmentStats: {
+                aligned: 0,
+                averageImprovement: 0,
+                significantDiscrepancies: 0
+            }
         };
+
+        // Initialize scoring alignment
+        this.scoringAlignment = null;
+        if (ScoringAlignmentFix) {
+            this.scoringAlignment = new ScoringAlignmentFix();
+            this.scoringAlignment.setAlignmentStrategy(options.alignmentStrategy || 'hybrid');
+            console.log('🎯 Scoring alignment enabled for Element Extractor integration');
+        }
     }
 
     /**
@@ -51,8 +75,35 @@ class ElementExtractorPlaywrightIntegration {
                 checkEnabled: true,
                 checkText: true,
                 checkLocatorQuality: true,
-                generateAlternatives: true
+                generateAlternatives: true,
+                elementExtractorContext: context
             });
+
+            // Apply scoring alignment if available
+            if (this.scoringAlignment && context.strength !== undefined) {
+                const elementExtractorResult = {
+                    locator,
+                    type: context.locatorType || 'unknown',
+                    strength: context.strength
+                };
+
+                const alignment = this.scoringAlignment.alignScoring(elementExtractorResult, result);
+                
+                // Update result with aligned scores
+                result.overall.score = alignment.alignedScore;
+                result.overall.grade = alignment.alignedGrade;
+                result.overall.aligned = true;
+                result.overall.alignment_info = alignment;
+
+                // Track alignment statistics
+                this.stats.alignmentStats.aligned++;
+                const discrepancy = Math.abs(context.strength - result.overall.score);
+                if (discrepancy > 15) {
+                    this.stats.alignmentStats.significantDiscrepancies++;
+                }
+
+                console.log(`🎯 Score aligned: EE=${context.strength}% → PW=${result.overall.score}% → Aligned=${alignment.alignedScore}%`);
+            }
 
             // Add Element Extractor specific analysis
             result.elementExtractorAnalysis = this.analyzeForElementExtractor(result, locator, context);

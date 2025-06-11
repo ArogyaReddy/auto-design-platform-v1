@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Scoring Discrepancy Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .test-element {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        #login-button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        #login-button:hover {
+            background: #0056b3;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .expected-results {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Test Scoring Discrepancy Fix</h1>
+            <p>This page is designed to test the Element Extractor vs Playwright Validation scoring alignment fix.</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Test Instructions:</h3>
+            <ol>
+                <li><strong>Open Element Extractor extension</strong> (click the extension icon)</li>
+                <li><strong>Extract elements</strong> from this page</li>
+                <li><strong>Find the "Login Button" element</strong> with locator <code>#login-button</code></li>
+                <li><strong>Check the scores:</strong>
+                    <ul>
+                        <li>Element Extractor strength score</li>
+                        <li>Playwright Validation score (click "Validate with Playwright")</li>
+                    </ul>
+                </li>
+                <li><strong>Verify alignment:</strong> The scores should now be aligned (no 40% discrepancy)</li>
+            </ol>
+        </div>
+
+        <div class="expected-results">
+            <h3>✅ Expected Results After Fix:</h3>
+            <ul>
+                <li><strong>Before Fix:</strong> Element Extractor = 95%, Playwright = 55% (40% discrepancy)</li>
+                <li><strong>After Fix:</strong> Both scores should be aligned within 10% of each other</li>
+                <li><strong>Alignment Info:</strong> Should show alignment strategy used (e.g., "balanced", "conservative")</li>
+                <li><strong>Console Logs:</strong> Should show alignment calculations in browser console</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Test Elements</h3>
+            
+            <div class="test-element">
+                <h4>Primary Test Element (The Problematic One):</h4>
+                <button id="login-button">Login Button</button>
+                <p><strong>Locator:</strong> <code>#login-button</code></p>
+                <p><strong>Expected:</strong> This element previously showed 95% (Element Extractor) vs 55% (Playwright)</p>
+            </div>
+            
+            <div class="test-element">
+                <h4>Additional Test Elements:</h4>
+                <input type="text" id="username" placeholder="Username" />
+                <input type="password" id="password" placeholder="Password" />
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" />
+                </div>
+            </div>
+        </div>
+
+        <div id="test-results">
+            <h3>🔍 Test Results</h3>
+            <div id="alignment-status" class="status warning">
+                Waiting for test to be performed...
+            </div>
+            <div id="test-results-display">
+                <!-- Test results will be displayed here -->
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🛠️ Debug Information</h3>
+            <p>Open browser console (F12) to see detailed alignment logs.</p>
+            <button onclick="testScoringAlignment()" style="margin: 5px;">Test Scoring Alignment</button>
+            <button onclick="getScoringReport()" style="margin: 5px;">Get Scoring Report</button>
+            <button onclick="checkExtensionStatus()" style="margin: 5px;">Check Extension Status</button>
+            <button onclick="runComprehensiveTest()" style="margin: 5px; background: #dc3545; color: white;">🎯 Run Comprehensive Test</button>
+        </div>
+    </div>
+
+    <script src="../bots/elementsExtractor/scoring-discrepancy-test.js"></script>
+    <script>
+        // Test functions to verify the scoring alignment
+        async function runComprehensiveTest() {
+            console.log('🚀 Starting comprehensive scoring discrepancy test...');
+            
+            try {
+                const results = await runScoringDiscrepancyTest();
+                
+                // Update UI with results
+                displayTestResults();
+                
+                // Update main status
+                const statusEl = document.getElementById('alignment-status');
+                if (results.overall === 'PASSED') {
+                    statusEl.className = 'status success';
+                    statusEl.innerHTML = '🎉 SUCCESS: Scoring discrepancy fix is working! The 95% vs 55% issue should be resolved.';
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.innerHTML = '⚠️ ISSUES DETECTED: Some tests failed. Check console for details.';
+                }
+                
+                return results;
+            } catch (error) {
+                console.error('❌ Comprehensive test failed:', error);
+                document.getElementById('alignment-status').innerHTML = 
+                    '❌ Test failed: ' + error.message;
+                document.getElementById('alignment-status').className = 'status error';
+            }
+        }
+        
+        function checkExtensionStatus() {
+            console.log('🔍 Checking extension status...');
+            
+            // Check if the extension content script is loaded
+            if (window.elementExtractorContentScript) {
+                console.log('✅ Element Extractor content script loaded');
+            } else {
+                console.log('❌ Element Extractor content script not found');
+            }
+            
+            // Try to access the extension popup functions
+            try {
+                chrome.runtime.sendMessage({action: 'ping'}, (response) => {
+                    if (response) {
+                        console.log('✅ Extension background script responding');
+                    } else {
+                        console.log('❌ No response from extension background script');
+                    }
+                });
+            } catch (error) {
+                console.log('❌ Cannot communicate with extension:', error.message);
+            }
+        }
+        
+        function testScoringAlignment() {
+            console.log('🎯 Testing scoring alignment...');
+            
+            if (window.testScoringAlignment) {
+                const result = window.testScoringAlignment();
+                console.log('🎯 Scoring alignment test result:', result);
+                return result;
+            } else {
+                console.log('❌ testScoringAlignment function not available');
+                console.log('This function should be available when the extension popup is open');
+                return null;
+            }
+        }
+        
+        function getScoringReport() {
+            console.log('📊 Getting scoring report...');
+            
+            if (window.getScoringReport) {
+                const report = window.getScoringReport();
+                console.log('📊 Scoring report:', report);
+                return report;
+            } else {
+                console.log('❌ getScoringReport function not available');
+                console.log('This function should be available when the extension popup is open');
+                return null;
+            }
+        }
+        
+        // Auto-run status check when page loads
+        window.addEventListener('load', () => {
+            setTimeout(checkExtensionStatus, 1000);
+        });
+        
+        // Monitor for extension popup opening
+        let checkInterval = setInterval(() => {
+            if (window.testScoringAlignment) {
+                console.log('✅ Extension popup functions detected - scoring alignment should be available');
+                document.getElementById('alignment-status').innerHTML = 
+                    '✅ Extension popup detected - scoring alignment functions available';
+                document.getElementById('alignment-status').className = 'status success';
+                clearInterval(checkInterval);
+            }
+        }, 2000);
+        
+        // Stop checking after 30 seconds
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            if (!window.testScoringAlignment) {
+                document.getElementById('alignment-status').innerHTML = 
+                    '⚠️ Extension popup not detected - please open the Element Extractor extension';
+                document.getElementById('alignment-status').className = 'status warning';
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

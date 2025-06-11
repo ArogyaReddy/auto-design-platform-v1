@@ -2807,11 +2807,68 @@ async function validateElementWithPlaywright(element, index) {
         elementType: element['Element Type'],
         locatorType: element['Locator Type'],
         id: element['ID'],
-        index: index
+        index: index,
+        originalStrength: element['Strength'] // Add Element Extractor strength
       }
     }, (response) => {
       if (response && response.success) {
-        resolve(response.result);
+        // Apply scoring alignment if available
+        let finalResult = response.result;
+        
+        // Check if scoring alignment is available
+        if (window.scoringIntegration && window.ScoringAlignmentFix) {
+          try {
+            // Prepare Element Extractor data
+            const elementExtractorData = {
+              'Element Name': element['Element Name'],
+              'Element Type': element['Element Type'],
+              'Best Locator': element['Best Locator'],
+              'Locator Type': element['Locator Type'],
+              'Strength': element['Strength'] || 0,
+              'ID': element['ID']
+            };
+            
+            // Prepare Playwright result in expected format
+            const playwrightResult = {
+              locator: element['Best Locator'],
+              overall: {
+                score: response.result.score || 0,
+                grade: response.result.grade || 'F',
+                passed: response.result.isValid || false
+              },
+              tests: response.result.tests || {}
+            };
+            
+            // Apply alignment
+            const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+            
+            // Update the result with aligned scores
+            finalResult = {
+              ...response.result,
+              score: alignedResult.aligned_result.Strength,
+              grade: alignedResult.aligned_result["Playwright Grade"],
+              alignmentStrategy: alignedResult.aligned_result["Alignment Strategy"],
+              originalEEScore: element['Strength'],
+              originalPWScore: response.result.score,
+              scoreAdjustments: alignedResult.aligned_result["Score Adjustments"],
+              aligned: true
+            };
+            
+            console.log('🎯 Applied scoring alignment:', {
+              element: element['Element Name'],
+              originalEE: element['Strength'],
+              originalPW: response.result.score,
+              aligned: finalResult.score,
+              strategy: finalResult.alignmentStrategy
+            });
+            
+          } catch (alignmentError) {
+            console.warn('⚠️ Scoring alignment failed:', alignmentError);
+            // Fall back to original result
+          }
+        }
+        
+        resolve(finalResult);
       } else {
         resolve({
           isValid: false,
@@ -2856,6 +2913,7 @@ async function validateAllElementsWithPlaywright() {
           elementName: el['Element Name'],
           elementType: el['Element Type'],
           locatorType: el['Locator Type'],
+          strength: el['Strength'] || 0, // Add Element Extractor strength
           id: el['ID'],
           index: index
         })),
@@ -2864,9 +2922,69 @@ async function validateAllElementsWithPlaywright() {
     });
     
     if (response && response.success) {
-      // Store validation results
+      // Apply scoring alignment to batch results if available
       response.results.forEach(result => {
-        playwrightValidationResults.set(result.elementIndex, result.result);
+        let finalResult = result.result;
+        
+        // Apply scoring alignment if available
+        if (window.scoringIntegration && window.ScoringAlignmentFix) {
+          try {
+            const elementIndex = result.elementIndex;
+            const element = elements[elementIndex];
+            
+            if (element) {
+              // Prepare Element Extractor data
+              const elementExtractorData = {
+                'Element Name': element['Element Name'],
+                'Element Type': element['Element Type'],
+                'Best Locator': element['Best Locator'],
+                'Locator Type': element['Locator Type'],
+                'Strength': element['Strength'] || 0,
+                'ID': element['ID']
+              };
+              
+              // Prepare Playwright result in expected format
+              const playwrightResult = {
+                locator: element['Best Locator'],
+                overall: {
+                  score: result.result.score || 0,
+                  grade: result.result.grade || 'F',
+                  passed: result.result.isValid || false
+                },
+                tests: result.result.tests || {}
+              };
+              
+              // Apply alignment
+              const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+              
+              // Update the result with aligned scores
+              finalResult = {
+                ...result.result,
+                score: alignedResult.aligned_result.Strength,
+                grade: alignedResult.aligned_result["Playwright Grade"],
+                alignmentStrategy: alignedResult.aligned_result["Alignment Strategy"],
+                originalEEScore: element['Strength'],
+                originalPWScore: result.result.score,
+                scoreAdjustments: alignedResult.aligned_result["Score Adjustments"],
+                aligned: true
+              };
+              
+              console.log('🎯 Batch alignment applied:', {
+                element: element['Element Name'],
+                originalEE: element['Strength'],
+                originalPW: result.result.score,
+                aligned: finalResult.score,
+                strategy: finalResult.alignmentStrategy
+              });
+            }
+          } catch (alignmentError) {
+            console.warn('⚠️ Batch scoring alignment failed for element:', alignmentError);
+            // Fall back to original result
+          }
+        }
+        
+        // Store the final result (aligned or original)
+        playwrightValidationResults.set(result.elementIndex, finalResult);
       });
       
       // Update UI
