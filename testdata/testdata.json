@@ -1,0 +1,12 @@
+{
+    "firstName": "Test",
+    "lastName": "QA",
+    "fullName": "Test QA",
+    "email": "test.qa@email.com",
+    "phone": "+1-555-123-4567",
+    "address": "123 Main Street",
+    "city": "New York",
+    "state": "NY",
+    "zip": "10001",
+    "country": "United States"
+  }

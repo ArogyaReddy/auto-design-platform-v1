@@ -1,7 +1,7 @@
 /**
  * Simple test to verify Playwright Element Validator works
  */
-const { PlaywrightElementValidator } = require('./utils/playwright-element-validator');
+const { PlaywrightElementValidator } = require('../../utils/playwright-element-validator');
 
 async function simpleTest() {
     console.log('🧪 Running simple Playwright Element Validator test...');

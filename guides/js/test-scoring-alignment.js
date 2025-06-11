@@ -6,7 +6,7 @@
  */
 
 // Import required modules
-const ScoringAlignmentFix = require('./utils/scoring-alignment-fix');
+const ScoringAlignmentFix = require('../../utils/scoring-alignment-fix');
 
 class ScoringAlignmentDemo {
     constructor() {
