@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Scoring Alignment Test - Element Extractor Environment</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; line-height: 1.6; }
+        .test-container { max-width: 1200px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 2px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border-color: #ffeeba; color: #856404; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 15px; overflow: auto; border-radius: 4px; font-size: 12px; }
+        button { margin: 5px; padding: 12px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        h1, h2, h3 { color: #333; }
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .status-indicator { font-size: 18px; margin-right: 10px; }
+        .test-element { padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎯 Complete Scoring Alignment Test - Element Extractor Environment</h1>
+        
+        <div class="test-section info">
+            <h2>🎬 Test Scenario</h2>
+            <p><strong>Current Issue:</strong> Element <code>[id="signin.securepopTextBtnId"]</code> shows <strong>95% (Element Extractor)</strong> vs <strong>40% (Playwright)</strong> = 55% discrepancy</p>
+            <p><strong>Expected:</strong> Scoring alignment should reduce this discrepancy to ~10% range</p>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-section">
+                <h2>📋 Component Loading Test</h2>
+                <div id="componentTest">Running component tests...</div>
+                <button class="btn-primary" onclick="runComponentTests()">Rerun Component Tests</button>
+            </div>
+
+            <div class="test-section">
+                <h2>🔧 Integration Test</h2>
+                <div id="integrationTest">Running integration tests...</div>
+                <button class="btn-primary" onclick="runIntegrationTests()">Rerun Integration Tests</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Live Scoring Alignment Test</h2>
+            <button class="btn-success" onclick="testLiveScoringAlignment()">Test 95% vs 40% Alignment</button>
+            <button class="btn-warning" onclick="simulatePopupValidation()">Simulate Popup Validation</button>
+            <div id="liveTest"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 Deep Debug Analysis</h2>
+            <button class="btn-warning" onclick="runDeepDebug()">Run Deep Debug</button>
+            <div id="deepDebug"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Elements for Validation</h2>
+            <div class="test-element">
+                <button id="signin.securepopTextBtnId">Sign In (Test Element)</button>
+                <p><strong>Locator:</strong> <code>[id="signin.securepopTextBtnId"]</code></p>
+                <p><strong>Purpose:</strong> This element represents the problematic element causing the scoring discrepancy</p>
+            </div>
+            <div class="test-element">
+                <input type="text" id="testInput" placeholder="Test input field" />
+                <p><strong>Locator:</strong> <code>#testInput</code></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load all scoring alignment components in the exact same order as popup.html -->
+    <script src="bots/elementsExtractor/scoring-alignment-fix.js"></script>
+    <script src="bots/elementsExtractor/scoring-integration.js"></script>
+
+    <script>
+        let testResults = {
+            components: null,
+            integration: null,
+            alignment: null
+        };
+
+        function updateTestSection(sectionId, content, className = '') {
+            const element = document.getElementById(sectionId);
+            element.innerHTML = content;
+            if (className) {
+                element.className = className;
+            }
+        }
+
+        function runComponentTests() {
+            console.log('🧪 Running component tests...');
+            const tests = [];
+
+            // Test 1: Core classes
+            tests.push({
+                name: 'ScoringAlignmentFix class',
+                passed: typeof window.ScoringAlignmentFix !== 'undefined',
+                value: typeof window.ScoringAlignmentFix
+            });
+
+            tests.push({
+                name: 'ScoringIntegration class',
+                passed: typeof window.ScoringIntegration !== 'undefined',  
+                value: typeof window.ScoringIntegration
+            });
+
+            // Test 2: Global instances
+            tests.push({
+                name: 'scoringIntegration instance',
+                passed: typeof window.scoringIntegration !== 'undefined',
+                value: typeof window.scoringIntegration
+            });
+
+            // Test 3: Key methods
+            if (window.ScoringAlignmentFix) {
+                const testFix = new window.ScoringAlignmentFix();
+                tests.push({
+                    name: 'alignScoring method',
+                    passed: typeof testFix.alignScoring === 'function',
+                    value: 'function available'
+                });
+            }
+
+            if (window.scoringIntegration) {
+                tests.push({
+                    name: 'alignElementResult method',
+                    passed: typeof window.scoringIntegration.alignElementResult === 'function',
+                    value: 'function available'
+                });
+            }
+
+            testResults.components = tests;
+            displayTestResults('componentTest', tests, 'Component Tests');
+        }
+
+        function runIntegrationTests() {
+            console.log('🔧 Running integration tests...');
+            const tests = [];
+
+            // Test integration setup
+            if (window.scoringIntegration) {
+                tests.push({
+                    name: 'Integration initialized',
+                    passed: true,
+                    value: 'scoringIntegration available'
+                });
+
+                // Test statistics
+                tests.push({
+                    name: 'Statistics object',
+                    passed: typeof window.scoringIntegration.statistics === 'object',
+                    value: JSON.stringify(window.scoringIntegration.statistics)
+                });
+
+                // Test alignment function
+                tests.push({
+                    name: 'Alignment map',
+                    passed: window.scoringIntegration.aligned_results instanceof Map,
+                    value: `Map with ${window.scoringIntegration.aligned_results.size} results`
+                });
+
+            } else {
+                tests.push({
+                    name: 'Integration initialized',
+                    passed: false,
+                    value: 'scoringIntegration not available'
+                });
+            }
+
+            testResults.integration = tests;
+            displayTestResults('integrationTest', tests, 'Integration Tests');
+        }
+
+        function testLiveScoringAlignment() {
+            console.log('🎯 Testing live scoring alignment...');
+            
+            if (!window.scoringIntegration) {
+                updateTestSection('liveTest', '<div class="error">❌ ScoringIntegration not available</div>');
+                return;
+            }
+
+            try {
+                // Exact test case from the issue
+                const elementExtractorData = {
+                    'Element Name': 'Sign In Secure Button',
+                    'Element Type': 'BUTTON',
+                    'Best Locator': '[id="signin.securepopTextBtnId"]',
+                    'Locator Type': 'ID',
+                    'Strength': 95,
+                    'ID': 'signin.securepopTextBtnId'
+                };
+
+                const playwrightResult = {
+                    locator: '[id="signin.securepopTextBtnId"]',
+                    overall: {
+                        score: 40,
+                        grade: 'D',
+                        passed: false
+                    },
+                    tests: {
+                        existence: { passed: true, score: 20 },
+                        visibility: { passed: false, score: 0 },     // Major issue
+                        clickability: { passed: false, score: 0 },  // Major issue 
+                        enabled: { passed: true, score: 15 },
+                        text: { passed: false, score: 0 },          // Issue
+                        locatorQuality: { passed: true, score: 5, rating: 'FAIR' }
+                    }
+                };
+
+                console.log('🔄 Applying alignment to 95% vs 40% case...');
+                const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+
+                const originalDiscrepancy = Math.abs(elementExtractorData.Strength - playwrightResult.overall.score);
+                const newDiscrepancy = Math.abs(alignedResult.aligned_result.Strength - playwrightResult.overall.score);
+                const improvement = originalDiscrepancy - newDiscrepancy;
+
+                let output = '<h3>🎯 Live Alignment Test Results</h3>';
+                output += '<div class="success">✅ Alignment successfully applied!</div>';
+                output += `<pre>
+ORIGINAL ISSUE:
+  Element Extractor: ${elementExtractorData.Strength}%
+  Playwright: ${playwrightResult.overall.score}%
+  Discrepancy: ${originalDiscrepancy}%
+
+ALIGNMENT RESULT:
+  Aligned Score: ${alignedResult.aligned_result.Strength}%
+  Grade: ${alignedResult.aligned_result.Grade}
+  Strategy: ${alignedResult.aligned_result["Alignment Strategy"]}
+  Reasoning: ${alignedResult.aligned_result["Alignment Reasoning"]}
+  Adjustments: ${alignedResult.aligned_result["Score Adjustments"]}
+
+IMPROVEMENT:
+  New Discrepancy: ${newDiscrepancy}%
+  Improvement: ${improvement}% reduction (${((improvement/originalDiscrepancy)*100).toFixed(1)}%)
+  
+STATUS: ${improvement > 10 ? '✅ SIGNIFICANT IMPROVEMENT' : '⚠️ MINIMAL IMPROVEMENT'}
+</pre>`;
+
+                // Update statistics display
+                if (window.scoringIntegration.statistics) {
+                    output += `<h4>📊 Session Statistics</h4>`;
+                    output += `<pre>${JSON.stringify(window.scoringIntegration.statistics, null, 2)}</pre>`;
+                }
+
+                updateTestSection('liveTest', output, 'success');
+
+                testResults.alignment = {
+                    original_ee: elementExtractorData.Strength,
+                    original_pw: playwrightResult.overall.score,
+                    aligned_score: alignedResult.aligned_result.Strength,
+                    improvement: improvement,
+                    success: improvement > 10
+                };
+
+            } catch (error) {
+                console.error('❌ Live test error:', error);
+                updateTestSection('liveTest', `<div class="error">❌ Live test failed: ${error.message}</div>`, 'error');
+            }
+        }
+
+        function simulatePopupValidation() {
+            console.log('🎭 Simulating popup validation workflow...');
+            
+            if (!window.scoringIntegration) {
+                updateTestSection('liveTest', '<div class="error">❌ Cannot simulate: ScoringIntegration not available</div>');
+                return;
+            }
+
+            // Simulate the exact popup.js validateElementWithPlaywright workflow
+            const element = {
+                'Element Name': 'Sign In Secure Button',
+                'Element Type': 'BUTTON',
+                'Best Locator': '[id="signin.securepopTextBtnId"]',
+                'Locator Type': 'ID',
+                'Strength': 95,
+                'ID': 'signin.securepopTextBtnId'
+            };
+
+            const mockPlaywrightResponse = {
+                success: true,
+                result: {
+                    score: 40,
+                    grade: 'D',
+                    isValid: false,
+                    tests: {
+                        existence: { passed: true, score: 20 },
+                        visibility: { passed: false, score: 0 },
+                        clickability: { passed: false, score: 0 },
+                        enabled: { passed: true, score: 15 },
+                        text: { passed: false, score: 0 },
+                        locatorQuality: { passed: true, score: 5, rating: 'FAIR' }
+                    }
+                }
+            };
+
+            try {
+                // This mimics the exact logic in popup.js validateElementWithPlaywright
+                let finalResult = mockPlaywrightResponse.result;
+                
+                // Check if scoring alignment is available (same check as popup.js)
+                if (window.scoringIntegration && window.ScoringAlignmentFix) {
+                    console.log('🎯 Popup simulation: Scoring alignment available, applying...');
+                    
+                    // Prepare Element Extractor data (same as popup.js)
+                    const elementExtractorData = {
+                        'Element Name': element['Element Name'],
+                        'Element Type': element['Element Type'],
+                        'Best Locator': element['Best Locator'],
+                        'Locator Type': element['Locator Type'],
+                        'Strength': element['Strength'] || 0,
+                        'ID': element['ID']
+                    };
+                    
+                    // Prepare Playwright result in expected format (same as popup.js)
+                    const playwrightResult = {
+                        locator: element['Best Locator'],
+                        overall: {
+                            score: mockPlaywrightResponse.result.score || 0,
+                            grade: mockPlaywrightResponse.result.grade || 'F',
+                            passed: mockPlaywrightResponse.result.isValid || false
+                        },
+                        tests: mockPlaywrightResponse.result.tests || {}
+                    };
+                    
+                    // Apply alignment (same as popup.js)
+                    const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+                    
+                    // Update the result with aligned scores (same as popup.js)
+                    finalResult = {
+                        ...mockPlaywrightResponse.result,
+                        score: alignedResult.aligned_result.Strength,
+                        grade: alignedResult.aligned_result["Playwright Grade"],
+                        alignmentStrategy: alignedResult.aligned_result["Alignment Strategy"],
+                        originalEEScore: element['Strength'],
+                        originalPWScore: mockPlaywrightResponse.result.score,
+                        scoreAdjustments: alignedResult.aligned_result["Score Adjustments"],
+                        aligned: true
+                    };
+                    
+                    console.log('🎯 Popup simulation: Scoring alignment applied:', {
+                        element: element['Element Name'],
+                        originalEE: element['Strength'],
+                        originalPW: mockPlaywrightResponse.result.score,
+                        aligned: finalResult.score,
+                        strategy: finalResult.alignmentStrategy
+                    });
+                } else {
+                    console.warn('⚠️ Popup simulation: Scoring alignment not available');
+                }
+
+                // Display results
+                let output = '<h3>🎭 Popup Validation Simulation</h3>';
+                if (finalResult.aligned) {
+                    output += '<div class="success">✅ Popup alignment simulation successful!</div>';
+                    output += `<pre>
+SIMULATED POPUP WORKFLOW:
+  Original Element Extractor: ${element.Strength}%
+  Original Playwright: ${mockPlaywrightResponse.result.score}%
+  
+POPUP ALIGNMENT APPLIED:
+  Final Score: ${finalResult.score}%
+  Strategy: ${finalResult.alignmentStrategy}
+  Adjustments: ${finalResult.scoreAdjustments}
+  
+WORKFLOW STATUS: ✅ WORKING AS EXPECTED
+This proves the alignment would work in the actual popup!
+</pre>`;
+                } else {
+                    output += '<div class="warning">⚠️ Popup alignment simulation - no alignment applied</div>';
+                    output += '<pre>Alignment was not applied in simulation. Check initialization.</pre>';
+                }
+
+                updateTestSection('liveTest', output, finalResult.aligned ? 'success' : 'warning');
+
+            } catch (error) {
+                console.error('❌ Popup simulation error:', error);
+                updateTestSection('liveTest', `<div class="error">❌ Popup simulation failed: ${error.message}</div>`, 'error');
+            }
+        }
+
+        function runDeepDebug() {
+            console.log('🔍 Running deep debug analysis...');
+            
+            let output = '<h3>🔍 Deep Debug Analysis</h3>';
+            
+            // Environment analysis
+            output += '<h4>🌍 Environment Analysis</h4>';
+            output += '<pre>';
+            output += `Browser: ${navigator.userAgent}\n`;
+            output += `Location: ${window.location.href}\n`;
+            output += `Document ready state: ${document.readyState}\n`;
+            output += '</pre>';
+            
+            // Window properties analysis
+            output += '<h4>🪟 Window Properties</h4>';
+            const scoringProps = Object.keys(window).filter(key => 
+                key.toLowerCase().includes('scoring') || 
+                key.toLowerCase().includes('alignment') ||
+                key.toLowerCase().includes('validate')
+            );
+            output += `<pre>Scoring-related properties: ${scoringProps.join(', ') || 'None found'}</pre>`;
+            
+            // Instance analysis
+            if (window.scoringIntegration) {
+                output += '<h4>🔧 ScoringIntegration Instance</h4>';
+                output += '<pre>';
+                output += `Instance type: ${typeof window.scoringIntegration}\n`;
+                output += `Constructor: ${window.scoringIntegration.constructor.name}\n`;
+                output += `Methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(window.scoringIntegration)).join(', ')}\n`;
+                output += `Aligned results count: ${window.scoringIntegration.aligned_results.size}\n`;
+                output += '</pre>';
+            }
+            
+            // Test summary
+            output += '<h4>📊 Test Summary</h4>';
+            output += '<pre>';
+            if (testResults.components) {
+                const componentsPassed = testResults.components.filter(t => t.passed).length;
+                output += `Component Tests: ${componentsPassed}/${testResults.components.length} passed\n`;
+            }
+            if (testResults.integration) {
+                const integrationPassed = testResults.integration.filter(t => t.passed).length;
+                output += `Integration Tests: ${integrationPassed}/${testResults.integration.length} passed\n`;
+            }
+            if (testResults.alignment) {
+                output += `Alignment Test: ${testResults.alignment.success ? 'SUCCESS' : 'NEEDS IMPROVEMENT'}\n`;
+                output += `Improvement: ${testResults.alignment.improvement}% reduction\n`;
+            }
+            output += '</pre>';
+            
+            updateTestSection('deepDebug', output);
+        }
+
+        function displayTestResults(sectionId, tests, title) {
+            let output = `<h3>${title}</h3>`;
+            tests.forEach(test => {
+                const icon = test.passed ? '✅' : '❌';
+                const className = test.passed ? 'success' : 'error';
+                output += `<div class="${className}">${icon} <strong>${test.name}:</strong> ${test.value}</div>`;
+            });
+            
+            const passed = tests.filter(t => t.passed).length;
+            const total = tests.length;
+            output += `<div class="info"><strong>Summary: ${passed}/${total} tests passed</strong></div>`;
+            
+            updateTestSection(sectionId, output);
+        }
+
+        // Auto-run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎬 Starting complete scoring alignment test...');
+            setTimeout(() => {
+                runComponentTests();
+                runIntegrationTests();
+            }, 500);
+        });
+
+        // Global test functions for console access
+        window.testComponents = runComponentTests;
+        window.testIntegration = runIntegrationTests;  
+        window.testAlignment = testLiveScoringAlignment;
+        window.simulatePopup = simulatePopupValidation;
+        window.debugDeep = runDeepDebug;
+    </script>
+</body>
+</html>

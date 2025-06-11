@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Mode Highlight Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .test-element {
+            padding: 15px;
+            margin: 10px;
+            background: #fff3e0;
+            border: 2px solid #ffb74d;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-element:hover {
+            background: #ffe0b2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .working { border-color: #4CAF50; background: #f8fff8; }
+        .broken { border-color: #f44336; background: #fff8f8; }
+        
+        .console-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f8ff;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .highlight {
+            animation: highlight-flash 2s ease-in-out;
+        }
+        
+        @keyframes highlight-flash {
+            0%, 100% { background: #fff3e0; }
+            50% { background: #ff6b35; color: white; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Inspector Mode Highlight Comparison Test</h1>
+    
+    <div class="instructions">
+        <h3>🧪 Step-by-Step Testing Instructions:</h3>
+        <p><strong>Goal:</strong> Compare Active Inspector Mode vs Regular Inspector Mode highlighting</p>
+    </div>
+
+    <div class="test-section working">
+        <h2>✅ Test 1: Active Inspector Mode (Working)</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Click "Inspect Element" in the extension popup
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Click on the test element below
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> In the floating orange badge, click "👁️ Highlight"
+        </div>
+        <div class="step">
+            <strong>Expected:</strong> Element should highlight with red border for 2 seconds ✅
+        </div>
+        
+        <div class="test-element" id="active-test-element">
+            <h3>Active Inspector Test Element</h3>
+            <p><strong>ID:</strong> active-test-element</p>
+            <p><strong>Purpose:</strong> Test Active Inspector Mode highlighting</p>
+            <p>Click me when in Active Inspector mode!</p>
+        </div>
+    </div>
+
+    <div class="test-section broken">
+        <h2>❌ Test 2: Regular Inspector Mode (Broken)</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Click "Inspect Element" in the extension popup
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Click on the test element below
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> Reopen the extension popup
+        </div>
+        <div class="step">
+            <strong>Step 4:</strong> In the inspector details section, click "👁️ Highlight"
+        </div>
+        <div class="step">
+            <strong>Problem:</strong> Element does NOT highlight ❌
+        </div>
+        
+        <div class="test-element" id="regular-test-element">
+            <h3>Regular Inspector Test Element</h3>
+            <p><strong>ID:</strong> regular-test-element</p>
+            <p><strong>Purpose:</strong> Test Regular Inspector Mode highlighting</p>
+            <p>Click me when in Regular Inspector mode!</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Debug Information</h2>
+        <p>Open the browser console (F12) and look for these debug messages:</p>
+        
+        <div class="console-log">
+<strong>Working Active Inspector Mode:</strong>
+Element AI Extractor: Element clicked
+Element AI Extractor: Direct highlight button click
+Element AI Extractor: Highlighting element: [object HTMLElement]
+
+<strong>Broken Regular Inspector Mode:</strong>
+Element AI Extractor: Highlight button clicked!
+Element AI Extractor: Decoded locator: #regular-test-element
+Element AI Extractor: Tab ID: [number]
+Element AI Extractor: highlightElementOnTab called with: {...}
+Element AI Extractor: Found element via DevTools-compatible selector: [object HTMLElement]
+<span style="color: #ff6b35">⚠️ BUT NO VISUAL HIGHLIGHTING OCCURS</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Root Cause Analysis</h2>
+        <p>The issue is likely one of these:</p>
+        <ul>
+            <li><strong>Script Execution Context:</strong> The highlighting script might not be executing in the right context</li>
+            <li><strong>Style Application:</strong> The inline styles might be getting overridden or not applied</li>
+            <li><strong>Element Reference:</strong> The element might be found but the highlighting styles aren't being applied correctly</li>
+            <li><strong>Timing Issue:</strong> The script might be executing before the element is ready</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Test Results</h2>
+        <div id="test-results">
+            <p>After running both tests, check the console and note:</p>
+            <ul>
+                <li>Did Active Inspector Mode work? <input type="checkbox" id="active-worked"> Yes</li>
+                <li>Did Regular Inspector Mode work? <input type="checkbox" id="regular-worked"> Yes</li>
+                <li>Were debug messages shown in console? <input type="checkbox" id="debug-shown"> Yes</li>
+                <li>Was the element found but not highlighted? <input type="checkbox" id="found-not-highlighted"> Yes</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Add click listeners for visual feedback
+        document.addEventListener('DOMContentLoaded', () => {
+            const testElements = document.querySelectorAll('.test-element');
+            testElements.forEach(element => {
+                element.addEventListener('click', (e) => {
+                    console.log(`🎯 Test element clicked: ${element.id}`);
+                    
+                    // Visual feedback
+                    element.classList.add('highlight');
+                    setTimeout(() => {
+                        element.classList.remove('highlight');
+                    }, 2000);
+                    
+                    // Log element details for debugging
+                    console.log('Element details:', {
+                        id: element.id,
+                        tagName: element.tagName,
+                        className: element.className,
+                        selector: '#' + element.id
+                    });
+                });
+            });
+        });
+
+        // Manual highlight test function
+        function manualHighlightTest(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                console.log('Manual highlight test for:', elementId);
+                element.style.outline = '3px solid #ff0000';
+                element.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+                setTimeout(() => {
+                    element.style.outline = '';
+                    element.style.backgroundColor = '';
+                }, 2000);
+                return true;
+            }
+            return false;
+        }
+
+        // Expose test function globally for debugging
+        window.manualHighlightTest = manualHighlightTest;
+        
+        // Log that the page is ready
+        console.log('🚀 Inspector highlighting test page loaded');
+        console.log('💡 Use manualHighlightTest("element-id") to test highlighting manually');
+    </script>
+</body>
+</html>

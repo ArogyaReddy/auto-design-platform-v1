@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Uniqueness Validation Test - Element AI Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .critical-issue {
+            border-color: #ff6b6b;
+            background: #ffe0e0;
+        }
+        .fixed {
+            border-color: #51cf66;
+            background: #e0ffe0;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .console-test {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .warning {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #c6f6d5;
+            border: 1px solid #68d391;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        input, button, select {
+            margin: 10px 5px;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .nav-link {
+            color: #007bff;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Uniqueness Validation Test</h1>
+        <p><strong>Purpose:</strong> Test that the Element AI Extractor generates UNIQUE selectors that work reliably in automation.</p>
+        
+        <div class="warning">
+            <strong>⚠️ The Critical Issue:</strong> The selector <code>h3:nth-of-type(1)</code> was identifying 2 elements instead of 1, 
+            making automation unreliable. This test verifies the fix.
+        </div>
+
+        <!-- Section 1: Multiple H3 elements (the problem case) -->
+        <div class="test-section critical-issue">
+            <h2>🔥 Critical Test Case: Multiple H3 Elements</h2>
+            <p>This section contains multiple H3 elements that would cause <code>h3:nth-of-type(1)</code> to match multiple elements.</p>
+            
+            <div>
+                <h3>First H3 Element</h3>
+                <p>This H3 should generate a unique selector, not <code>h3:nth-of-type(1)</code></p>
+            </div>
+            
+            <div>
+                <h3>Second H3 Element</h3>
+                <p>This H3 should also generate a unique selector different from the first one</p>
+            </div>
+            
+            <div class="console-test">
+# Test the OLD problematic behavior:
+document.querySelectorAll('h3:nth-of-type(1)').length
+# Expected: 2 (PROBLEM - not unique!)
+
+# Test the NEW fixed behavior:
+# Each H3 should get a unique selector like:
+# "h3:nth-of-type(1)" only if it's truly unique within its parent
+# OR a more specific path-based selector
+            </div>
+        </div>
+
+        <!-- Section 2: Complex ID test cases -->
+        <div class="test-section fixed">
+            <h2>✅ Complex ID Test Cases</h2>
+            <p>These elements test that complex IDs generate proper <code>[id="..."]</code> selectors:</p>
+            
+            <input id="simple-input" placeholder="Simple ID - should use #simple-input" />
+            <input id="complex-id.with.dots" placeholder="Complex ID - should use [id='complex-id.with.dots']" />
+            <button id="add-to-cart-test.allthethings()-t-shirt-(red)" type="button">Complex Button ID</button>
+            
+            <div class="console-test">
+# Test these selectors:
+document.querySelector('#simple-input')           // Should work
+document.querySelector('[id="simple-input"]')     // Should also work
+document.querySelector('[id="complex-id.with.dots"]')  // Must work (old #... would fail)
+document.querySelector('[id="add-to-cart-test.allthethings()-t-shirt-(red)"]')  // Must work
+            </div>
+        </div>
+
+        <!-- Section 3: Navigation elements -->
+        <div class="test-section fixed">
+            <h2>🧭 Navigation Element Tests</h2>
+            <p>These test that navigation elements get specific selectors:</p>
+            
+            <nav>
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <a href="#home">Duplicate Home Link (no class)</a>
+            </nav>
+            
+            <div class="console-test">
+# Navigation links should generate:
+document.querySelector('.nav-link[href="#home"]')     // Specific and unique
+document.querySelector('.nav-link[href="#about"]')    // Specific and unique
+document.querySelector('a[href="#home"]')             // Should match 2 elements (not unique!)
+            </div>
+        </div>
+
+        <!-- Section 4: Multiple similar elements -->
+        <div class="test-section critical-issue">
+            <h2>⚡ Multiple Similar Elements Test</h2>
+            <p>These elements test that similar elements get unique selectors:</p>
+            
+            <div class="form-group">
+                <label>First Name:</label>
+                <input type="text" name="firstname" placeholder="First name" />
+            </div>
+            
+            <div class="form-group">
+                <label>Last Name:</label>
+                <input type="text" name="lastname" placeholder="Last name" />
+            </div>
+            
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="email" placeholder="Email address" />
+            </div>
+            
+            <div class="console-test">
+# Each input should get a unique selector:
+document.querySelector('[name="firstname"]')   // Should match exactly 1
+document.querySelector('[name="lastname"]')    // Should match exactly 1  
+document.querySelector('[name="email"]')       // Should match exactly 1
+document.querySelector('input')                // Should match 3 (not unique!)
+            </div>
+        </div>
+
+        <!-- Section 5: Test automation interface -->
+        <div class="test-section fixed">
+            <h2>🤖 Automated Uniqueness Test</h2>
+            <p>Click the button below to run automated uniqueness validation:</p>
+            
+            <button onclick="runUniquenessTest()" style="background: #4CAF50; color: white; padding: 15px 30px; font-size: 16px;">
+                🔍 Run Uniqueness Validation Test
+            </button>
+            
+            <div id="test-results" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="success">
+            <h3>🎯 Expected Results After Fix:</h3>
+            <ul>
+                <li>✅ No selector should match more than 1 element</li>
+                <li>✅ Complex IDs should use <code>[id="..."]</code> format</li>
+                <li>✅ Navigation links should use <code>.class[href="..."]</code> format</li>
+                <li>✅ All generated selectors should work in DevTools console</li>
+                <li>✅ Element AI Extractor should warn about non-unique selectors</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function runUniquenessTest() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>🔍 Running Uniqueness Validation...</h3>';
+            
+            // Test selectors that should be unique
+            const testSelectors = [
+                '#simple-input',
+                '[id="simple-input"]',
+                '[id="complex-id.with.dots"]',
+                '[id="add-to-cart-test.allthethings()-t-shirt-(red)"]',
+                '.nav-link[href="#home"]',
+                '.nav-link[href="#about"]',
+                '.nav-link[href="#contact"]',
+                '[name="firstname"]',
+                '[name="lastname"]',
+                '[name="email"]'
+            ];
+            
+            // Test selectors that should NOT be unique (multiple matches)
+            const nonUniqueSelectors = [
+                'h3:nth-of-type(1)',  // The original problem
+                'a[href="#home"]',    // Should match 2 elements
+                'input',              // Should match multiple inputs
+                'h3'                  // Should match multiple h3s
+            ];
+            
+            let results = '<div class="console-test">';
+            results += '<strong>UNIQUENESS TEST RESULTS:</strong><br><br>';
+            
+            // Test unique selectors
+            results += '<span style="color: #68d391;">--- SHOULD BE UNIQUE (1 match each) ---</span><br>';
+            testSelectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    const count = elements.length;
+                    const status = count === 1 ? '✅ PASS' : `❌ FAIL (${count} matches)`;
+                    const color = count === 1 ? '#68d391' : '#fc8181';
+                    results += `<span style="color: ${color};">${status}: ${selector} → ${count} element(s)</span><br>`;
+                } catch (e) {
+                    results += `<span style="color: #fc8181;">❌ ERROR: ${selector} → ${e.message}</span><br>`;
+                }
+            });
+            
+            results += '<br><span style="color: #fbb6ce;">--- SHOULD NOT BE UNIQUE (multiple matches) ---</span><br>';
+            nonUniqueSelectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    const count = elements.length;
+                    const status = count > 1 ? '✅ CORRECT' : `⚠️ UNEXPECTED (${count} matches)`;
+                    const color = count > 1 ? '#68d391' : '#f6ad55';
+                    results += `<span style="color: ${color};">${status}: ${selector} → ${count} element(s)</span><br>`;
+                } catch (e) {
+                    results += `<span style="color: #fc8181;">❌ ERROR: ${selector} → ${e.message}</span><br>`;
+                }
+            });
+            
+            results += '<br><strong>🎯 KEY INSIGHT:</strong><br>';
+            results += 'If h3:nth-of-type(1) shows multiple matches, the Element AI Extractor<br>';
+            results += 'should NOT generate this selector. It should create a more specific<br>';
+            results += 'path-based selector that matches exactly 1 element.<br>';
+            results += '</div>';
+            
+            resultsDiv.innerHTML = results;
+        }
+        
+        // Auto-run the test when page loads
+        window.onload = function() {
+            setTimeout(runUniquenessTest, 1000);
+        };
+    </script>
+</body>
+</html>

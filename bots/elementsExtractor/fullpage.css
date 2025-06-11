@@ -98,7 +98,7 @@
 }
 
 .fullpage-table table {
-    min-width: 1400px; /* Ensure table is wide enough for all columns */
+    min-width: 1500px; /* Increased to accommodate 7th column (Playwright) */
     border-collapse: collapse;
     font-size: 0.9rem;
 }
@@ -119,6 +119,7 @@
 .fullpage-table th:nth-child(4), .fullpage-table td:nth-child(4) { min-width: 180px; } /* XPATH */
 .fullpage-table th:nth-child(5), .fullpage-table td:nth-child(5) { min-width: 120px; } /* ID */
 .fullpage-table th:nth-child(6), .fullpage-table td:nth-child(6) { min-width: 200px; } /* Text Content */
+.fullpage-table th:nth-child(7), .fullpage-table td:nth-child(7) { min-width: 100px; } /* Playwright */
 
 .fullpage-table th {
     background: rgba(255, 255, 255, 0.1);
@@ -144,6 +145,22 @@
     white-space: nowrap;
     color: #ffffff;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fullpage-table .element-name:hover {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 100;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    max-width: none;
+    min-width: 200px;
+    border-radius: 4px;
+    padding: 4px 6px;
 }
 
 .fullpage-table .locator-text {
@@ -157,6 +174,22 @@
     background: rgba(0, 0, 0, 0.3);
     border-radius: 4px;
     padding: 4px 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fullpage-table .locator-text:hover {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-all;
+    background: rgba(57, 107, 230, 0.3);
+    z-index: 100;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    max-width: none;
+    min-width: 250px;
+    border-radius: 6px;
+    padding: 6px 8px;
 }
 
 .fullpage-table .element-id {
@@ -167,6 +200,21 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fullpage-table .element-id:hover {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-all;
+    background: rgba(255, 195, 102, 0.2);
+    z-index: 100;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    max-width: none;
+    border-radius: 4px;
+    padding: 4px 6px;
 }
 
 .fullpage-table tr:hover {
@@ -342,7 +390,7 @@
     
     /* Reduce minimum widths for mobile fullpage view while maintaining scrolling */
     .fullpage-table table {
-        min-width: 1000px; /* Smaller minimum width for mobile */
+        min-width: 1200px; /* Smaller minimum width for mobile but still enables scrolling */
     }
     
     .fullpage-table th:nth-child(1), .fullpage-table td:nth-child(1) { min-width: 100px; } /* Name */
@@ -351,6 +399,7 @@
     .fullpage-table th:nth-child(4), .fullpage-table td:nth-child(4) { min-width: 130px; } /* XPATH */
     .fullpage-table th:nth-child(5), .fullpage-table td:nth-child(5) { min-width: 80px; } /* ID */
     .fullpage-table th:nth-child(6), .fullpage-table td:nth-child(6) { min-width: 150px; } /* Text Content */
+    .fullpage-table th:nth-child(7), .fullpage-table td:nth-child(7) { min-width: 80px; } /* Playwright */
     
     .fullpage-table .copy-btn {
         padding: 3px 6px;

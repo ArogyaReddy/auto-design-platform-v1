@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Mode Comparison Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+        }
+        
+        .working {
+            border-color: #4CAF50;
+            background: #f8fff8;
+        }
+        
+        .broken {
+            border-color: #f44336;
+            background: #fff8f8;
+        }
+        
+        .test-element {
+            padding: 15px;
+            margin: 10px;
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .debug-console {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Inspector Mode Comparison Debug</h1>
+    
+    <div class="instructions">
+        <h3>🧪 Testing Instructions:</h3>
+        <ol>
+            <li><strong>Load the extension</strong> in Chrome</li>
+            <li><strong>Test Active Inspector Mode</strong>:
+                <ul>
+                    <li>Click "Inspect Element" in the extension popup</li>
+                    <li>Click on any element below</li>
+                    <li>In the floating orange badge, click the "👁️ Highlight" button</li>
+                    <li>✅ <strong>Expected:</strong> Element should highlight with orange border</li>
+                </ul>
+            </li>
+            <li><strong>Test Regular Inspector Mode</strong>:
+                <ul>
+                    <li>Open the extension popup again</li>
+                    <li>In the inspector details section, click the "👁️ Highlight" button</li>
+                    <li>❌ <strong>Problem:</strong> Element does NOT highlight</li>
+                </ul>
+            </li>
+            <li><strong>Check the console</strong> for debugging information</li>
+        </ol>
+    </div>
+
+    <div class="test-section working">
+        <h2>✅ Working: Active Inspector Mode</h2>
+        <p>The floating orange badge's "👁️ Highlight" button works correctly</p>
+        <div class="test-element" id="test-element-1">
+            <h3>Test Element 1</h3>
+            <p>ID: test-element-1</p>
+            <p>Click me for inspection, then use the floating badge's highlight button</p>
+        </div>
+    </div>
+
+    <div class="test-section broken">
+        <h2>❌ Broken: Regular Inspector Mode</h2>
+        <p>The main popup's "👁️ Highlight" button does NOT work</p>
+        <div class="test-element" id="test-element-2">
+            <h3>Test Element 2</h3>
+            <p>ID: test-element-2</p>
+            <p>Click me for inspection, then use the popup's highlight button</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Debug Comparison</h2>
+        <p>Key differences to investigate:</p>
+        <ul>
+            <li><strong>Event Handlers:</strong> Active Inspector uses <code>handleClick</code>, Regular Inspector uses <code>bindTablePreviewButtons</code></li>
+            <li><strong>Highlighting Functions:</strong> Active Inspector uses <code>highlightElement</code>, Regular Inspector uses <code>highlightElementOnTab</code></li>
+            <li><strong>Locator Storage:</strong> Active Inspector stores in <code>lastClickedElement</code>, Regular Inspector stores in HTML data attributes</li>
+            <li><strong>Context:</strong> Active Inspector runs in contentScript, Regular Inspector runs from popup</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Root Cause Investigation</h2>
+        <div class="debug-console" id="debug-output">
+            Debug output will appear here...
+        </div>
+        <button onclick="runDebugTests()">🔍 Run Debug Tests</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Test Results</h2>
+        <div id="test-results">
+            <div class="status warning">Run the debug tests above to see results</div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging function
+        function debugLog(message) {
+            console.log(message);
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.innerHTML += message + '\n';
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+        }
+
+        // Check if extension is available
+        function checkExtensionAvailability() {
+            debugLog('🔍 Checking extension availability...');
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                debugLog('✅ Extension runtime available');
+                debugLog('Extension ID: ' + chrome.runtime.id);
+                return true;
+            } else {
+                debugLog('❌ Extension runtime not available');
+                return false;
+            }
+        }
+
+        // Test highlighting functions
+        function testHighlightingFunctions() {
+            debugLog('\n🎯 Testing highlighting functions from contentScript...');
+            
+            // Try to access contentScript functions
+            try {
+                if (window.highlightElement) {
+                    debugLog('✅ highlightElement function found');
+                } else {
+                    debugLog('❌ highlightElement function NOT found');
+                }
+                
+                if (window.highlightElementOnTab) {
+                    debugLog('✅ highlightElementOnTab function found');
+                } else {
+                    debugLog('❌ highlightElementOnTab function NOT found');
+                }
+            } catch (error) {
+                debugLog('❌ Error accessing highlighting functions: ' + error.message);
+            }
+        }
+
+        // Test locator generation
+        function testLocatorGeneration() {
+            debugLog('\n📍 Testing locator generation...');
+            
+            const testElement = document.getElementById('test-element-1');
+            if (testElement) {
+                // Test basic selectors
+                const cssSelector = '#test-element-1';
+                const querySelector = document.querySelector(cssSelector);
+                
+                debugLog('Test element: ' + testElement.tagName + '#' + testElement.id);
+                debugLog('CSS Selector: ' + cssSelector);
+                debugLog('querySelector result: ' + (querySelector ? 'Found' : 'Not found'));
+                
+                if (querySelector === testElement) {
+                    debugLog('✅ Basic selector works correctly');
+                } else {
+                    debugLog('❌ Basic selector failed');
+                }
+            }
+        }
+
+        // Run all debug tests
+        function runDebugTests() {
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.innerHTML = '';
+            
+            debugLog('🚀 Starting Inspector Mode Debug Tests...\n');
+            
+            checkExtensionAvailability();
+            testHighlightingFunctions();
+            testLocatorGeneration();
+            
+            debugLog('\n✅ Debug tests completed. Check the console for detailed logs.');
+        }
+
+        // Add click listeners to test elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const testElements = document.querySelectorAll('.test-element');
+            testElements.forEach((element, index) => {
+                element.addEventListener('click', (e) => {
+                    debugLog(`🎯 Test element ${index + 1} clicked: ${element.id}`);
+                    // Highlight for visual feedback
+                    element.style.outline = '3px solid #ff6b35';
+                    setTimeout(() => {
+                        element.style.outline = '';
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

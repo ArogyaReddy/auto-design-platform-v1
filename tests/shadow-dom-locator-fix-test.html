@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 Shadow DOM Locator Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .shadow-host {
+            background: #e7f3ff;
+            border: 2px solid #007acc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .issue-example {
+            background: #ffe0e0;
+            border: 2px solid #ff6b6b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .solution-example {
+            background: #e0ffe0;
+            border: 2px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .results {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 Shadow DOM Locator Fix Test</h1>
+        
+        <div class="issue-example">
+            <h2>❌ Problem: Complex Shadow DOM Locators (85% strength)</h2>
+            <p><strong>Before Fix:</strong> Very long, complex locators that don't work in DevTools:</p>
+            <code>fuse-root.fusePageElements > div.fuse.stage.passive-dashboard > oneux-shell > sfc-shell.hydrated > oneux-header.ng-star-inserted > sfc-shell-app-bar.hydrated.with-menu >> sdf-icon-button.burger.hydrated >> [aria-label="Close Menu"]</code>
+            <ul>
+                <li>❌ 85% strength (too low)</li>
+                <li>❌ Uses `>>` syntax (Playwright-specific)</li>
+                <li>❌ Doesn't work in browser DevTools</li>
+                <li>❌ Too complex and fragile</li>
+            </ul>
+        </div>
+
+        <div class="solution-example">
+            <h2>✅ Solution: DevTools-Compatible Simple Locators (90%+ strength)</h2>
+            <p><strong>After Fix:</strong> Short, DevTools-compatible locators:</p>
+            <code>[aria-label="Close Menu"]</code>
+            <ul>
+                <li>✅ 90%+ strength (high reliability)</li>
+                <li>✅ Works directly in browser DevTools</li>
+                <li>✅ Short and maintainable</li>
+                <li>✅ Globally unique when possible</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Test Components</h2>
+            <p>The test components below simulate the complex Shadow DOM structure that was causing issues:</p>
+
+            <!-- Shadow Component 1: Simple unique aria-label -->
+            <div id="fuse-root" class="shadow-host">
+                <h3>Fuse Application Root (Shadow Host 1)</h3>
+                <p>This will contain a button with a unique aria-label that should generate a simple locator.</p>
+            </div>
+
+            <!-- Shadow Component 2: Nested complex structure -->
+            <div id="complex-shell" class="shadow-host">
+                <h3>Complex Shell Component (Shadow Host 2)</h3>
+                <p>This simulates the complex nested structure with multiple shadow levels.</p>
+            </div>
+
+            <!-- Shadow Component 3: Multiple similar elements -->
+            <div id="navigation-shell" class="shadow-host">
+                <h3>Navigation Shell (Shadow Host 3)</h3>
+                <p>This tests locator generation when multiple similar elements exist.</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Test Controls</h2>
+            <button class="test-button" onclick="testLocatorGeneration()">🧪 Test Locator Generation</button>
+            <button class="test-button" onclick="testDevToolsCompatibility()">🔍 Test DevTools Compatibility</button>
+            <button class="test-button" onclick="testHighlighting()">🎯 Test Highlighting</button>
+            <button class="test-button" onclick="runAllTests()">🚀 Run All Tests</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Expected Results</h2>
+            <ul>
+                <li>✅ <strong>Simple locators</strong> like <code>[aria-label="Close Menu"]</code> instead of complex paths</li>
+                <li>✅ <strong>High strength scores</strong> (90%+) for accessibility attributes</li>
+                <li>✅ <strong>DevTools compatibility</strong> - locators work when copied to browser console</li>
+                <li>✅ <strong>Successful highlighting</strong> - all elements can be found and highlighted</li>
+                <li>✅ <strong>Reduced complexity</strong> - no `>>` syntax unless absolutely necessary</li>
+            </ul>
+        </div>
+
+        <div class="results" id="test-results">
+            <h3>📋 Test Results</h3>
+            <p>Click the test buttons above to see results here...</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('🌟 Shadow DOM Locator Fix Test Page Loaded');
+
+        // Create Shadow DOM structures that mimic the problematic case
+        function createShadowDOMStructures() {
+            console.log('🔧 Creating Shadow DOM test structures...');
+
+            // Shadow Component 1: Simple case with unique aria-label
+            const fuseRoot = document.getElementById('fuse-root');
+            const fuseShad = fuseRoot.attachShadow({ mode: 'open' });
+            fuseShad.innerHTML = `
+                <style>
+                    .stage { padding: 15px; background: #f0f8ff; border-radius: 5px; }
+                    .close-button { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; }
+                </style>
+                <div class="stage passive-dashboard">
+                    <h4>Fuse Stage</h4>
+                    <button class="close-button" aria-label="Close Menu" id="unique-close-btn">Close Menu</button>
+                    <button class="close-button" aria-label="Globally Unique Action" data-testid="global-action">Global Action</button>
+                </div>
+            `;
+
+            // Shadow Component 2: Complex nested structure
+            const complexShell = document.getElementById('complex-shell');
+            const complexShadow = complexShell.attachShadow({ mode: 'open' });
+            complexShadow.innerHTML = `
+                <style>
+                    .shell { padding: 15px; background: #fff3cd; border-radius: 5px; }
+                    .app-bar { background: #17a2b8; color: white; padding: 10px; border-radius: 3px; margin: 10px 0; }
+                    .burger { background: none; border: 1px solid white; color: white; padding: 5px 10px; }
+                </style>
+                <div class="shell hydrated">
+                    <div class="app-bar with-menu">
+                        <div id="nested-host">Nested Shadow Host</div>
+                    </div>
+                </div>
+            `;
+
+            // Create nested shadow in complex structure
+            const nestedHost = complexShadow.getElementById('nested-host');
+            const nestedShadow = nestedHost.attachShadow({ mode: 'open' });
+            nestedShadow.innerHTML = `
+                <style>
+                    .icon-button { background: #6c757d; color: white; border: none; padding: 8px; border-radius: 2px; margin: 5px; }
+                </style>
+                <button class="icon-button burger hydrated" aria-label="Close Menu">🍔</button>
+                <button class="icon-button" aria-label="Non-Unique Close">❌</button>
+            `;
+
+            // Shadow Component 3: Navigation with multiple similar elements
+            const navShell = document.getElementById('navigation-shell');
+            const navShadow = navShell.attachShadow({ mode: 'open' });
+            navShadow.innerHTML = `
+                <style>
+                    .nav { padding: 15px; background: #d1ecf1; border-radius: 5px; }
+                    .nav-item { background: #007bff; color: white; border: none; padding: 8px 16px; margin: 5px; border-radius: 4px; }
+                </style>
+                <nav class="nav">
+                    <button class="nav-item" aria-label="Home">Home</button>
+                    <button class="nav-item" aria-label="Profile" role="button">Profile</button>
+                    <button class="nav-item" name="settings" data-testid="settings-btn">Settings</button>
+                    <button class="nav-item" id="complex.id.with.dots">Complex ID</button>
+                </nav>
+            `;
+
+            console.log('✅ Shadow DOM structures created successfully');
+        }
+
+        // Test functions
+        function testLocatorGeneration() {
+            console.log('\n🧪 Testing Locator Generation...');
+            
+            const results = document.getElementById('test-results');
+            let html = '<h3>🧪 Locator Generation Test Results</h3>';
+
+            // Find all shadow DOM elements and test locator generation
+            const shadowElements = [];
+            
+            // Get elements from each shadow root
+            document.querySelectorAll('[id$="-root"], [id$="-shell"]').forEach(host => {
+                if (host.shadowRoot) {
+                    const elements = host.shadowRoot.querySelectorAll('button, [aria-label], [data-testid], [role]');
+                    elements.forEach(el => {
+                        shadowElements.push({
+                            element: el,
+                            hostId: host.id,
+                            isNested: el.getRootNode().host.getRootNode() instanceof ShadowRoot
+                        });
+                    });
+                }
+            });
+
+            html += `<p><strong>Found ${shadowElements.length} Shadow DOM elements to test:</strong></p><ul>`;
+
+            shadowElements.forEach((item, index) => {
+                const el = item.element;
+                const analysis = analyzeElementForLocator(el);
+                
+                html += `<li>
+                    <strong>Element ${index + 1}:</strong> ${el.tagName} in ${item.hostId}
+                    <br><small>Text: "${(el.textContent || '').trim()}"</small>
+                    <br><strong>Best Locator:</strong> <code>${analysis.bestLocator}</code>
+                    <br><strong>Type:</strong> ${analysis.type} | <strong>Strength:</strong> <span class="${analysis.strength >= 90 ? 'success' : analysis.strength >= 75 ? 'warning' : 'error'}">${analysis.strength}%</span>
+                    <br><strong>DevTools Compatible:</strong> <span class="${analysis.devToolsCompatible ? 'success' : 'error'}">${analysis.devToolsCompatible ? '✅ YES' : '❌ NO'}</span>
+                </li>`;
+            });
+
+            html += '</ul>';
+
+            // Overall assessment
+            const highQualityCount = shadowElements.filter(item => {
+                const analysis = analyzeElementForLocator(item.element);
+                return analysis.strength >= 90 && analysis.devToolsCompatible;
+            }).length;
+
+            const qualityPercentage = Math.round((highQualityCount / shadowElements.length) * 100);
+            
+            html += `<div style="margin-top: 20px; padding: 15px; background: ${qualityPercentage >= 80 ? '#d4edda' : qualityPercentage >= 60 ? '#fff3cd' : '#f8d7da'}; border-radius: 5px;">
+                <h4>Overall Quality Assessment:</h4>
+                <p><strong>${highQualityCount}/${shadowElements.length}</strong> elements (${qualityPercentage}%) have high-quality, DevTools-compatible locators</p>
+                <p><strong>Status:</strong> ${qualityPercentage >= 80 ? '✅ EXCELLENT' : qualityPercentage >= 60 ? '⚠️ GOOD' : '❌ NEEDS IMPROVEMENT'}</p>
+            </div>`;
+
+            results.innerHTML = html;
+        }
+
+        function analyzeElementForLocator(element) {
+            const analysis = {
+                bestLocator: '',
+                type: '',
+                strength: 0,
+                devToolsCompatible: false
+            };
+
+            // Simulate the enhanced locator generation logic
+            
+            // 1. Check for globally unique aria-label
+            if (element.hasAttribute('aria-label')) {
+                const ariaLabel = element.getAttribute('aria-label');
+                const selector = `[aria-label="${ariaLabel}"]`;
+                const globalElements = document.querySelectorAll(selector);
+                
+                if (globalElements.length === 1) {
+                    analysis.bestLocator = selector;
+                    analysis.type = 'aria-label';
+                    analysis.strength = 90;
+                    analysis.devToolsCompatible = true;
+                    return analysis;
+                }
+            }
+
+            // 2. Check for globally unique ID
+            if (element.id) {
+                const hasSpecialChars = /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(element.id);
+                const selector = hasSpecialChars ? `[id="${element.id}"]` : `#${element.id}`;
+                
+                try {
+                    const globalElements = document.querySelectorAll(selector);
+                    if (globalElements.length === 1) {
+                        analysis.bestLocator = selector;
+                        analysis.type = 'ID';
+                        analysis.strength = 95;
+                        analysis.devToolsCompatible = true;
+                        return analysis;
+                    }
+                } catch (e) {
+                    // Fallback for complex IDs
+                    analysis.bestLocator = `[id="${element.id}"]`;
+                    analysis.type = 'ID';
+                    analysis.strength = 95;
+                    analysis.devToolsCompatible = true;
+                    return analysis;
+                }
+            }
+
+            // 3. Check for test attributes
+            const testAttrs = ['data-testid', 'data-qa', 'data-cy'];
+            for (const attr of testAttrs) {
+                if (element.hasAttribute(attr)) {
+                    const selector = `[${attr}="${element.getAttribute(attr)}"]`;
+                    const globalElements = document.querySelectorAll(selector);
+                    
+                    if (globalElements.length === 1) {
+                        analysis.bestLocator = selector;
+                        analysis.type = attr;
+                        analysis.strength = 90;
+                        analysis.devToolsCompatible = true;
+                        return analysis;
+                    }
+                }
+            }
+
+            // 4. Check for globally unique role
+            if (element.hasAttribute('role')) {
+                const selector = `[role="${element.getAttribute('role')}"]`;
+                const globalElements = document.querySelectorAll(selector);
+                
+                if (globalElements.length === 1) {
+                    analysis.bestLocator = selector;
+                    analysis.type = 'role';
+                    analysis.strength = 85;
+                    analysis.devToolsCompatible = true;
+                    return analysis;
+                }
+            }
+
+            // 5. Fallback to complex Shadow DOM path (the problematic case)
+            analysis.bestLocator = 'complex-shadow-host >> complex-path >> element-selector';
+            analysis.type = 'CSS';
+            analysis.strength = 60;
+            analysis.devToolsCompatible = false;
+
+            return analysis;
+        }
+
+        function testDevToolsCompatibility() {
+            console.log('\n🔍 Testing DevTools Compatibility...');
+            
+            const results = document.getElementById('test-results');
+            let html = '<h3>🔍 DevTools Compatibility Test Results</h3>';
+
+            const testSelectors = [
+                '[aria-label="Close Menu"]',
+                '[aria-label="Globally Unique Action"]',
+                '[data-testid="global-action"]',
+                '[data-testid="settings-btn"]',
+                '[role="button"]',
+                '[id="complex.id.with.dots"]',
+                '#unique-close-btn'
+            ];
+
+            html += '<p><strong>Testing selectors in DevTools context:</strong></p><ul>';
+
+            testSelectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    const isValid = elements.length > 0;
+                    const isUnique = elements.length === 1;
+                    
+                    html += `<li>
+                        <code>${selector}</code><br>
+                        <strong>Valid:</strong> <span class="${isValid ? 'success' : 'error'}">${isValid ? '✅ YES' : '❌ NO'}</span> |
+                        <strong>Unique:</strong> <span class="${isUnique ? 'success' : 'warning'}">${isUnique ? '✅ YES' : '⚠️ NO'}</span> |
+                        <strong>Found:</strong> ${elements.length} element(s)
+                    </li>`;
+                } catch (e) {
+                    html += `<li>
+                        <code>${selector}</code><br>
+                        <span class="error">❌ SYNTAX ERROR: ${e.message}</span>
+                    </li>`;
+                }
+            });
+
+            html += '</ul>';
+
+            // Test complex selectors (should fail)
+            html += '<p><strong>Testing complex Shadow DOM selectors (should be avoided):</strong></p><ul>';
+            
+            const complexSelectors = [
+                'fuse-root >> .stage >> button[aria-label="Close Menu"]',
+                'complex-shell >> .shell >> nested-host >> button.burger'
+            ];
+
+            complexSelectors.forEach(selector => {
+                html += `<li>
+                    <code>${selector}</code><br>
+                    <span class="error">❌ COMPLEX PATH - Not DevTools compatible</span>
+                </li>`;
+            });
+
+            html += '</ul>';
+
+            results.innerHTML = html;
+        }
+
+        function testHighlighting() {
+            console.log('\n🎯 Testing Highlighting...');
+            
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h3>🎯 Highlighting Test Results</h3><p>Check console for highlighting test results...</p>';
+
+            // Test highlighting various elements
+            const testCases = [
+                { selector: '[aria-label="Close Menu"]', description: 'Globally unique aria-label' },
+                { selector: '[data-testid="global-action"]', description: 'Test ID attribute' },
+                { selector: '#unique-close-btn', description: 'Simple ID' },
+                { selector: '[id="complex.id.with.dots"]', description: 'Complex ID' }
+            ];
+
+            testCases.forEach((testCase, index) => {
+                setTimeout(() => {
+                    try {
+                        const element = document.querySelector(testCase.selector);
+                        if (element) {
+                            console.log(`✅ Highlighting test ${index + 1}: ${testCase.description} - SUCCESS`);
+                            element.style.outline = '3px solid #28a745';
+                            element.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+                            
+                            setTimeout(() => {
+                                element.style.outline = '';
+                                element.style.backgroundColor = '';
+                            }, 1000);
+                        } else {
+                            console.log(`❌ Highlighting test ${index + 1}: ${testCase.description} - FAILED (element not found)`);
+                        }
+                    } catch (e) {
+                        console.log(`❌ Highlighting test ${index + 1}: ${testCase.description} - ERROR: ${e.message}`);
+                    }
+                }, index * 1200);
+            });
+        }
+
+        function runAllTests() {
+            console.log('\n🚀 Running All Tests...');
+            
+            testLocatorGeneration();
+            
+            setTimeout(() => {
+                testDevToolsCompatibility();
+            }, 1000);
+            
+            setTimeout(() => {
+                testHighlighting();
+            }, 2000);
+        }
+
+        // Initialize the test page
+        document.addEventListener('DOMContentLoaded', () => {
+            createShadowDOMStructures();
+            console.log('🎯 Shadow DOM Locator Fix Test Page Ready!');
+            console.log('📋 Instructions:');
+            console.log('1. Open the Elements Extractor extension');
+            console.log('2. Extract elements from this page');
+            console.log('3. Check that Shadow DOM elements have simple, high-strength locators');
+            console.log('4. Test copying locators to DevTools console');
+            console.log('5. Use the test buttons to validate the fix');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Scoring Alignment Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .result { background: #f8fafc; padding: 10px; margin: 5px 0; border-left: 3px solid #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Comprehensive Scoring Alignment Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Console Output</h2>
+        <div id="console-output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Load scoring alignment scripts -->
+    <script src="scoring-alignment-fix.js"></script>
+    <script src="scoring-integration.js"></script>
+    <script src="scoring-alignment-init.js"></script>
+    <script src="scoring-alignment-diagnostic.js"></script>
+
+    <script>
+        // Override console.log to capture output
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        const consoleOutput = document.getElementById('console-output');
+        const testResults = document.getElementById('test-results');
+        
+        function addToConsole(message, type = 'log') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.className = type;
+            consoleOutput.appendChild(div);
+            
+            // Also log to actual console
+            if (type === 'error') originalError(message);
+            else if (type === 'warn') originalWarn(message);
+            else originalLog(message);
+        }
+        
+        console.log = (message) => addToConsole(message, 'success');
+        console.error = (message) => addToConsole(message, 'error');
+        console.warn = (message) => addToConsole(message, 'warning');
+
+        // Wait for scripts to load
+        setTimeout(() => {
+            console.log('🧪 Starting Comprehensive Scoring Alignment Test');
+            console.log('==============================================');
+            
+            // Test data
+            const testData = {
+                elementExtractorResult: {
+                    locator: '.nav-link[href="#examples"]',
+                    type: 'class+href',
+                    strength: 95
+                },
+                playwrightResult: {
+                    locator: '.nav-link[href="#examples"]',
+                    overall: { score: 75, grade: 'B', passed: true },
+                    tests: {
+                        existence: { passed: true, score: 20 },
+                        visibility: { passed: true, score: 20 },
+                        clickability: { passed: true, score: 15 },
+                        enabled: { passed: true, score: 15 },
+                        text: { passed: true, score: 10 },
+                        locatorQuality: { passed: true, score: 15, rating: 'GOOD' }
+                    },
+                    alternatives: []
+                }
+            };
+
+            let testsPassed = 0;
+            let testsTotal = 0;
+
+            function runTest(name, testFn) {
+                testsTotal++;
+                try {
+                    console.log(`\n${testsTotal}️⃣ ${name}...`);
+                    testFn();
+                    testsPassed++;
+                    console.log(`   ✅ ${name} PASSED`);
+                } catch (error) {
+                    console.error(`   ❌ ${name} FAILED: ${error.message}`);
+                }
+            }
+
+            // Test 1: Check if classes are available
+            runTest('Testing ScoringAlignmentFix availability', () => {
+                if (typeof window.ScoringAlignmentFix === 'undefined') {
+                    throw new Error('ScoringAlignmentFix class not available');
+                }
+                console.log('   ScoringAlignmentFix: Available');
+            });
+
+            // Test 2: Check if integration is available
+            runTest('Testing ScoringIntegration availability', () => {
+                if (typeof window.scoringIntegration === 'undefined') {
+                    throw new Error('scoringIntegration instance not available');
+                }
+                console.log('   scoringIntegration: Available');
+            });
+
+            // Test 3: Test alignment functionality
+            runTest('Testing core alignment functionality', () => {
+                const alignmentFix = new window.ScoringAlignmentFix();
+                const result = alignmentFix.alignScoring(testData.elementExtractorResult, testData.playwrightResult);
+                
+                if (!result || typeof result.alignedScore !== 'number') {
+                    throw new Error('Invalid alignment result');
+                }
+                
+                console.log(`   Original EE Score: ${testData.elementExtractorResult.strength}`);
+                console.log(`   Original PW Score: ${testData.playwrightResult.overall.score}`);
+                console.log(`   Aligned Score: ${result.alignedScore}`);
+                console.log(`   Strategy: ${result.strategy}`);
+                console.log(`   Grade: ${result.alignedGrade}`);
+            });
+
+            // Test 4: Test different strategies
+            runTest('Testing different alignment strategies', () => {
+                const alignmentFix = new window.ScoringAlignmentFix();
+                const strategies = ['element-extractor-priority', 'playwright-priority', 'hybrid'];
+                
+                strategies.forEach(strategy => {
+                    alignmentFix.setAlignmentStrategy(strategy);
+                    const result = alignmentFix.alignScoring(testData.elementExtractorResult, testData.playwrightResult);
+                    console.log(`   ${strategy}: ${result.alignedScore}% (${result.alignedGrade})`);
+                });
+            });
+
+            // Test 5: Test integration layer
+            runTest('Testing integration layer', () => {
+                const result = window.scoringIntegration.alignElementResult(
+                    {
+                        'Best Locator': testData.elementExtractorResult.locator,
+                        'Locator Type': testData.elementExtractorResult.type,
+                        'Strength': testData.elementExtractorResult.strength
+                    },
+                    testData.playwrightResult
+                );
+                
+                if (!result || !result.aligned_result) {
+                    throw new Error('Integration layer failed');
+                }
+                
+                console.log(`   Integration result: ${result.aligned_result.Strength}%`);
+            });
+
+            // Test 6: Test diagnostic functions
+            runTest('Testing diagnostic functions', () => {
+                if (typeof window.runScoringAlignmentDiagnostic === 'function') {
+                    console.log('   runScoringAlignmentDiagnostic: Available');
+                }
+                if (typeof window.testScoringAlignment === 'function') {
+                    console.log('   testScoringAlignment: Available');
+                }
+            });
+
+            // Summary
+            setTimeout(() => {
+                console.log('\n📊 TEST SUMMARY');
+                console.log('===============');
+                console.log(`Tests Passed: ${testsPassed}/${testsTotal}`);
+                
+                if (testsPassed === testsTotal) {
+                    console.log('🎉 ALL TESTS PASSED! Scoring alignment is working correctly.');
+                    testResults.innerHTML = '<div class="result success">✅ All tests passed! The scoring alignment fix is working correctly.</div>';
+                } else {
+                    console.error('❌ Some tests failed. Check the console output above.');
+                    testResults.innerHTML = '<div class="result error">❌ Some tests failed. Check the console output above.</div>';
+                }
+            }, 100);
+
+        }, 1000);
+    </script>
+</body>
+</html>

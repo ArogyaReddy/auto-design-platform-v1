@@ -88,6 +88,50 @@
             </label>
         </div>
 
+        <!-- Playwright Validation Section -->
+        <div class="playwright-section">
+            <div class="playwright-header">
+                <span class="playwright-icon">🎭</span>
+                <span class="playwright-title">Playwright Validation</span>
+                <label class="switch playwright-switch">
+                    <input type="checkbox" id="playwrightEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="playwright-controls">
+                <button class="playwright-btn" id="validateAllBtn" title="Validate all extracted elements with Playwright">
+                    <span>🎭</span> Validate All
+                </button>
+                <button class="playwright-btn" id="validateSelectedBtn" title="Validate selected elements with Playwright">
+                    <span>✓</span> Validate Selected
+                </button>
+                <label class="playwright-option">
+                    <input type="checkbox" id="autoValidate">
+                    <span>Auto-validate</span>
+                </label>
+            </div>
+            <div class="playwright-stats" id="playwrightStats" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Excellent (A+/A)</span>
+                        <span class="stat-value" id="excellentCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Good (B/C)</span>
+                        <span class="stat-value" id="goodCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Poor (D/F)</span>
+                        <span class="stat-value" id="poorCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Score</span>
+                        <span class="stat-value" id="avgScore">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Inspector Section -->
         <div class="inspector-section">
             <button class="inspect-btn" id="inspectElement" title="Click to inspect elements one by one">
@@ -135,7 +179,15 @@
             <span> by <span class="ai-gradient">Arogya Reddy</span></span>
         </div>
     </div>
+    <!-- Include scoring alignment fix BEFORE popup.js -->
+    <script src="scoring-alignment-fix.js"></script>
+    <script src="scoring-integration.js"></script>
+    
     <script src="popup.js"></script>
+    
+    <!-- Initialize scoring alignment AFTER popup.js -->
+    <script src="scoring-alignment-init.js"></script>
+    <script src="scoring-alignment-diagnostic.js"></script>
 
 </body>
 

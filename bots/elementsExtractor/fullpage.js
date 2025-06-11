@@ -70,6 +70,7 @@ function renderTableFallback(data) {
                     <th>XPath</th>
                     <th>ID</th>
                     <th>Text Content</th>
+                    <th class="playwright-header">🎭 Playwright</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,6 +95,9 @@ function renderTableFallback(data) {
                 <td class="locator-text">${xpath}</td>
                 <td class="element-id">${elementId}</td>
                 <td>${textContent}</td>
+                <td class="playwright-column">
+                    <button class="validate-single-btn" data-element-index="${index}" title="Validate with Playwright">🎭 Validate</button>
+                </td>
             </tr>
         `;
     });

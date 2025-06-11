@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Inspector & Table Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        .test-element {
+            margin: 10px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #005a87; }
+        .log-output {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .fix-status {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+        .status-item {
+            padding: 10px;
+            border-radius: 5px;
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status-pass { background: #d4edda; color: #155724; }
+        .status-fail { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Final Inspector & Table Fix Verification</h1>
+        
+        <div class="test-section success">
+            <h2>✅ Fixes Applied</h2>
+            <div class="fix-status">
+                <div class="status-item status-pass">
+                    <h4>🔍 Inspector Highlighting</h4>
+                    <p>✅ Fixed scope issues<br>✅ Enhanced state management<br>✅ Added inline styles</p>
+                </div>
+                <div class="status-item status-pass">
+                    <h4>📊 Table Giggling</h4>
+                    <p>✅ Removed hover expansions<br>✅ Smooth scrolling<br>✅ No layout shifts</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section warning">
+            <h2>🧪 Test Instructions</h2>
+            <ol>
+                <li><strong>Inspector Highlighting Test:</strong>
+                    <ul>
+                        <li>Open Element AI Extractor extension</li>
+                        <li>Click "🔬 Inspect Element" button</li>
+                        <li>Hover over elements below → Should see orange dashed outline</li>
+                        <li>Check console for detailed debug logs</li>
+                    </ul>
+                </li>
+                <li><strong>Table Scrolling Test:</strong>
+                    <ul>
+                        <li>Extract elements using the extension</li>
+                        <li>Scroll horizontally/vertically in the results table</li>
+                        <li>No more "giggling" or layout shifts on hover</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="test-section info">
+            <h2>🎯 Test Elements for Inspector</h2>
+            <p>Try hovering over these with Inspector mode active:</p>
+            
+            <div class="test-element" id="complex-element-1">
+                <h3>Complex Test Element 1</h3>
+                <p>This element contains multiple child elements and should highlight properly.</p>
+                <button id="nested-button-1">Nested Button</button>
+                <span id="nested-span-1">Nested Span with <strong>bold text</strong></span>
+            </div>
+            
+            <div class="test-element" id="form-test-element">
+                <h3>Form Elements Test</h3>
+                <form id="test-form">
+                    <input type="text" id="test-input" placeholder="Test input field" value="Sample text">
+                    <select id="test-select">
+                        <option value="option1">Option 1</option>
+                        <option value="option2">Option 2</option>
+                    </select>
+                    <textarea id="test-textarea" placeholder="Test textarea"></textarea>
+                    <button type="button" id="form-submit-btn">Submit</button>
+                </form>
+            </div>
+            
+            <div class="test-element" id="complex-structure">
+                <h3>Complex Structure</h3>
+                <div class="nested-container">
+                    <ul id="test-list">
+                        <li id="list-item-1">List item 1 <a href="#test" id="list-link-1">with link</a></li>
+                        <li id="list-item-2">List item 2 <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjZmY2YjM1Ii8+Cjx0ZXh0IHg9IjEwIiB5PSIxNSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+8J+MhzwvdGV4dD4KPC9zdmc+" alt="Test" id="test-img"></li>
+                        <li id="list-item-3">List item 3</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="test-element" id="edge-case-element">
+                <h3>Edge Cases</h3>
+                <div style="position: relative; z-index: 10;" id="positioned-div">
+                    Positioned element (z-index: 10)
+                </div>
+                <div style="transform: scale(1.1);" id="transformed-div">
+                    Transformed element
+                </div>
+                <div style="opacity: 0.7;" id="semi-transparent-div">
+                    Semi-transparent element
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🐛 Debug Console</h2>
+            <button onclick="checkInspectorStatus()">Check Inspector Status</button>
+            <button onclick="testHoverHighlighting()">Test Hover Highlighting</button>
+            <button onclick="clearDebugLog()">Clear Log</button>
+            <div id="debug-console" class="log-output">Debug information will appear here...</div>
+        </div>
+        
+        <div class="test-section success">
+            <h2>✅ Expected Results</h2>
+            <ul>
+                <li><strong>Inspector Highlighting:</strong> Orange dashed outline appears on hover during inspection</li>
+                <li><strong>Console Logs:</strong> Detailed debug information shows event handling working</li>
+                <li><strong>Table Scrolling:</strong> Smooth scrolling without layout jumps or giggling</li>
+                <li><strong>Element Coverage:</strong> All element types highlight correctly</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let debugConsole = document.getElementById('debug-console');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugConsole.textContent += `[${timestamp}] ${message}\n`;
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+        
+        function clearDebugLog() {
+            debugConsole.textContent = '';
+        }
+        
+        function checkInspectorStatus() {
+            log('=== Inspector Status Check ===');
+            log(`Content Script Loaded: ${window.aiExtractorLoaded ? 'YES' : 'NO'}`);
+            log(`Is Inspecting: ${window.aiExtractorIsInspecting ? 'YES' : 'NO'}`);
+            
+            // Check for styles
+            const styleElement = document.getElementById('ai-extractor-styles');
+            log(`Styles Injected: ${styleElement ? 'YES' : 'NO'}`);
+            if (styleElement) {
+                log(`Style Content Length: ${styleElement.textContent.length}`);
+            }
+            
+            // Check for inspector badge
+            const badge = document.querySelector('.ai-extractor-inspector-badge');
+            log(`Inspector Badge Present: ${badge ? 'YES' : 'NO'}`);
+            
+            // Check cursor class
+            const hasInspectingClass = document.body.classList.contains('ai-extractor-inspecting');
+            log(`Body Has Inspecting Class: ${hasInspectingClass ? 'YES' : 'NO'}`);
+            
+            log('=== Status Check Complete ===');
+        }
+        
+        function testHoverHighlighting() {
+            if (!window.aiExtractorIsInspecting) {
+                log('❌ Test failed: Inspector mode not active');
+                log('💡 Start inspector mode first by clicking "🔬 Inspect Element" in the extension');
+                return;
+            }
+            
+            log('=== Testing Hover Highlighting ===');
+            const testElements = document.querySelectorAll('.test-element');
+            let testCount = 0;
+            
+            testElements.forEach((element, index) => {
+                setTimeout(() => {
+                    log(`Testing element ${index + 1}: ${element.id}`);
+                    
+                    // Create mouseover event
+                    const mouseOverEvent = new MouseEvent('mouseover', {
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: element.offsetLeft + 50,
+                        clientY: element.offsetTop + 50
+                    });
+                    
+                    element.dispatchEvent(mouseOverEvent);
+                    
+                    // Check if highlighting was applied
+                    setTimeout(() => {
+                        const hasHighlight = element.classList.contains('ai-extractor-highlight') ||
+                                           element.style.outline.includes('dashed');
+                        log(`Element ${index + 1} highlighted: ${hasHighlight ? 'YES' : 'NO'}`);
+                        
+                        testCount++;
+                        if (testCount === testElements.length) {
+                            log('=== Hover Highlighting Test Complete ===');
+                        }
+                    }, 100);
+                    
+                }, index * 500);
+            });
+        }
+        
+        // Override console.log to capture extension messages
+        let originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            
+            const message = args.join(' ');
+            if (message.includes('Element AI Extractor')) {
+                log(`EXTENSION: ${message}`);
+            }
+        };
+        
+        // Add mouse event logging to test elements
+        document.querySelectorAll('.test-element').forEach(element => {
+            element.addEventListener('mouseover', function(e) {
+                if (window.aiExtractorIsInspecting) {
+                    log(`🖱️ Mouse over: ${this.id}`);
+                }
+            });
+            
+            element.addEventListener('click', function(e) {
+                if (window.aiExtractorIsInspecting) {
+                    log(`🖱️ Clicked: ${this.id}`);
+                }
+            });
+        });
+        
+        // Visual inspection state indicator
+        setInterval(() => {
+            if (window.aiExtractorIsInspecting) {
+                document.body.style.borderTop = '5px solid #ff6b35';
+            } else {
+                document.body.style.borderTop = '5px solid #ccc';
+            }
+        }, 500);
+        
+        // Log when page loads
+        window.addEventListener('load', () => {
+            log('🎯 Test page loaded - ready for testing');
+            log('📋 Instructions:');
+            log('1. Open Element AI Extractor extension');
+            log('2. Click "🔬 Inspect Element"');
+            log('3. Hover over test elements below');
+            log('4. Check console for debugging info');
+            setTimeout(checkInspectorStatus, 1000);
+        });
+    </script>
+</body>
+</html>

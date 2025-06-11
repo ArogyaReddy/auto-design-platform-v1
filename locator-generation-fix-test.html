@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locator Generation Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .regular-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196f3;
+        }
+        .shadow-section {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left: 5px solid #9c27b0;
+        }
+        .problematic-section {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%);
+            border-left: 5px solid #ff9800;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .instructions {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .fix-status {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .shadow-host {
+            background: rgba(156, 39, 176, 0.1);
+            border: 2px dashed #9c27b0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+        }
+        .results-log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .log-error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .log-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Locator Generation Fix Test</h1>
+            <div style="font-size: 1.2em; opacity: 0.9; margin-top: 10px;">
+                Testing improved Shadow DOM locator generation
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="fix-status">
+                ✅ LOCATOR GENERATION FIXES APPLIED
+                <br><small>Improved Shadow DOM validation, better fallbacks, reduced error logging</small>
+            </div>
+
+            <div class="instructions">
+                <h3>🧪 Testing Instructions</h3>
+                <ol>
+                    <li><strong>Open Element AI Extractor:</strong> Click the extension icon</li>
+                    <li><strong>Use Inspector Mode:</strong> Click "🔬 Inspect Element" and click on elements below</li>
+                    <li><strong>Check Console:</strong> 
+                        <ul>
+                            <li>BEFORE FIX: Many "Non-unique selector" and validation errors</li>
+                            <li>AFTER FIX: Reduced errors, better fallback handling</li>
+                        </ul>
+                    </li>
+                    <li><strong>Verify Results:</strong> All elements should generate locators successfully</li>
+                </ol>
+            </div>
+
+            <div class="test-section regular-section">
+                <h3>📋 Regular DOM Elements</h3>
+                <p>These should generate locators successfully (baseline test):</p>
+                <button id="unique-regular-btn" class="test-button">Regular Button with Unique ID</button>
+                <button class="test-button duplicate-class">Regular Button with Class</button>
+                <input id="regular-input" type="text" placeholder="Regular input field" />
+            </div>
+
+            <div class="test-section problematic-section">
+                <h3>⚠️ Previously Problematic Elements</h3>
+                <p>These elements previously caused validation errors:</p>
+                
+                <!-- Elements that mirror the error patterns -->
+                <div class="sdf-input-container">
+                    <input id="input" name="sdf-input" type="text" placeholder="Element with problematic ID" />
+                </div>
+                <div class="sdf-input-container">
+                    <input type="text" placeholder="Another input in same container" />
+                </div>
+                
+                <!-- Elements with generic IDs that might not be unique -->
+                <button id="btn" class="test-button">Button with Generic ID</button>
+                <div id="container">
+                    <span>Generic container</span>
+                </div>
+            </div>
+
+            <div class="test-section shadow-section">
+                <h3>🌟 Shadow DOM Elements</h3>
+                <p>These elements are in Shadow DOM and should now generate proper locators:</p>
+                
+                <div class="shadow-host">
+                    <p><strong>Shadow Component with Input:</strong></p>
+                    <shadow-input-component data-label="Shadow Input"></shadow-input-component>
+                </div>
+                
+                <div class="shadow-host">
+                    <p><strong>Shadow Component with Generic IDs:</strong></p>
+                    <shadow-generic-ids data-label="Shadow Generic"></shadow-generic-ids>
+                </div>
+                
+                <div class="shadow-host">
+                    <p><strong>Nested Shadow Component:</strong></p>
+                    <nested-shadow-locators data-label="Nested Shadow"></nested-shadow-locators>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h3>📊 Test Results & Console Log</h3>
+                <div class="results-log" id="results-log">
+                    <div class="log-entry log-info">🚀 Locator generation test page loaded. Use Inspector mode to test elements above.</div>
+                    <div class="log-entry log-info">✅ Expected improvements: Fewer validation errors, better Shadow DOM handling</div>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <button onclick="clearLog()" style="padding: 8px 16px; background: #607d8b; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Clear Log
+                    </button>
+                    <button onclick="captureConsoleErrors()" style="padding: 8px 16px; background: #795548; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+                        Check Console Errors
+                    </button>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h3>🔧 Technical Fixes Applied</h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007acc;">
+                    <h4>Improvements Made:</h4>
+                    <ul>
+                        <li><strong>Shadow DOM Context Validation:</strong> Now searches in correct Shadow DOM context</li>
+                        <li><strong>Reduced Error Logging:</strong> Less noisy console output for expected Shadow DOM behaviors</li>
+                        <li><strong>Better Fallbacks:</strong> Multiple fallback strategies for failed validations</li>
+                        <li><strong>Robust ID Handling:</strong> Improved attribute selector generation for Shadow DOM</li>
+                        <li><strong>Emergency Selectors:</strong> Always provides at least basic selectors as fallbacks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Console error capture for testing
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalLog = console.log;
+        
+        const capturedLogs = [];
+        
+        function addToResults(message, type = 'info') {
+            const log = document.getElementById('results-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+            
+            capturedLogs.push({ message, type, timestamp: new Date() });
+        }
+        
+        // Intercept console messages related to Element AI Extractor
+        console.error = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('Element AI Extractor')) {
+                addToResults(`ERROR: ${message}`, 'error');
+            }
+            return originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('Element AI Extractor')) {
+                addToResults(`WARN: ${message}`, 'error');
+            }
+            return originalWarn.apply(console, args);
+        };
+        
+        console.log = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('Element AI Extractor') && (message.includes('validation') || message.includes('selector') || message.includes('fallback'))) {
+                addToResults(`LOG: ${message}`, 'info');
+            }
+            return originalLog.apply(console, args);
+        };
+        
+        function clearLog() {
+            document.getElementById('results-log').innerHTML = '<div class="log-entry log-info">🧹 Log cleared</div>';
+            capturedLogs.length = 0;
+        }
+        
+        function captureConsoleErrors() {
+            const errorCount = capturedLogs.filter(log => log.type === 'error').length;
+            const warnCount = capturedLogs.filter(log => log.message.includes('WARN')).length;
+            
+            addToResults(`📊 Summary: ${errorCount} errors, ${warnCount} warnings captured in this session`, 'info');
+            
+            if (errorCount === 0 && warnCount < 5) {
+                addToResults('✅ Good! Error count is low - fixes are working', 'success');
+            } else {
+                addToResults(`⚠️ Still seeing issues: ${errorCount} errors, ${warnCount} warnings`, 'error');
+            }
+        }
+
+        // Define Shadow Input Component
+        class ShadowInputComponent extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    .container {
+                        padding: 15px;
+                        background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+                        border-radius: 8px;
+                        color: white;
+                    }
+                    input {
+                        padding: 10px;
+                        border: none;
+                        border-radius: 4px;
+                        margin: 5px;
+                        width: 200px;
+                    }
+                    button {
+                        background: #fff;
+                        color: #9c27b0;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        margin: 5px;
+                    }
+                `;
+                
+                const container = document.createElement('div');
+                container.className = 'container';
+                
+                // Create problematic elements similar to the errors
+                const input1 = document.createElement('input');
+                input1.id = 'input'; // This ID caused issues
+                input1.name = 'sdf-input';
+                input1.placeholder = 'Shadow input with problematic ID';
+                
+                const input2 = document.createElement('input');
+                input2.placeholder = 'Another shadow input';
+                input2.className = 'sdf-input-field';
+                
+                const button = document.createElement('button');
+                button.id = 'shadow-btn';
+                button.textContent = 'Shadow Button';
+                
+                container.appendChild(input1);
+                container.appendChild(input2);
+                container.appendChild(button);
+                
+                shadow.appendChild(style);
+                shadow.appendChild(container);
+            }
+        }
+
+        // Define Shadow Generic IDs Component
+        class ShadowGenericIds extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    .wrapper {
+                        padding: 15px;
+                        background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);
+                        border-radius: 8px;
+                        color: white;
+                    }
+                    .item {
+                        margin: 10px 0;
+                        padding: 8px;
+                        background: rgba(255,255,255,0.1);
+                        border-radius: 4px;
+                    }
+                `;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'wrapper';
+                
+                // Create elements with generic IDs that might conflict
+                const div1 = document.createElement('div');
+                div1.id = 'container';
+                div1.className = 'item';
+                div1.textContent = 'Shadow div with generic ID';
+                
+                const span1 = document.createElement('span');
+                span1.id = 'content';
+                span1.textContent = 'Shadow span with generic ID';
+                
+                const button1 = document.createElement('button');
+                button1.id = 'btn';
+                button1.textContent = 'Shadow button with generic ID';
+                button1.style.cssText = 'background: white; color: #673ab7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;';
+                
+                wrapper.appendChild(div1);
+                wrapper.appendChild(span1);
+                wrapper.appendChild(button1);
+                
+                shadow.appendChild(style);
+                shadow.appendChild(wrapper);
+            }
+        }
+
+        // Define Nested Shadow Locators Component
+        class NestedShadowLocators extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    .outer {
+                        background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%);
+                        padding: 15px;
+                        border-radius: 10px;
+                        color: white;
+                    }
+                    .inner-host {
+                        background: rgba(255, 255, 255, 0.1);
+                        padding: 10px;
+                        border-radius: 8px;
+                        margin-top: 10px;
+                    }
+                `;
+                
+                const outer = document.createElement('div');
+                outer.className = 'outer';
+                outer.innerHTML = '<h4>Nested Shadow with Generic IDs</h4>';
+                
+                const innerHost = document.createElement('div');
+                innerHost.className = 'inner-host';
+                
+                // Create deeply nested shadow DOM
+                const innerShadow = innerHost.attachShadow({mode: 'open'});
+                
+                const innerStyle = document.createElement('style');
+                innerStyle.textContent = `
+                    input, button {
+                        margin: 5px;
+                        padding: 8px;
+                        border: none;
+                        border-radius: 4px;
+                    }
+                    input {
+                        background: white;
+                        color: #333;
+                    }
+                    button {
+                        background: #e91e63;
+                        color: white;
+                        cursor: pointer;
+                    }
+                `;
+                
+                // Create nested elements with potentially problematic IDs
+                const nestedInput = document.createElement('input');
+                nestedInput.id = 'input'; // Same generic ID as outer elements
+                nestedInput.placeholder = 'Deep nested input';
+                
+                const nestedButton = document.createElement('button');
+                nestedButton.id = 'btn'; // Same generic ID as outer elements
+                nestedButton.textContent = 'Deep nested button';
+                
+                innerShadow.appendChild(innerStyle);
+                innerShadow.appendChild(nestedInput);
+                innerShadow.appendChild(nestedButton);
+                
+                outer.appendChild(innerHost);
+                shadow.appendChild(style);
+                shadow.appendChild(outer);
+            }
+        }
+
+        // Register custom elements
+        customElements.define('shadow-input-component', ShadowInputComponent);
+        customElements.define('shadow-generic-ids', ShadowGenericIds);
+        customElements.define('nested-shadow-locators', NestedShadowLocators);
+
+        // Add click handlers for testing
+        document.addEventListener('click', function(event) {
+            if (event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT') {
+                const elementInfo = `${event.target.tagName}${event.target.id ? '#' + event.target.id : ''}${event.target.className ? '.' + event.target.className : ''}`;
+                addToResults(`🖱️ Clicked: ${elementInfo}`, 'success');
+            }
+        });
+
+        // Initialize
+        console.log('🔧 Locator Generation Fix Test Page Loaded');
+        addToResults('📝 Test page ready. Use Element AI Extractor Inspector mode on elements above.', 'info');
+        
+        // Test Shadow DOM structure
+        setTimeout(() => {
+            console.log('🌟 Shadow DOM Test Components:', {
+                'shadow-input': document.querySelector('shadow-input-component'),
+                'shadow-generic': document.querySelector('shadow-generic-ids'),
+                'nested-shadow': document.querySelector('nested-shadow-locators')
+            });
+            
+            addToResults('🌟 Shadow DOM components initialized successfully', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>

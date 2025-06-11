@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solve "path:nth-of-type(2)" Problem - Complete Solution</title>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .section { 
+            background: #f8f9fa; 
+            border-left: 4px solid #007acc; 
+            padding: 20px; 
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .problem { border-left-color: #dc3545; }
+        .solution { border-left-color: #28a745; }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .result-box {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .status-excellent { color: #28a745; font-weight: bold; }
+        .status-poor { color: #dc3545; font-weight: bold; }
+        .highlight-element {
+            outline: 3px solid #ff6b6b !important;
+            background-color: rgba(255, 107, 107, 0.1) !important;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005c99; }
+        .demo-svg { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Solving "path:nth-of-type(2)" DevTools Problem</h1>
+    
+    <div class="section problem">
+        <h2>❌ The Problem</h2>
+        <p><strong>Your Elements Extractor generated:</strong> <code>path:nth-of-type(2)</code></p>
+        <p><strong>Issue:</strong> Works in Playwright/Selenium but fails when you copy to browser DevTools console</p>
+        <p><strong>Why:</strong> Browser DevTools has different CSS selector implementation than automation tools</p>
+    </div>
+
+    <!-- Test SVG Elements -->
+    <div class="demo-svg">
+        <h3>🧪 Test Elements (Your problematic elements)</h3>
+        <svg width="100" height="50" style="border: 1px solid #ccc; margin: 10px;">
+            <path d="M10 10 L90 10" stroke="black" stroke-width="2" class="line-1"/>
+            <path d="M10 30 L90 30" stroke="blue" stroke-width="2" class="line-2"/>
+        </svg>
+        
+        <svg width="100" height="50" style="border: 1px solid #ccc; margin: 10px;">
+            <path d="M10 25 Q50 5 90 25" stroke="red" stroke-width="2" fill="none" class="curve"/>
+            <path d="M10 40 L50 20 L90 40" stroke="green" stroke-width="2" fill="none" class="zigzag"/>
+        </svg>
+    </div>
+
+    <div class="section">
+        <h2>🔍 Step 1: Test Your Problematic Locator</h2>
+        <button onclick="testProblematicLocator()">Test "path:nth-of-type(2)"</button>
+        <button onclick="testInDevTools()">Try in DevTools Console</button>
+        <div id="step1Results" class="result-box" style="display: none;"></div>
+    </div>
+
+    <div class="section solution">
+        <h2>✅ Step 2: Find Better Alternatives</h2>
+        <button onclick="findAlternatives()">Generate Better Locators</button>
+        <button onclick="testAllAlternatives()">Test All Alternatives</button>
+        <div id="step2Results" class="result-box" style="display: none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>🚀 Step 3: Automation-Ready Solution</h2>
+        <button onclick="showFinalSolution()">Show Final Solution</button>
+        <div id="step3Results" class="result-box" style="display: none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>📋 How to Use in Your Workflow</h2>
+        
+        <h3>In Browser Console:</h3>
+        <div class="code-block">
+// Load the tester library (copy entire automation-locator-tester.js content)
+// Then test any locator:
+testLocator("path:nth-of-type(2)")
+
+// Generate alternatives:
+const element = document.querySelector("path:nth-of-type(2)")
+const tester = new AutomationLocatorTester()
+const alternatives = tester.generateAlternatives(element)
+console.log(alternatives)
+        </div>
+
+        <h3>In Playwright Tests:</h3>
+        <div class="code-block">
+// Instead of unreliable:
+await page.click("path:nth-of-type(2)")
+
+// Use validated alternatives:
+await page.click(".line-2")  // or whatever the tester suggests
+        </div>
+
+        <h3>Integration with Elements Extractor:</h3>
+        <div class="code-block">
+// Before using generated locators:
+const validation = validateLocator("path:nth-of-type(2)")
+if (validation.rating === 'POOR') {
+    console.log("Use this instead:", validation.alternatives[0].locator)
+}
+        </div>
+    </div>
+
+    <!-- Load libraries -->
+    <script src="../utils/automation-locator-tester.js"></script>
+    <script src="../utils/elements-extractor-integration.js"></script>
+    
+    <script>
+        let globalAlternatives = [];
+        
+        function testProblematicLocator() {
+            console.log('🧪 Testing your problematic locator: path:nth-of-type(2)');
+            
+            const result = testLocator("path:nth-of-type(2)", true);
+            
+            const resultsDiv = document.getElementById('step1Results');
+            resultsDiv.innerHTML = `
+                <h4>Test Results for "path:nth-of-type(2)":</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div><strong>Overall Rating:</strong> <span class="status-${result.overall.toLowerCase()}">${result.overall}</span></div>
+                    <div><strong>Elements Found:</strong> ${result.elements.length}</div>
+                    <div><strong>Browser DevTools:</strong> ${result.tests.browser.score}% ${result.tests.browser.supported ? '✅' : '❌'}</div>
+                    <div><strong>Playwright:</strong> ${result.tests.playwright.score}% ✅</div>
+                    <div><strong>Selenium:</strong> ${result.tests.selenium.score}% ${result.tests.selenium.supported ? '✅' : '❌'}</div>
+                    <div><strong>Cypress:</strong> ${result.tests.cypress.score}% ${result.tests.cypress.supported ? '✅' : '❌'}</div>
+                </div>
+                
+                <h5>📋 Issues Found:</h5>
+                <ul>
+                    ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+                
+                <p><strong>Conclusion:</strong> This locator ${result.overall === 'POOR' ? 'has significant problems' : 'works but could be better'}.</p>
+            `;
+            resultsDiv.style.display = 'block';
+            
+            // Highlight the elements found
+            try {
+                const elements = document.querySelectorAll("path:nth-of-type(2)");
+                elements.forEach(el => el.classList.add('highlight-element'));
+                setTimeout(() => {
+                    elements.forEach(el => el.classList.remove('highlight-element'));
+                }, 3000);
+            } catch (e) {
+                console.warn('Could not highlight elements:', e);
+            }
+        }
+        
+        function testInDevTools() {
+            alert(`Try this in DevTools Console:
+            
+1. Open DevTools (F12)
+2. Go to Console tab  
+3. Type: document.querySelectorAll("path:nth-of-type(2)")
+4. Press Enter
+5. You should see the elements found
+
+If it doesn't work as expected in DevTools but works in automation, that's the exact problem we're solving!`);
+        }
+        
+        function findAlternatives() {
+            console.log('💡 Finding better alternatives for path:nth-of-type(2)');
+            
+            try {
+                const elements = document.querySelectorAll("path:nth-of-type(2)");
+                if (elements.length === 0) {
+                    alert('No elements found with path:nth-of-type(2)');
+                    return;
+                }
+                
+                const tester = new AutomationLocatorTester();
+                const alternatives = tester.generateAlternatives(elements[0]);
+                globalAlternatives = alternatives;
+                
+                const resultsDiv = document.getElementById('step2Results');
+                resultsDiv.innerHTML = `
+                    <h4>💡 Better Alternative Locators:</h4>
+                    <div style="display: grid; gap: 10px;">
+                        ${alternatives.map((alt, index) => `
+                            <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                <strong>${index + 1}.</strong> <code>${alt}</code>
+                                <button onclick="testSingleAlternative('${alt}')" style="float: right;">Test This</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p><em>Click "Test This" to validate each alternative, or click "Test All Alternatives" below.</em></p>
+                `;
+                resultsDiv.style.display = 'block';
+                
+            } catch (error) {
+                alert('Error generating alternatives: ' + error.message);
+            }
+        }
+        
+        function testSingleAlternative(alternative) {
+            console.log(`🧪 Testing alternative: ${alternative}`);
+            const result = testLocator(alternative);
+            
+            alert(`Alternative: ${alternative}
+            
+Rating: ${result.overall}
+Elements Found: ${result.elements.length}
+Playwright Score: ${result.tests.playwright.score}%
+DevTools Compatible: ${result.tests.browser.supported && result.tests.browser.valid ? 'Yes' : 'No'}
+
+${result.overall === 'EXCELLENT' ? '✅ This is a great alternative!' : result.overall === 'GOOD' ? '👍 This is a good alternative!' : '⚠️ This alternative also has issues.'}`);
+        }
+        
+        function testAllAlternatives() {
+            if (globalAlternatives.length === 0) {
+                alert('Generate alternatives first!');
+                return;
+            }
+            
+            console.log('🧪 Testing all alternatives...');
+            
+            const testResults = globalAlternatives.map(alt => {
+                const result = testLocator(alt, false);
+                return {
+                    locator: alt,
+                    rating: result.overall,
+                    playwrightScore: result.tests.playwright.score,
+                    devToolsCompatible: result.tests.browser.supported && result.tests.browser.valid,
+                    elementCount: result.elements.length,
+                    recommendations: result.recommendations
+                };
+            });
+            
+            // Sort by quality (Playwright score)
+            testResults.sort((a, b) => b.playwrightScore - a.playwrightScore);
+            
+            const resultsDiv = document.getElementById('step2Results');
+            resultsDiv.innerHTML = `
+                <h4>🏆 Ranked Alternative Locators:</h4>
+                <div style="display: grid; gap: 10px;">
+                    ${testResults.map((result, index) => `
+                        <div style="padding: 15px; border: 2px solid ${result.rating === 'EXCELLENT' ? '#28a745' : result.rating === 'GOOD' ? '#17a2b8' : '#ffc107'}; border-radius: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>#${index + 1}</strong> <code>${result.locator}</code>
+                                </div>
+                                <div>
+                                    <span class="status-${result.rating.toLowerCase()}">${result.rating}</span>
+                                    <span style="margin-left: 10px;">${result.playwrightScore}%</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+                                Elements: ${result.elementCount} | 
+                                DevTools: ${result.devToolsCompatible ? '✅' : '❌'} |
+                                ${result.rating === 'EXCELLENT' ? '🏆 Best Choice' : result.rating === 'GOOD' ? '👍 Good Choice' : '⚠️ Has Issues'}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function showFinalSolution() {
+            // Find the best alternative
+            if (globalAlternatives.length === 0) {
+                // Generate alternatives if not done yet
+                const elements = document.querySelectorAll("path:nth-of-type(2)");
+                if (elements.length > 0) {
+                    const tester = new AutomationLocatorTester();
+                    globalAlternatives = tester.generateAlternatives(elements[0]);
+                }
+            }
+            
+            let bestAlternative = '.line-2'; // Default fallback
+            let bestScore = 0;
+            
+            if (globalAlternatives.length > 0) {
+                // Test alternatives and find the best one
+                const testResults = globalAlternatives.map(alt => {
+                    const result = testLocator(alt, false);
+                    return {
+                        locator: alt,
+                        score: result.tests.playwright.score,
+                        rating: result.overall
+                    };
+                });
+                
+                const best = testResults
+                    .filter(r => r.rating === 'EXCELLENT' || r.rating === 'GOOD')
+                    .sort((a, b) => b.score - a.score)[0];
+                
+                if (best) {
+                    bestAlternative = best.locator;
+                    bestScore = best.score;
+                }
+            }
+            
+            const resultsDiv = document.getElementById('step3Results');
+            resultsDiv.innerHTML = `
+                <h4>🎯 Final Automation-Ready Solution:</h4>
+                
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 6px; margin: 10px 0;">
+                    <h5>✅ Recommended Locator:</h5>
+                    <code style="font-size: 1.2em; background: white; padding: 5px 10px; border-radius: 3px;">${bestAlternative}</code>
+                    <p><strong>Score:</strong> ${bestScore}% | <strong>Works in:</strong> DevTools ✅ Playwright ✅ Selenium ✅</p>
+                </div>
+                
+                <h5>📝 How to Implement:</h5>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 10px 0;">
+                    <strong>In Playwright:</strong>
+                    <div class="code-block">await page.click("${bestAlternative}")</div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 10px 0;">
+                    <strong>In Selenium:</strong>
+                    <div class="code-block">driver.find_element(By.CSS_SELECTOR, "${bestAlternative}").click()</div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 10px 0;">
+                    <strong>In DevTools Console:</strong>
+                    <div class="code-block">document.querySelector("${bestAlternative}")</div>
+                </div>
+                
+                <h5>🔄 Update Your Elements Extractor:</h5>
+                <p>Instead of generating <code>path:nth-of-type(2)</code>, your tool should prioritize:</p>
+                <ul>
+                    <li>Class-based selectors like <code>.line-2</code></li>
+                    <li>Data attributes like <code>[data-testid="path"]</code></li>
+                    <li>ARIA labels like <code>[aria-label="path"]</code></li>
+                    <li>Avoid position-based selectors when possible</li>
+                </ul>
+                
+                <button onclick="validateInDevTools('${bestAlternative}')">✅ Validate in DevTools</button>
+                <button onclick="exportSolution()">📋 Export Solution</button>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function validateInDevTools(locator) {
+            const command = `document.querySelector("${locator}")`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(command).then(() => {
+                alert(`Command copied to clipboard! 
+                
+✅ Now:
+1. Open DevTools (F12)
+2. Go to Console tab
+3. Paste and press Enter: ${command}
+4. You should see the element found!
+
+This proves the locator works in DevTools unlike the original path:nth-of-type(2)`);
+            }).catch(() => {
+                alert(`Copy this command to DevTools Console:
+
+${command}
+
+This should work perfectly, unlike the original problematic locator!`);
+            });
+        }
+        
+        function exportSolution() {
+            const solution = {
+                problem: "path:nth-of-type(2)",
+                issue: "Works in automation but not in DevTools",
+                solution: globalAlternatives.length > 0 ? globalAlternatives[0] : ".line-2",
+                automationCode: {
+                    playwright: `await page.click("${globalAlternatives.length > 0 ? globalAlternatives[0] : '.line-2'}")`,
+                    selenium: `driver.find_element(By.CSS_SELECTOR, "${globalAlternatives.length > 0 ? globalAlternatives[0] : '.line-2'}").click()`,
+                    cypress: `cy.get("${globalAlternatives.length > 0 ? globalAlternatives[0] : '.line-2'}").click()`
+                },
+                devToolsTest: `document.querySelector("${globalAlternatives.length > 0 ? globalAlternatives[0] : '.line-2'}")`
+            };
+            
+            const jsonSolution = JSON.stringify(solution, null, 2);
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(jsonSolution).then(() => {
+                alert('Complete solution exported to clipboard! You can save this for reference.');
+            }).catch(() => {
+                console.log('Complete Solution:', solution);
+                alert('Solution logged to console. Check browser console for complete details.');
+            });
+        }
+        
+        // Auto-run the first test when page loads
+        window.addEventListener('load', () => {
+            console.log('🚀 Path nth-of-type(2) Problem Solver Ready!');
+            console.log('Click the buttons above to solve your locator problem step by step.');
+            
+            // Show instructions
+            setTimeout(() => {
+                alert(`Welcome to the path:nth-of-type(2) Problem Solver!
+
+👆 Follow the steps above:
+1. Test your problematic locator
+2. Generate better alternatives  
+3. Get automation-ready solution
+
+This will solve the exact issue where locators work in automation tools but fail in browser DevTools.`);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Fix Verification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .code {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 CSP Fix Verification Test</h1>
+    <p>This page tests if the Content Security Policy fix for the Element Extractor popup is working correctly.</p>
+    
+    <div id="test-results"></div>
+    
+    <h2>📋 Test Details</h2>
+    <div class="info">
+        <h3>Problem Fixed:</h3>
+        <div class="code">
+            Refused to execute inline script because it violates CSP directive: "script-src 'self'"
+        </div>
+    </div>
+    
+    <div class="info">
+        <h3>Solution Applied:</h3>
+        <ul>
+            <li>✅ Moved inline script from popup.html to external file: <code>scoring-alignment-init.js</code></li>
+            <li>✅ Updated popup.html to reference external script instead of inline code</li>
+            <li>✅ Maintained all scoring alignment functionality</li>
+        </ul>
+    </div>
+    
+    <h2>🔧 Files Modified</h2>
+    <div class="code">
+        📄 Created: /bots/elementsExtractor/scoring-alignment-init.js
+        📝 Modified: /bots/elementsExtractor/popup.html (removed inline script)
+    </div>
+    
+    <h2>🧪 Test Scripts</h2>
+    <div>
+        <p>Loading scoring alignment scripts to verify they work without CSP violations:</p>
+        <button onclick="testScoringAlignment()" style="padding: 10px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px;">Test Scoring Alignment</button>
+        <button onclick="testConsoleHelpers()" style="padding: 10px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 3px;">Test Console Helpers</button>
+        <button onclick="clearTests()" style="padding: 10px; margin: 5px; background: #6c757d; color: white; border: none; border-radius: 3px;">Clear Results</button>
+    </div>
+    
+    <!-- Load scoring alignment scripts (same as popup.html) -->
+    <script src="../../utils/scoring-alignment-fix.js"></script>
+    <script src="../../utils/scoring-integration.js"></script>
+    <script src="scoring-alignment-init.js"></script>
+    
+    <script>
+        function addTestResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `
+                <strong>${new Date().toLocaleTimeString()}</strong>: ${message}
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        function testScoringAlignment() {
+            try {
+                if (window.ScoringAlignmentFix) {
+                    const alignmentFix = new window.ScoringAlignmentFix();
+                    addTestResult('✅ ScoringAlignmentFix loaded successfully', 'success');
+                    
+                    // Test basic alignment
+                    const testEE = { locator: '.test', type: 'class', strength: 85 };
+                    const testPW = { locator: '.test', overall: { score: 75, grade: 'B', passed: true } };
+                    const result = alignmentFix.alignScoring(testEE, testPW);
+                    
+                    addTestResult(`✅ Alignment test completed: ${result.alignedScore}% (${result.strategy} strategy)`, 'success');
+                } else {
+                    addTestResult('❌ ScoringAlignmentFix not loaded', 'error');
+                }
+                
+                if (window.scoringIntegration) {
+                    addTestResult('✅ ScoringIntegration loaded successfully', 'success');
+                } else {
+                    addTestResult('❌ ScoringIntegration not loaded', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function testConsoleHelpers() {
+            try {
+                if (window.testScoringAlignment) {
+                    const result = window.testScoringAlignment();
+                    if (result) {
+                        addTestResult('✅ Console helper testScoringAlignment() works', 'success');
+                    } else {
+                        addTestResult('⚠️ Console helper returned null (integration not ready)', 'info');
+                    }
+                } else {
+                    addTestResult('❌ Console helper testScoringAlignment() not available', 'error');
+                }
+                
+                if (window.getScoringReport) {
+                    addTestResult('✅ Console helper getScoringReport() available', 'success');
+                } else {
+                    addTestResult('❌ Console helper getScoringReport() not available', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Console helper test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearTests() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+        
+        // Auto-run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            addTestResult('🚀 CSP Fix Verification Test Started', 'info');
+            
+            setTimeout(() => {
+                testScoringAlignment();
+                testConsoleHelpers();
+                addTestResult('✅ All tests completed! If no errors above, CSP fix is working.', 'success');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

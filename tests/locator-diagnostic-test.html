@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Locator Quality Diagnostic Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-element {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .problematic {
+            border-color: #ff6b6b;
+            background: #ffe0e0;
+        }
+        .good {
+            border-color: #51cf66;
+            background: #e0ffe0;
+        }
+        .nav-link {
+            color: #007bff;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .pass { color: #28a745; font-weight: bold; }
+        .fail { color: #dc3545; font-weight: bold; }
+        code {
+            background: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Locator Quality Diagnostic Test</h1>
+        <p><strong>Purpose:</strong> Test what types of locators your Element AI Extractor is currently generating and verify their DevTools compatibility.</p>
+
+        <div class="test-element good">
+            <h3>✅ Good Element (Should work everywhere)</h3>
+            <input type="text" id="login-form_username" placeholder="Username">
+            <p><strong>ID:</strong> <code>login-form_username</code> (simple, no special characters)</p>
+            <p><strong>Expected Locator:</strong> <code>#login-form_username</code></p>
+        </div>
+
+        <div class="test-element problematic">
+            <h3>⚠️ Problematic Element (Needs special handling)</h3>
+            <input type="text" id="input" placeholder="Generic input">
+            <p><strong>ID:</strong> <code>input</code> (too generic, needs context)</p>
+            <p><strong>Problem:</strong> <code>#input</code> might select wrong element or be non-unique</p>
+            <p><strong>Better Approach:</strong> Add more context or use attribute selector</p>
+        </div>
+
+        <div class="test-element problematic">
+            <h3>🔥 Complex ID Element (Requires attribute selector)</h3>
+            <button id="add-to-cart-test.allthethings()-t-shirt-(red)" class="btn-primary">
+                Complex ID Button
+            </button>
+            <p><strong>ID:</strong> <code>add-to-cart-test.allthethings()-t-shirt-(red)</code></p>
+            <p><strong>❌ Wrong:</strong> <code>#add-to-cart-test.allthethings()-t-shirt-(red)</code> (invalid CSS)</p>
+            <p><strong>✅ Correct:</strong> <code>[id="add-to-cart-test.allthethings()-t-shirt-(red)"]</code></p>
+        </div>
+
+        <div class="test-element good">
+            <h3>🎯 Navigation Element (Should use class+href)</h3>
+            <nav>
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </nav>
+            <p><strong>❌ Generic:</strong> <code>a[href="#home"]</code> (less stable)</p>
+            <p><strong>✅ Specific:</strong> <code>.nav-link[href="#home"]</code> (more reliable)</p>
+        </div>
+
+        <div class="test-element good">
+            <h3>🧪 Test Automation Elements (Highest priority)</h3>
+            <button data-testid="submit-button" class="btn-primary">Submit</button>
+            <div data-qa="error-message">Error message</div>
+            <span data-cy="loading-spinner">Loading...</span>
+            <p><strong>Priority:</strong> Test attributes should be selected over IDs or classes</p>
+        </div>
+
+        <div class="results">
+            <h2>🧪 Diagnostic Instructions</h2>
+            <ol>
+                <li><strong>Open Extension:</strong> Click Element AI Extractor icon</li>
+                <li><strong>Extract Elements:</strong> Scan this page</li>
+                <li><strong>Check Generated Locators:</strong> Look at the "Best Locator" column</li>
+                <li><strong>Test in DevTools:</strong> Copy locators and test in console</li>
+                <li><strong>Compare Results:</strong> Use the table below to verify quality</li>
+            </ol>
+
+            <h3>✅ Quality Checklist</h3>
+            <div id="quality-results">
+                <p>Run the automated test below to check your extension's locator quality:</p>
+                <button onclick="runDiagnosticTest()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    🔍 Run Diagnostic Test
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function runDiagnosticTest() {
+            const results = document.getElementById('quality-results');
+            let html = '<h4>🔍 Diagnostic Results:</h4>';
+            
+            const tests = [
+                {
+                    name: 'Simple ID Element',
+                    element: '#login-form_username',
+                    shouldWork: true,
+                    description: 'Simple IDs should work with # selector'
+                },
+                {
+                    name: 'Complex ID Element (Old Way)',
+                    element: '#add-to-cart-test.allthethings()-t-shirt-(red)',
+                    shouldWork: false,
+                    description: 'Complex IDs should NOT work with # selector'
+                },
+                {
+                    name: 'Complex ID Element (Fixed Way)',
+                    element: '[id="add-to-cart-test.allthethings()-t-shirt-(red)"]',
+                    shouldWork: true,
+                    description: 'Complex IDs should work with attribute selector'
+                },
+                {
+                    name: 'Generic Navigation Link',
+                    element: 'a[href="#home"]',
+                    shouldWork: true,
+                    description: 'Generic href selector works but is less reliable'
+                },
+                {
+                    name: 'Specific Navigation Link',
+                    element: '.nav-link[href="#home"]',
+                    shouldWork: true,
+                    description: 'Class+href selector is more reliable'
+                },
+                {
+                    name: 'Test Attribute',
+                    element: '[data-testid="submit-button"]',
+                    shouldWork: true,
+                    description: 'Test attributes should be highest priority'
+                }
+            ];
+
+            let passCount = 0;
+            let totalTests = tests.length;
+
+            tests.forEach(test => {
+                try {
+                    const elements = document.querySelectorAll(test.element);
+                    const found = elements.length;
+                    const works = found > 0;
+                    const pass = works === test.shouldWork;
+                    
+                    if (pass) passCount++;
+                    
+                    html += `
+                        <div style="margin: 10px 0; padding: 10px; border-radius: 5px; background: ${pass ? '#d4edda' : '#f8d7da'}; border: 1px solid ${pass ? '#c3e6cb' : '#f5c6cb'};">
+                            <strong>${test.name}:</strong><br>
+                            <code>${test.element}</code><br>
+                            <span style="color: ${pass ? '#155724' : '#721c24'};">
+                                ${works ? '✅ Works' : '❌ Fails'} (Expected: ${test.shouldWork ? 'should work' : 'should fail'})
+                                ${pass ? ' - CORRECT' : ' - WRONG'}
+                            </span><br>
+                            <small>${test.description}</small>
+                        </div>
+                    `;
+                } catch (e) {
+                    html += `
+                        <div style="margin: 10px 0; padding: 10px; border-radius: 5px; background: #f8d7da; border: 1px solid #f5c6cb;">
+                            <strong>${test.name}:</strong><br>
+                            <code>${test.element}</code><br>
+                            <span style="color: #721c24;">❌ ERROR: ${e.message}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            const quality = Math.round((passCount / totalTests) * 100);
+            
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: ${quality >= 80 ? '#d4edda' : '#fff3cd'}; border: 1px solid ${quality >= 80 ? '#c3e6cb' : '#ffeaa7'}; border-radius: 5px;">
+                    <h4>Overall DevTools Compatibility: ${quality}%</h4>
+                    ${quality >= 80 ? 
+                        '<p style="color: #155724;">🎉 Your extension generates DevTools-compatible locators!</p>' : 
+                        '<p style="color: #856404;">⚠️ Your extension needs DevTools compatibility improvements.</p>'
+                    }
+                </div>
+            `;
+
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: #e2e3e5; border-radius: 5px;">
+                    <h4>🔧 How to Fix Issues:</h4>
+                    <ul>
+                        <li><strong>Complex IDs:</strong> Use <code>[id="complex-id"]</code> instead of <code>#complex-id</code></li>
+                        <li><strong>Navigation Links:</strong> Prefer <code>.class[href="url"]</code> over <code>a[href="url"]</code></li>
+                        <li><strong>Test Attributes:</strong> Prioritize data-testid, data-qa, data-cy over other selectors</li>
+                        <li><strong>Generic Elements:</strong> Add more context or use parent-child relationships</li>
+                    </ul>
+                </div>
+            `;
+
+            results.innerHTML = html;
+            
+            console.log('🔍 DevTools Compatibility Diagnostic Complete');
+            console.log(`Quality Score: ${quality}% (${passCount}/${totalTests} tests passed)`);
+        }
+
+        // Add visual feedback for test elements
+        document.querySelectorAll('.test-element').forEach(element => {
+            element.addEventListener('click', function() {
+                this.style.transform = 'scale(1.02)';
+                this.style.background = '#fff9c4';
+                
+                setTimeout(() => {
+                    this.style.transform = '';
+                    this.style.background = '';
+                }, 500);
+                
+                console.log('🎯 Test Element Clicked:', this.querySelector('h3').textContent);
+            });
+        });
+
+        // Auto-run diagnostic on page load
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnosticTest, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Automation Locators Test - Shadow DOM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .shadow-host {
+            border: 2px solid #007acc;
+            background: #e7f3ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .regular-element {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Automation Locators Test - Shadow DOM</h1>
+    <p>This page tests the new automation locators feature for Shadow DOM elements in the Element AI Extractor.</p>
+    
+    <div class="status info">
+        <strong>📋 Test Instructions:</strong>
+        <ol>
+            <li>Load the Element AI Extractor extension</li>
+            <li>Click the extension icon to open the popup</li>
+            <li>Click "🔬 Inspect Element" to start inspection mode</li>
+            <li>Click on Shadow DOM elements below</li>
+            <li>Verify that "🤖 Automation Framework Locators" section appears</li>
+            <li>Test copying the different automation locators</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>🌟 Regular DOM Elements (No Automation Locators Expected)</h2>
+        <div class="regular-element">
+            <button id="regular-button" data-testid="regular-btn">Regular Button</button>
+            <input id="regular-input" type="text" placeholder="Regular Input" data-testid="regular-input" />
+            <span id="regular-span" aria-label="Regular Span">Regular Span</span>
+        </div>
+        <div class="status">✅ These elements should NOT show automation locators (not in Shadow DOM)</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Shadow DOM Elements (Automation Locators Expected)</h2>
+        <div id="test-shadow-host-1" class="shadow-host">Shadow Host 1</div>
+        <div id="test-shadow-host-2" class="shadow-host">Shadow Host 2 (Nested)</div>
+        <div class="status success">✅ These elements should show automation locators section with Playwright, Selenium, and Cypress options</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎯 Shadow DOM Highlighting Test</h2>
+        <div class="status info">
+            <strong>Test Shadow DOM Highlighting:</strong>
+            <ol>
+                <li>Inspect a Shadow DOM element (get automation locators)</li>
+                <li>Click the "👁️ Highlight" button next to the Best Locator</li>
+                <li>The Shadow DOM element should be highlighted with red outline</li>
+                <li>Test with different Shadow DOM elements (simple and nested)</li>
+            </ol>
+        </div>
+        <div class="status warning">
+            <strong>Expected Behavior:</strong> All Shadow DOM elements should be highlightable using the enhanced shadow DOM traversal logic in the extension.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Expected Results</h2>
+        <div class="status info">
+            <strong>For Shadow DOM elements, you should see:</strong>
+            <ul>
+                <li>🤖 <strong>Automation Framework Locators</strong> section</li>
+                <li><strong>Playwright:</strong> <code>page.locator('selector').locator('element')</code></li>
+                <li><strong>Selenium (JS):</strong> JavaScript with <code>shadowRoot</code> access</li>
+                <li><strong>Cypress:</strong> <code>cy.get('selector').shadow().find('element')</code></li>
+                <li>📋 Copy buttons for each locator type</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Validation Steps</h2>
+        <div class="status warning">
+            <strong>Validation Checklist:</strong>
+            <ol>
+                <li>✅ Regular elements do NOT show automation locators</li>
+                <li>✅ Shadow DOM elements DO show automation locators</li>
+                <li>✅ All framework types are present (Playwright, Selenium, Cypress)</li>
+                <li>✅ Copy buttons work for each locator type</li>
+                <li>✅ Locators are properly formatted for each framework</li>
+                <li>✅ Shadow DOM highlighting works when clicking "Highlight" button</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 Setting up Shadow DOM test elements...');
+        
+        // Create Shadow DOM 1 - Simple
+        const shadowHost1 = document.getElementById('test-shadow-host-1');
+        const shadow1 = shadowHost1.attachShadow({ mode: 'open' });
+        shadow1.innerHTML = `
+            <style>
+                .shadow-content {
+                    background: #f0f8ff;
+                    padding: 15px;
+                    border-radius: 5px;
+                    border: 1px solid #87ceeb;
+                }
+                .shadow-button {
+                    background: #4169e1;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin: 5px;
+                }
+            </style>
+            <div class="shadow-content">
+                <h3>Shadow DOM Level 1</h3>
+                <button id="shadow-btn-1" class="shadow-button" data-testid="shadow-button-1" aria-label="Shadow Button 1">Shadow Button 1</button>
+                <input id="shadow-input-1" type="text" placeholder="Shadow Input 1" data-testid="shadow-input-1" />
+                <span id="shadow-span-1" aria-label="Shadow Span 1">Shadow Span 1</span>
+            </div>
+        `;
+        
+        // Create Shadow DOM 2 - Nested
+        const shadowHost2 = document.getElementById('test-shadow-host-2');
+        const shadow2 = shadowHost2.attachShadow({ mode: 'open' });
+        shadow2.innerHTML = `
+            <style>
+                .nested-shadow {
+                    background: #fff0f5;
+                    padding: 15px;
+                    border-radius: 5px;
+                    border: 1px solid #dda0dd;
+                }
+                .nested-host {
+                    background: #e6e6fa;
+                    border: 1px solid #9370db;
+                    padding: 10px;
+                    border-radius: 5px;
+                    margin: 10px 0;
+                }
+            </style>
+            <div class="nested-shadow">
+                <h3>Shadow DOM Level 1 (with nested shadow)</h3>
+                <button id="shadow-btn-2" class="shadow-button" data-testid="shadow-button-2" aria-label="Shadow Button 2">Shadow Button 2</button>
+                <div id="nested-shadow-host" class="nested-host">Nested Shadow Host</div>
+            </div>
+        `;
+        
+        // Create deeply nested shadow DOM
+        const nestedHost = shadow2.getElementById('nested-shadow-host');
+        const nestedShadow = nestedHost.attachShadow({ mode: 'open' });
+        nestedShadow.innerHTML = `
+            <style>
+                .deep-shadow {
+                    background: #f0fff0;
+                    padding: 15px;
+                    border-radius: 5px;
+                    border: 1px solid #90ee90;
+                }
+                .deep-button {
+                    background: #228b22;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin: 5px;
+                }
+            </style>
+            <div class="deep-shadow">
+                <h4>Shadow DOM Level 2 (Deep Nested)</h4>
+                <button id="deep-shadow-btn" class="deep-button" data-testid="deep-shadow-button" aria-label="Deep Shadow Button">Deep Shadow Button</button>
+                <input id="deep-shadow-input" type="text" placeholder="Deep Shadow Input" data-testid="deep-shadow-input" />
+                <span id="deep-shadow-span" aria-label="Deep Shadow Span">Deep Shadow Span</span>
+            </div>
+        `;
+        
+        console.log('✅ Shadow DOM test elements created successfully!');
+        console.log('Shadow Host 1:', shadowHost1);
+        console.log('Shadow Root 1:', shadow1);
+        console.log('Shadow Host 2:', shadowHost2);
+        console.log('Shadow Root 2:', shadow2);
+        console.log('Nested Shadow Host:', nestedHost);
+        console.log('Nested Shadow Root:', nestedShadow);
+        
+        // Test element click handlers
+        shadow1.getElementById('shadow-btn-1').addEventListener('click', () => {
+            alert('Shadow Button 1 clicked! Check if automation locators were displayed in the inspector.');
+        });
+        
+        shadow2.getElementById('shadow-btn-2').addEventListener('click', () => {
+            alert('Shadow Button 2 clicked! Check if automation locators were displayed in the inspector.');
+        });
+        
+        nestedShadow.getElementById('deep-shadow-btn').addEventListener('click', () => {
+            alert('Deep Shadow Button clicked! This should show nested shadow DOM automation locators.');
+        });
+        
+        // Add validation helper
+        function validateAutomationLocators() {
+            console.log('🧪 Running automation locators validation...');
+            
+            // This would be called by the extension to validate the feature
+            const testResults = {
+                shadowElementsFound: 0,
+                automationLocatorsGenerated: 0,
+                frameworksSupported: ['Playwright', 'Selenium', 'Cypress']
+            };
+            
+            // Count shadow elements
+            document.querySelectorAll('*').forEach(el => {
+                if (el.shadowRoot) {
+                    testResults.shadowElementsFound++;
+                    
+                    // Count elements in shadow root
+                    el.shadowRoot.querySelectorAll('*').forEach(shadowEl => {
+                        testResults.automationLocatorsGenerated++;
+                    });
+                }
+            });
+            
+            console.log('📊 Validation Results:', testResults);
+            return testResults;
+        }
+        
+        // Expose validation function globally
+        window.validateAutomationLocators = validateAutomationLocators;
+        
+        // Auto-run validation after setup
+        setTimeout(validateAutomationLocators, 1000);
+    </script>
+</body>
+</html>

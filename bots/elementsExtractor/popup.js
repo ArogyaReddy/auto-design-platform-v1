@@ -117,6 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('filterAll').checked = true;
   elementTypeList.forEach(type => (document.getElementById(type.id).checked = false));
 
+  // Initialize Playwright settings and UI
+  initializePlaywrightSettings();
+  setupPlaywrightValidationButtons();
+  handlePlaywrightSettingsChange();
+
   // Check for recent inspection data and display it
   checkForRecentInspectionData();
 
@@ -241,10 +246,18 @@ function copyLocatorToClipboard(text) {
 
 // ---- Utility: Highlight Element on Tab ----
 function highlightElementOnTab(tabId, locator, inShadowDOM) {
+  console.log('Element AI Extractor: highlightElementOnTab called with:', {
+    tabId: tabId,
+    locator: locator,
+    inShadowDOM: inShadowDOM
+  });
+  
   chrome.scripting.executeScript({
     target: {tabId},
     args: [locator, inShadowDOM],
     func: (locator, inShadowDOM) => {
+      console.log('Element AI Extractor: Script execution started in tab context');
+      console.log('Element AI Extractor: Received args:', { locator, inShadowDOM });
       // #FUNCTION: findElementWithShadowSupport
       // #DESCRIPTION: Enhanced element finding with comprehensive Shadow DOM support
       function findElementWithShadowSupport(locatorStr, isInShadow) {
@@ -252,7 +265,30 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
         
         console.log('Element AI Extractor: Searching for element:', locatorStr, 'inShadowDOM:', isInShadow);
         
-        // #NOTE: Handle Shadow DOM path syntax "host >> inner"
+        // #ENHANCEMENT: Prioritize DevTools-compatible locators first
+        if (!locatorStr.includes(' >> ')) {
+          // Try simple, DevTools-compatible selector first
+          try {
+            let element = null;
+            if (locatorStr.startsWith('#')) {
+              element = document.querySelector(locatorStr);
+            } else if (locatorStr.startsWith('/')) {
+              let r = document.evaluate(locatorStr, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+              element = r.singleNodeValue;
+            } else {
+              element = document.querySelector(locatorStr);
+            }
+            
+            if (element) {
+              console.log('Element AI Extractor: Found element via DevTools-compatible selector:', element);
+              return element;
+            }
+          } catch (e) {
+            console.warn('Element AI Extractor: DevTools-compatible selector failed:', e);
+          }
+        }
+
+        // #NOTE: Handle Shadow DOM path syntax "host >> inner" (fallback for complex cases)
         if (isInShadow && typeof locatorStr === 'string' && locatorStr.includes(' >> ')) {
           try {
             const pathSegments = locatorStr.split(' >> ');
@@ -290,29 +326,30 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
           }
         }
         
-        // #NOTE: Enhanced shadow search with deep traversal
+        // #ENHANCEMENT: For Shadow DOM elements, try automation-compatible finding first
         if (isInShadow) {
-          function searchAllShadowRoots(rootNode, selector) {
+          // Try to find using piercing techniques
+          function findInShadowDOM(rootNode, selector) {
             if (!rootNode) return null;
             
-            // Try to find in current context
+            // Try direct search in current root
             if (rootNode.querySelector) {
               try {
-                let found = rootNode.querySelector(selector);
+                const found = rootNode.querySelector(selector);
                 if (found) {
-                  console.log('Element AI Extractor: Found element in shadow root:', found);
+                  console.log('Element AI Extractor: Found in shadow root:', found);
                   return found;
                 }
               } catch (e) {
-                console.warn('Element AI Extractor: Error querying selector in shadow root:', e);
+                console.warn('Element AI Extractor: Shadow query failed:', e);
               }
             }
             
-            // Recursively search in all shadow roots
-            const elements = rootNode.querySelectorAll ? rootNode.querySelectorAll('*') : [];
-            for (let element of elements) {
+            // Recursively search all shadow roots
+            const allElements = rootNode.querySelectorAll ? rootNode.querySelectorAll('*') : [];
+            for (let element of allElements) {
               if (element.shadowRoot) {
-                let found = searchAllShadowRoots(element.shadowRoot, selector);
+                const found = findInShadowDOM(element.shadowRoot, selector);
                 if (found) return found;
               }
             }
@@ -320,11 +357,11 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
             return null;
           }
           
-          // Search starting from document
-          let result = searchAllShadowRoots(document, locatorStr);
-          if (result) {
-            console.log('Element AI Extractor: Found element via shadow search:', result);
-            return result;
+          // Search starting from document and all shadow roots
+          const shadowResult = findInShadowDOM(document, locatorStr);
+          if (shadowResult) {
+            console.log('Element AI Extractor: Found element in shadow DOM:', shadowResult);
+            return shadowResult;
           }
         }
         
@@ -353,12 +390,58 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
       let el = findElementWithShadowSupport(locator, inShadowDOM);
       if (el) {
         console.log('Element AI Extractor: Successfully found element, highlighting:', el);
+        console.log('Element AI Extractor: Element tag:', el.tagName);
+        console.log('Element AI Extractor: Element id:', el.id);
+        console.log('Element AI Extractor: Element classes:', el.className);
+        
+        // Scroll into view
         el.scrollIntoView({behavior: 'smooth', block: 'center'});
-        el.style.outline = '3px solid #ff0000';
-        el.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+        
+        // Apply highlighting styles with !important
+        console.log('Element AI Extractor: Applying highlight styles...');
+        el.style.setProperty('outline', '3px solid #ff0000', 'important');
+        el.style.setProperty('background-color', 'rgba(255, 0, 0, 0.1)', 'important');
+        el.style.setProperty('z-index', '999999', 'important');
+        
+        // Also add a distinctive class for additional styling
+        el.classList.add('ai-extractor-highlighted');
+        
+        // Inject CSS to ensure highlighting is visible
+        const style = document.createElement('style');
+        style.id = 'ai-extractor-highlight-style';
+        style.textContent = `
+          .ai-extractor-highlighted {
+            outline: 3px solid #ff0000 !important;
+            background-color: rgba(255, 0, 0, 0.1) !important;
+            z-index: 999999 !important;
+            position: relative !important;
+          }
+        `;
+        document.head.appendChild(style);
+        
+        // Verify styles were applied
         setTimeout(() => {
-          el.style.outline = '';
-          el.style.backgroundColor = '';
+          const computedStyle = window.getComputedStyle(el);
+          console.log('Element AI Extractor: Applied styles verification:');
+          console.log('  - outline:', computedStyle.outline);
+          console.log('  - backgroundColor:', computedStyle.backgroundColor);
+          console.log('  - element.style.outline:', el.style.outline);
+          console.log('  - element.style.backgroundColor:', el.style.backgroundColor);
+        }, 100);
+        
+        // Remove highlighting after 2 seconds
+        setTimeout(() => {
+          console.log('Element AI Extractor: Removing highlight styles...');
+          el.style.removeProperty('outline');
+          el.style.removeProperty('background-color');
+          el.style.removeProperty('z-index');
+          el.classList.remove('ai-extractor-highlighted');
+          
+          // Remove the style element
+          const styleEl = document.getElementById('ai-extractor-highlight-style');
+          if (styleEl) {
+            styleEl.remove();
+          }
         }, 2000);
       } else {
         console.warn('Element AI Extractor: Could not find element with locator:', locator, 'inShadowDOM:', inShadowDOM);
@@ -371,19 +454,48 @@ function highlightElementOnTab(tabId, locator, inShadowDOM) {
             if (fallbackEl) {
               console.log('Element AI Extractor: Found element via fallback search:', fallbackEl);
               fallbackEl.scrollIntoView({behavior: 'smooth', block: 'center'});
-              fallbackEl.style.outline = '3px solid #ff0000';
-              fallbackEl.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+              fallbackEl.style.setProperty('outline', '3px solid #ff0000', 'important');
+              fallbackEl.style.setProperty('background-color', 'rgba(255, 0, 0, 0.1)', 'important');
               setTimeout(() => {
-                fallbackEl.style.outline = '';
-                fallbackEl.style.backgroundColor = '';
+                fallbackEl.style.removeProperty('outline');
+                fallbackEl.style.removeProperty('background-color');
               }, 2000);
+            } else {
+              console.error('Element AI Extractor: Fallback search also failed for locator:', locator);
             }
-          } catch (e) {
-            console.warn('Element AI Extractor: Fallback search also failed:', e);
+          } catch (fallbackError) {
+            console.error('Element AI Extractor: Fallback search error:', fallbackError);
           }
+        } else {
+          console.error('Element AI Extractor: Element not found and not in shadow DOM, no fallback available');
         }
       }
+      
+      // Return result for debugging
+      return {
+        success: !!el,
+        locator: locator,
+        inShadowDOM: inShadowDOM,
+        elementFound: el ? {
+          tagName: el.tagName,
+          id: el.id,
+          className: el.className
+        } : null
+      };
     }
+  }).then(result => {
+    console.log('Element AI Extractor: Highlight script executed successfully:', result);
+    if (result && result[0] && result[0].result) {
+      console.log('Element AI Extractor: Script result:', result[0].result);
+    }
+  }).catch(error => {
+    console.error('Element AI Extractor: Error executing highlight script:', error);
+    console.error('Element AI Extractor: Error details:', {
+      tabId: tabId,
+      locator: locator,
+      inShadowDOM: inShadowDOM,
+      error: error.toString()
+    });
   });
 }
 
@@ -568,7 +680,7 @@ function domExtractionFunction(filters) {
            rect.height > 0;
   }
 
-  // #FUNCTION: getBestLocator - Enhanced for Shadow DOM context
+  // #FUNCTION: getBestLocator - Enhanced for Shadow DOM context with DevTools compatibility
   // #DESCRIPTION: Get the best, most stable locator for the element with context awareness
   function getBestLocator(el, contextNode = document) {
     // Priority order: ID > Test attributes > Aria attributes > Role > CSS > XPath
@@ -579,17 +691,89 @@ function domExtractionFunction(filters) {
       return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
     }
     
-    // 1. ID selector (most reliable)
-    if (el.id && !el.id.match(/^[0-9]+$/)) {
-      // Check uniqueness within the current context
-      const sameIdElements = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
-      if (sameIdElements.length === 1) {
-        // Use attribute selector for complex IDs with special characters
-        if (hasSpecialCssChars(el.id)) {
-          return {type: 'ID', locator: `[id="${el.id}"]`, reason: 'Unique ID (complex)'};
+    // Helper function to generate a guaranteed unique path-based selector
+    function generatePathBasedSelector(element, context = document) {
+      const path = [];
+      let current = element;
+      
+      while (current && current !== context && current.nodeType === Node.ELEMENT_NODE) {
+        const tagName = current.tagName.toLowerCase();
+        const siblings = Array.from(current.parentNode?.children || [])
+          .filter(child => child.tagName === current.tagName);
+        
+        if (siblings.length === 1) {
+          path.unshift(tagName);
+        } else {
+          const index = siblings.indexOf(current) + 1;
+          path.unshift(`${tagName}:nth-of-type(${index})`);
         }
-        return {type: 'ID', locator: `#${el.id}`, reason: 'Unique ID'};
+        
+        current = current.parentNode;
+      }
+      
+      return path.join(' > ');
+    }
+    
+    // Helper function to validate selector in DevTools context
+    function validateSelector(selector, targetElement = null) {
+      try {
+        // Test the selector in the current document context
+        const testElements = contextNode.querySelectorAll ? 
+          contextNode.querySelectorAll(selector) : [];
+        
+        // CRITICAL: Selector must be UNIQUE (exactly 1 match) for automation reliability
+        if (testElements.length !== 1) {
+          console.warn(`Element AI Extractor: Non-unique selector (found ${testElements.length} elements):`, selector);
+          return false;
+        }
+        
+        // If we have a target element, verify the selector actually selects it
+        if (targetElement && testElements[0] !== targetElement) {
+          console.warn('Element AI Extractor: Selector selects wrong element:', selector);
+          return false;
+        }
+        
+        return true;
+      } catch (e) {
+        console.warn('Element AI Extractor: Invalid selector syntax:', selector, e);
+        return false;
+      }
+    }
+    
+    // Helper function to generate robust ID selector
+    function generateIdSelector(id, targetElement) {
+      // Always use attribute selector for maximum compatibility
+      const attributeSelector = `[id="${id}"]`;
+      
+      // For simple IDs, also try CSS.escape with hash selector
+      if (!hasSpecialCssChars(id)) {
+        try {
+          const hashSelector = `#${CSS.escape(id)}`;
+          // Validate both and prefer the simpler one if both work
+          if (validateSelector(hashSelector, targetElement) && validateSelector(attributeSelector, targetElement)) {
+            return hashSelector;
+          }
+        } catch (e) {
+          // CSS.escape failed, fall back to attribute selector
+        }
+      }
+      
+      // Use attribute selector as the most reliable fallback
+      return attributeSelector;
+    }
+    
+    // 1. ID selector (most reliable) - Enhanced with DevTools compatibility
+    if (el.id && !el.id.match(/^[0-9]+$/)) {
+      // Generate the optimal ID selector
+      const idSelector = generateIdSelector(el.id, el);
+      
+      // Verify uniqueness using the actual selector we're generating
+      if (validateSelector(idSelector, el)) {
+        return {
+          type: 'ID', 
+          locator: idSelector, 
+          reason: hasSpecialCssChars(el.id) ? 'Unique ID (DevTools compatible)' : 'Unique ID'
+        };
       }
     }
 
@@ -597,20 +781,20 @@ function domExtractionFunction(filters) {
     for (const attr of ['data-testid', 'data-qa', 'data-cy']) {
       if (el.hasAttribute(attr)) {
         const value = el.getAttribute(attr);
-        const sameTestAttr = contextNode.querySelectorAll ? 
-          contextNode.querySelectorAll(`[${attr}="${value}"]`) : [];
-        if (sameTestAttr.length === 1) {
-          return {type: attr, locator: `[${attr}="${value}"]`, reason: 'Unique test attribute'};
+        const testSelector = `[${attr}="${value}"]`;
+        
+        if (validateSelector(testSelector, el)) {
+          return {type: attr, locator: testSelector, reason: 'Unique test attribute'};
         }
       }
     }
 
     // 3. Name attribute (reliable for form elements)
     if (el.name) {
-      const sameName = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[name="${el.name}"]`) : [];
-      if (sameName.length === 1) {
-        return {type: 'name', locator: `[name="${el.name}"]`, reason: 'Unique name attribute'};
+      const nameSelector = `[name="${el.name}"]`;
+      
+      if (validateSelector(nameSelector, el)) {
+        return {type: 'name', locator: nameSelector, reason: 'Unique name attribute'};
       }
     }
 
@@ -624,87 +808,243 @@ function domExtractionFunction(filters) {
           .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
         if (classes.length > 0) {
           const combinedLocator = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
-          const sameCombined = contextNode.querySelectorAll ? 
-            contextNode.querySelectorAll(combinedLocator) : [];
-          if (sameCombined.length === 1) {
+          
+          if (validateSelector(combinedLocator, el)) {
             return {type: 'class+href', locator: combinedLocator, reason: 'BEST: Unique semantic navigation locator'};
           }
         }
       }
       
       // PRIORITY 2: Pure href (fallback)
-      const sameHref = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`a[href="${href}"]`) : [];
-      if (sameHref.length === 1) {
-        return {type: 'href', locator: `a[href="${href}"]`, reason: 'Unique href'};
+      const hrefSelector = `a[href="${href}"]`;
+      if (validateSelector(hrefSelector, el)) {
+        return {type: 'href', locator: hrefSelector, reason: 'Unique href'};
       }
     }
 
-    // 5. Aria attributes (good for accessibility)
+    // 5. Aria attributes (excellent for accessibility and Shadow DOM compatibility)
     if (el.hasAttribute('aria-label')) {
       const ariaLabel = el.getAttribute('aria-label');
-      const sameAriaLabel = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[aria-label="${ariaLabel}"]`) : [];
-      if (sameAriaLabel.length === 1) {
-        return {type: 'aria-label', locator: `[aria-label="${ariaLabel}"]`, reason: 'Unique aria-label'};
+      const ariaSelector = `[aria-label="${ariaLabel}"]`;
+      
+      // #ENHANCEMENT: For Shadow DOM elements, check global uniqueness first
+      const isInShadow = el.getRootNode() instanceof ShadowRoot;
+      if (isInShadow) {
+        try {
+          // Check if globally unique - this gives us DevTools compatibility
+          const globalElements = document.querySelectorAll(ariaSelector);
+          if (globalElements.length === 1 && globalElements[0] === el) {
+            return {type: 'aria-label', locator: ariaSelector, reason: 'Globally unique aria-label (DevTools compatible)'};
+          }
+        } catch (e) {
+          console.warn('Element AI Extractor: Error checking global aria-label uniqueness:', e);
+        }
+      }
+      
+      // Fallback to context-based validation
+      if (validateSelector(ariaSelector, el)) {
+        return {type: 'aria-label', locator: ariaSelector, reason: 'Unique aria-label'};
       }
     }
 
-    // 6. Role attribute (good for semantic elements)
+    // 6. Role attribute (good for semantic elements and Shadow DOM)
     if (el.hasAttribute('role')) {
       const role = el.getAttribute('role');
-      const sameRole = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[role="${role}"]`) : [];
-      if (sameRole.length === 1) {
-        return {type: 'role', locator: `[role="${role}"]`, reason: 'Unique role'};
+      const roleSelector = `[role="${role}"]`;
+      
+      // #ENHANCEMENT: For Shadow DOM elements, check global uniqueness first  
+      const isInShadow = el.getRootNode() instanceof ShadowRoot;
+      if (isInShadow) {
+        try {
+          const globalElements = document.querySelectorAll(roleSelector);
+          if (globalElements.length === 1 && globalElements[0] === el) {
+            return {type: 'role', locator: roleSelector, reason: 'Globally unique role (DevTools compatible)'};
+          }
+        } catch (e) {
+          console.warn('Element AI Extractor: Error checking global role uniqueness:', e);
+        }
+      }
+      
+      if (validateSelector(roleSelector, el)) {
+        return {type: 'role', locator: roleSelector, reason: 'Unique role'};
       }
     }
     
-    // 7. Single class (if unique)
-    const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
-    if (filteredClasses.length === 1) {
-      const className = filteredClasses[0];
-      const sameClass = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`.${CSS.escape(className)}`) : [];
-      if (sameClass.length === 1) {
-        return {type: 'class', locator: `.${CSS.escape(className)}`, reason: 'Unique class'};
+    // 7. SVG and Icon Elements (special handling for Shadow DOM icons)
+    // #ENHANCEMENT: Enhanced SVG/Icon element handling with multiple fallback strategies
+    const isIconElement = el.tagName.toLowerCase().includes('icon') || 
+                         el.tagName.toLowerCase().includes('svg') ||
+                         el.className.includes('icon') ||
+                         el.className.includes('burger') ||
+                         el.hasAttribute('role') && el.getAttribute('role').includes('button');
+    
+    if (isIconElement) {
+      // Try multiple SVG-specific strategies in priority order (DevTools compatibility first)
+      const svgStrategies = [];
+      const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
+      
+      // Strategy 1: Pure aria-label (HIGHEST priority - DevTools compatible)
+      if (el.hasAttribute('aria-label')) {
+        const ariaLabel = el.getAttribute('aria-label');
+        const pureAriaSelector = `[aria-label="${ariaLabel}"]`;
+        svgStrategies.push({selector: pureAriaSelector, type: 'pure-aria', reason: 'Pure aria-label (highest DevTools compatibility)'});
+      }
+      
+      // Strategy 2: Multiple class combination ONLY (DevTools compatible)
+      if (filteredClasses.length >= 2) {
+        const multiClassSelector = `.${filteredClasses.map(c => CSS.escape(c)).join('.')}`;
+        svgStrategies.push({selector: multiClassSelector, type: 'multi-class', reason: 'SVG/Icon multi-class combination (DevTools compatible)'});
+      }
+      
+      // Strategy 3: Tag + aria-label (fallback for when pure aria-label isn't unique)
+      if (el.hasAttribute('aria-label')) {
+        const ariaLabel = el.getAttribute('aria-label');
+        const tagAriaSelector = `${el.tagName.toLowerCase()}[aria-label="${ariaLabel}"]`;
+        svgStrategies.push({selector: tagAriaSelector, type: 'tag+aria', reason: 'SVG/Icon with aria-label'});
+      }
+      
+      // Strategy 4: Tag + role combination
+      if (el.hasAttribute('role')) {
+        const role = el.getAttribute('role');
+        const tagRoleSelector = `${el.tagName.toLowerCase()}[role="${role}"]`;
+        svgStrategies.push({selector: tagRoleSelector, type: 'tag+role', reason: 'SVG/Icon with role'});
+      }
+      
+      // Strategy 5: Single most distinctive class (DevTools compatible)
+      if (filteredClasses.length > 0) {
+        // Prioritize classes that are likely to be unique (burger, hydrated, etc.)
+        const distinctiveClasses = filteredClasses.filter(cls => 
+          cls.includes('burger') || cls.includes('menu') || cls.includes('close') || 
+          cls.includes('icon') || cls.includes('btn') || cls.includes('button') ||
+          cls.includes('hydrated') || cls.includes('active')
+        );
+        
+        if (distinctiveClasses.length > 0) {
+          const singleClassSelector = `.${CSS.escape(distinctiveClasses[0])}`;
+          svgStrategies.push({selector: singleClassSelector, type: 'single-class', reason: 'Single distinctive class (DevTools compatible)'});
+        }
+      }
+      
+      // Try each strategy and return the first globally unique one
+      for (const strategy of svgStrategies) {
+        try {
+          // Check if globally unique first (DevTools compatibility)
+          const globalElements = document.querySelectorAll(strategy.selector);
+          if (globalElements.length === 1 && globalElements[0] === el) {
+            return {type: strategy.type, locator: strategy.selector, reason: `${strategy.reason} (DevTools compatible)`};
+          }
+          
+          // Fallback to context validation
+          if (validateSelector(strategy.selector, el)) {
+            return {type: strategy.type, locator: strategy.selector, reason: strategy.reason};
+          }
+        } catch (e) {
+          console.warn(`Element AI Extractor: SVG strategy failed for ${strategy.selector}:`, e);
+        }
       }
     }
 
-    // 8. CSS selector (generated) within context
+    // 8. Single class (if unique)
+    const filteredClasses = Array.from(el.classList).filter(cls => !cls.startsWith('ai-extractor-'));
+    if (filteredClasses.length === 1) {
+      const className = filteredClasses[0];
+      try {
+        const classSelector = `.${CSS.escape(className)}`;
+        
+        if (validateSelector(classSelector, el)) {
+          return {type: 'class', locator: classSelector, reason: 'Unique class'};
+        }
+      } catch (e) {
+        console.warn('Element AI Extractor: Class selector generation failed:', className, e);
+      }
+    }
+
+    // 9. CSS selector (generated) within context
     const cssSelector = getUniqueCssSelector(el, contextNode);
-    if (cssSelector && cssSelector.length < 100) {
+    if (cssSelector && cssSelector.length < 100 && validateSelector(cssSelector, el)) {
       return {type: 'CSS', locator: cssSelector, reason: 'Generated CSS selector'};
     }
 
-    // 9. XPath as fallback within context
+    // 10. XPath as fallback within context
     const xpathSelector = getXPath(el, contextNode);
     if (xpathSelector && xpathSelector.length < 150) {
       return {type: 'XPath', locator: xpathSelector, reason: 'Generated XPath'};
     }
 
-    // Final fallback to CSS even if long
-    return {type: 'CSS', locator: cssSelector || el.tagName.toLowerCase(), reason: 'Fallback CSS'};
+    // Final fallback - generate a simple, reliable selector that MUST be unique
+    const tagName = el.tagName.toLowerCase();
+    const siblings = Array.from(el.parentNode?.children || []).filter(child => child.tagName === el.tagName);
+    const index = siblings.indexOf(el) + 1;
+    const ultimateFallback = `${tagName}:nth-of-type(${index})`;
+    
+    // CRITICAL: Validate even the ultimate fallback for uniqueness
+    if (validateSelector(ultimateFallback, el)) {
+      return {type: 'CSS', locator: ultimateFallback, reason: 'Ultimate fallback (position-based)'};
+    }
+    
+    // If even nth-of-type fails, create a more specific path-based selector
+    const pathSelector = generatePathBasedSelector(el, contextNode);
+    return {type: 'CSS', locator: pathSelector, reason: 'Path-based fallback (guaranteed unique)'};
   }
 
-  // #FUNCTION: getUniqueCssSelector - Enhanced for Shadow DOM context
-  // #DESCRIPTION: Unique CSS Selector Generator with context awareness
+  // #FUNCTION: getUniqueCssSelector - Enhanced for Shadow DOM context with DevTools compatibility
+  // #DESCRIPTION: Unique CSS Selector Generator with context awareness and browser compatibility
   function getUniqueCssSelector(el, contextNode = document) {
     // Helper function to check if ID contains special CSS characters
     function hasSpecialCssChars(id) {
       return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
     }
     
-    if (el.id) {
-      // Check if ID is unique within the context
-      const sameIdElements = contextNode.querySelectorAll ? 
-        contextNode.querySelectorAll(`[id="${el.id}"]`) : [];
-      if (sameIdElements.length === 1) {
-        // Use attribute selector for complex IDs with special characters
-        if (hasSpecialCssChars(el.id)) {
-          return `[id="${el.id}"]`;
+    // Helper function to validate selector works in DevTools and is UNIQUE
+    function validateSelector(selector, targetElement = null) {
+      try {
+        const testElements = contextNode.querySelectorAll ? 
+          contextNode.querySelectorAll(selector) : [];
+        
+        // CRITICAL: Must be exactly 1 match for uniqueness
+        if (testElements.length !== 1) {
+          return false;
         }
-        return `#${el.id}`;
+        
+        // If we have a target element, verify the selector actually selects it
+        if (targetElement && testElements[0] !== targetElement) {
+          return false;
+        }
+        
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // Helper function to generate robust ID selector
+    function generateIdSelector(id, targetElement) {
+      // Always use attribute selector for maximum compatibility
+      const attributeSelector = `[id="${id}"]`;
+      
+      // For simple IDs, also try CSS.escape with hash selector
+      if (!hasSpecialCssChars(id)) {
+        try {
+          const hashSelector = `#${CSS.escape(id)}`;
+          // Validate both and prefer the simpler one if both work
+          if (validateSelector(hashSelector, targetElement) && validateSelector(attributeSelector, targetElement)) {
+            return hashSelector;
+          }
+        } catch (e) {
+          // CSS.escape failed, fall back to attribute selector
+        }
+      }
+      
+      return attributeSelector;
+    }
+    
+    if (el.id) {
+      // Generate robust ID selector
+      const idSelector = generateIdSelector(el.id, el);
+      
+      // Check if ID is unique within the context using the actual selector
+      if (validateSelector(idSelector, el)) {
+        return idSelector;
       }
     }
     
@@ -715,14 +1055,10 @@ function domExtractionFunction(filters) {
       let selector = current.tagName.toLowerCase();
       
       if (current.id && contextNode.querySelectorAll) {
-        const sameIdInContext = contextNode.querySelectorAll(`[id="${current.id}"]`);
-        if (sameIdInContext.length === 1) {
-          // Use attribute selector for complex IDs with special characters
-          if (hasSpecialCssChars(current.id)) {
-            selector = `[id="${current.id}"]`;
-          } else {
-            selector += `#${current.id}`;
-          }
+        // Generate robust ID selector for path building
+        const idSelector = generateIdSelector(current.id, current);
+        if (validateSelector(idSelector, current)) {
+          selector = idSelector;
           parts.unshift(selector);
           break;
         }
@@ -732,7 +1068,22 @@ function domExtractionFunction(filters) {
         const classes = current.className.split(' ')
           .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
         if (classes.length > 0) {
-          selector += '.' + classes.map(c => CSS.escape(c)).join('.');
+          // For SVG/icon elements, avoid tag+class combinations that don't work in DevTools
+          const isIconElement = current.tagName.toLowerCase().includes('icon') || 
+                               current.tagName.toLowerCase().includes('svg') ||
+                               classes.some(cls => cls.includes('icon') || cls.includes('burger') || cls.includes('menu'));
+          
+          if (isIconElement && classes.length >= 2) {
+            // For icon elements with multiple classes, prioritize class-only selector for DevTools compatibility
+            const multiClassSelector = '.' + classes.map(c => CSS.escape(c)).join('.');
+            if (validateSelector(multiClassSelector, current)) {
+              selector = multiClassSelector; // Use class-only selector, not tag+class
+            } else {
+              selector += '.' + classes.map(c => CSS.escape(c)).join('.');
+            }
+          } else {
+            selector += '.' + classes.map(c => CSS.escape(c)).join('.');
+          }
         }
       }
       
@@ -750,7 +1101,19 @@ function domExtractionFunction(filters) {
       if (parts.length > 5) break; // Limit depth for performance
     }
     
-    return parts.join(' > ');
+    const finalSelector = parts.join(' > ');
+    
+    // Final validation: ensure the selector works in DevTools context and is UNIQUE
+    if (!validateSelector(finalSelector, el)) {
+      console.warn('Element AI Extractor: Generated selector failed validation:', finalSelector);
+      // Return a basic fallback that should work
+      const tagName = el.tagName.toLowerCase();
+      const siblings = Array.from(el.parentNode?.children || []).filter(child => child.tagName === el.tagName);
+      const index = siblings.indexOf(el) + 1;
+      return `${tagName}:nth-of-type(${index})`;
+    }
+    
+    return finalSelector;
   }
 
   // #FUNCTION: getXPath - Enhanced for Shadow DOM context
@@ -873,18 +1236,89 @@ function domExtractionFunction(filters) {
         let localXPath = getXPath(el, contextNode);
         let bestLocatorInfo = getBestLocator(el, contextNode);
 
-        // #SECTION: Build final locators for Shadow DOM elements
+        // #SECTION: Build final locators for Shadow DOM elements with DevTools compatibility
         let finalCssSelector = localCssSelector;
         let finalXPath = localXPath; // Keep local for display
         let finalBestLocator = bestLocatorInfo.locator;
         let hostPathString = isShadowContext ? currentHostPathArray.join(' >> ') : '';
 
-        // #IMPORTANT: Prefix locators with shadow host path for elements in shadow DOM
+        // #CRITICAL: For Shadow DOM elements, prioritize simple, DevTools-compatible locators
         if (isShadowContext && hostPathString) {
-          finalCssSelector = `${hostPathString} >> ${localCssSelector}`;
-          // Prefix best locator if it's a CSS-type locator
-          if (['ID', 'data-testid', 'data-qa', 'data-cy', 'aria-label', 'role', 'class', 'CSS'].includes(bestLocatorInfo.type)) {
-            finalBestLocator = `${hostPathString} >> ${bestLocatorInfo.locator}`;
+          // #ENHANCEMENT: Try to find DevTools-compatible alternatives first
+          let useComplexPath = true;
+          
+          // Check if element has globally unique attributes that work in DevTools
+          if (el.hasAttribute('aria-label')) {
+            const ariaLabel = el.getAttribute('aria-label');
+            try {
+              const globalAriaElements = document.querySelectorAll(`[aria-label="${ariaLabel}"]`);
+              if (globalAriaElements.length === 1 && globalAriaElements[0] === el) {
+                finalBestLocator = `[aria-label="${ariaLabel}"]`;
+                finalCssSelector = `[aria-label="${ariaLabel}"]`;
+                useComplexPath = false;
+                // Update locator info for higher strength score
+                bestLocatorInfo = {type: 'aria-label', locator: finalBestLocator, reason: 'Globally unique aria-label (DevTools compatible)'};
+              }
+            } catch (e) {
+              console.warn('Element AI Extractor: Error checking global aria-label uniqueness:', e);
+            }
+          }
+          
+          // Check for globally unique ID
+          if (useComplexPath && el.id) {
+            try {
+              const globalIdElements = document.querySelectorAll(`#${CSS.escape(el.id)}`);
+              if (globalIdElements.length === 1 && globalIdElements[0] === el) {
+                finalBestLocator = `#${CSS.escape(el.id)}`;
+                finalCssSelector = `#${CSS.escape(el.id)}`;
+                useComplexPath = false;
+                bestLocatorInfo = {type: 'ID', locator: finalBestLocator, reason: 'Globally unique ID (DevTools compatible)'};
+              }
+            } catch (e) {
+              // Try attribute selector for complex IDs
+              try {
+                const globalIdElements = document.querySelectorAll(`[id="${el.id}"]`);
+                if (globalIdElements.length === 1 && globalIdElements[0] === el) {
+                  finalBestLocator = `[id="${el.id}"]`;
+                  finalCssSelector = `[id="${el.id}"]`;
+                  useComplexPath = false;
+                  bestLocatorInfo = {type: 'ID', locator: finalBestLocator, reason: 'Globally unique ID with special chars (DevTools compatible)'};
+                }
+              } catch (e2) {
+                console.warn('Element AI Extractor: Error checking global ID uniqueness:', e2);
+              }
+            }
+          }
+          
+          // Check for other globally unique attributes
+          if (useComplexPath) {
+            const testAttrs = ['data-testid', 'data-qa', 'data-cy', 'role', 'name'];
+            for (const attr of testAttrs) {
+              if (el.hasAttribute(attr)) {
+                const attrValue = el.getAttribute(attr);
+                try {
+                  const globalAttrElements = document.querySelectorAll(`[${attr}="${attrValue}"]`);
+                  if (globalAttrElements.length === 1 && globalAttrElements[0] === el) {
+                    finalBestLocator = `[${attr}="${attrValue}"]`;
+                    finalCssSelector = `[${attr}="${attrValue}"]`;
+                    useComplexPath = false;
+                    bestLocatorInfo = {type: attr, locator: finalBestLocator, reason: `Globally unique ${attr} (DevTools compatible)`};
+                    break;
+                  }
+                } catch (e) {
+                  console.warn(`Element AI Extractor: Error checking global ${attr} uniqueness:`, e);
+                }
+              }
+            }
+          }
+          
+          // Only use complex path if no simple alternative found
+          if (useComplexPath) {
+            finalCssSelector = `${hostPathString} >> ${localCssSelector}`;
+            // Only prefix best locator for non-unique attributes
+            if (['class', 'CSS'].includes(bestLocatorInfo.type)) {
+              finalBestLocator = `${hostPathString} >> ${bestLocatorInfo.locator}`;
+            }
           }
         }
 
@@ -947,28 +1381,64 @@ function domExtractionFunction(filters) {
     // ULTIMATE scoring system for navigation locators
     else if (type === 'class+href') score = 92; // HIGHEST for navigation elements
     
-    // Accessibility attributes are strong
-    else if (['aria-label', 'aria-labelledby'].includes(type)) score = 85;
+    // #ENHANCEMENT: SVG and Icon Element scoring (HIGH priority for modern apps)
+    else if (['tag+class', 'tag+aria', 'multi-class', 'tag+role'].includes(type)) {
+      // SVG elements are crucial in modern apps, give them high scores if DevTools compatible
+      if (!locator.includes(' >> ')) {
+        score = 88; // High score for globally unique SVG elements
+      } else {
+        score = 75; // Lower score for complex Shadow DOM SVG paths
+      }
+    }
+    
+    // #ENHANCEMENT: Boost scores for DevTools-compatible Shadow DOM locators
+    else if (['aria-label', 'aria-labelledby'].includes(type)) {
+      // Check if this is a simple, DevTools-compatible selector (no >> syntax)
+      if (!locator.includes(' >> ')) {
+        score = 90; // High score for globally unique accessibility attributes
+      } else {
+        score = 85; // Lower score for complex Shadow DOM paths
+      }
+    }
     
     // Href attributes for links are reliable but lower than class+href
     else if (type === 'href') score = 78;
     
-    // Role attributes are good
-    else if (type === 'role') score = 75;
+    // Role attributes - boost for DevTools compatibility
+    else if (type === 'role') {
+      if (!locator.includes(' >> ')) {
+        score = 85; // High score for globally unique roles
+      } else {
+        score = 75; // Lower score for complex Shadow DOM paths
+      }
+    }
+    
+    // Name attribute - boost for DevTools compatibility  
+    else if (type === 'name') {
+      if (!locator.includes(' >> ')) {
+        score = 80; // High score for globally unique names
+      } else {
+        score = 70; // Lower score for complex Shadow DOM paths
+      }
+    }
     
     // Single class is decent
     else if (type === 'class') score = 65;
     
-    // Name attribute is reliable for forms
-    else if (type === 'name') score = 70;
-    
     // Text-based selectors are fragile
     else if (type === 'text') score = 40;
     
-    // CSS selectors depend on complexity
+    // CSS selectors depend on complexity and Shadow DOM usage
     else if (type === 'CSS') {
-      const selectorParts = locator.split(' > ').length;
-      score = Math.max(20, 60 - (selectorParts * 5));
+      if (locator.includes(' >> ')) {
+        // Complex Shadow DOM path - much lower score
+        const pathSegments = locator.split(' >> ').length;
+        score = Math.max(15, 40 - (pathSegments * 8));
+      } else {
+        // Regular CSS selector
+        const selectorParts = locator.split(' > ').length;
+        score = Math.max(20, 60 - (selectorParts * 5));
+      }
     }
     
     // XPath is usually complex and fragile
@@ -1244,7 +1714,8 @@ function renderElementsTable(data) {
     <th>Shadow</th>
     <th>Host Path</th>
     <th>Copy</th>
-    <th>Highlight</th></tr>`;
+    <th>Highlight</th>
+    <th class="playwright-header">🎭 Playwright</th></tr>`;
     
   for (let i = 0; i < itemsToShow.length; i++) {
     let r = itemsToShow[i];
@@ -1263,6 +1734,9 @@ function renderElementsTable(data) {
       <td title="${hostPath}" class="host-path">${hostPath ? hostPath.substring(0, 25) + (hostPath.length > 25 ? '...' : '') : ''}</td>
       <td><button class="copy-btn" data-copy="${encodeURIComponent(r['Best Locator'])}" title="Copy to clipboard">📋</button></td>
       <td><button class="hl-btn" data-hl="${encodeURIComponent(r['Best Locator'])}" data-shadow="${isInShadow ? '1' : '0'}" title="Highlight element">👁️</button></td>
+      <td class="playwright-column">
+        <button class="validate-single-btn" data-element-index="${startIndex + i}" title="Validate with Playwright">🎭 Validate</button>
+      </td>
     </tr>`;
   }
   previewHTML += '</table>';
@@ -1328,18 +1802,110 @@ function bindTablePreviewButtons() {
     btn.onclick = e => {
       let text = decodeURIComponent(e.target.getAttribute('data-copy') || '');
       copyLocatorToClipboard(text);
+      btn.textContent = '✅ Copied';
+      setTimeout(() => (btn.textContent = '📋 Copy'), 600);
+    };
+  });
+  
+  // Handle automation locator copy buttons
+  document.querySelectorAll('.copy-automation-btn').forEach(btn => {
+    btn.onclick = e => {
+      let text = decodeURIComponent(e.target.getAttribute('data-copy') || '');
+      copyLocatorToClipboard(text);
       btn.textContent = '✅';
       setTimeout(() => (btn.textContent = '📋'), 600);
     };
   });
+  
   document.querySelectorAll('.hl-btn').forEach(btn => {
     btn.onclick = async e => {
       let locator = decodeURIComponent(e.target.getAttribute('data-hl') || '');
       let inShadow = e.target.getAttribute('data-shadow') === '1';
+      
+      // Debug logging
+      console.log('Element AI Extractor: Highlight button clicked!');
+      console.log('Element AI Extractor: Raw data-hl:', e.target.getAttribute('data-hl'));
+      console.log('Element AI Extractor: Decoded locator:', locator);
+      console.log('Element AI Extractor: inShadow:', inShadow);
+      
       const {tabId} = await getCurrentTabInfo();
+      console.log('Element AI Extractor: Tab ID:', tabId);
+      
+      if (!locator) {
+        console.error('Element AI Extractor: No locator found!');
+        return;
+      }
+      
       highlightElementOnTab(tabId, locator, inShadow);
-      btn.textContent = '✨';
-      setTimeout(() => (btn.textContent = '👁️'), 600);
+      btn.textContent = '✨ Highlighted';
+      setTimeout(() => (btn.textContent = '👁️ Highlight'), 600);
+    };
+  });
+
+  // Handle Playwright validation buttons
+  document.querySelectorAll('.validate-single-btn').forEach(btn => {
+    btn.onclick = async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!playwrightSettings.enabled) {
+        updateStatusMessage('Playwright validation is disabled', 'warning');
+        return;
+      }
+      
+      const elementIndex = parseInt(e.target.getAttribute('data-element-index'));
+      const elements = currentFilteredData.length > 0 ? currentFilteredData : allOriginalData;
+      const element = elements[elementIndex];
+      
+      if (!element) {
+        updateStatusMessage('Element not found for validation', 'error');
+        return;
+      }
+      
+      // Update button state
+      const originalText = btn.textContent;
+      btn.textContent = '🎭 Validating...';
+      btn.disabled = true;
+      
+      try {
+        const result = await validateElementWithPlaywright(element, elementIndex);
+        
+        // Store result
+        playwrightValidationResults.set(elementIndex, result);
+        
+        // Update button to show result
+        btn.innerHTML = `
+          <div class="playwright-score">
+            <div class="score-number">${result.score}</div>
+            <div class="score-grade grade-${result.grade.toLowerCase().replace('+', '-plus')}">${result.grade}</div>
+          </div>
+        `;
+        
+        // Update row styling
+        const row = btn.closest('tr');
+        if (row) {
+          row.classList.remove('playwright-excellent', 'playwright-good', 'playwright-poor');
+          if (result.grade === 'A+' || result.grade === 'A') {
+            row.classList.add('playwright-excellent');
+          } else if (result.grade === 'B' || result.grade === 'C') {
+            row.classList.add('playwright-good');
+          } else {
+            row.classList.add('playwright-poor');
+          }
+        }
+        
+        // Update stats
+        updatePlaywrightStatsDisplay();
+        
+        updateStatusMessage(`✅ Element validated: ${result.grade} (${result.score}%)`, 'success');
+        
+      } catch (error) {
+        console.error('Single element validation error:', error);
+        btn.textContent = originalText;
+        updateStatusMessage(`❌ Validation failed: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+      }
     };
   });
 }
@@ -1846,6 +2412,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           <tr><td>ID:</td><td title="${data['ID'] || 'N/A'}">${data['ID'] || 'N/A'}</td></tr>
           <tr><td>CSS Selector:</td><td title="${data['CSS'] || 'N/A'}">${data['CSS'] || 'N/A'}</td></tr>
           <tr><td>XPath:</td><td title="${data['XPATH'] || 'N/A'}">${data['XPATH'] || 'N/A'}</td></tr>
+          <tr><td>ML Suggestions:</td><td>
+            ${Array.isArray(data['ML Suggestions']) && data['ML Suggestions'].length ? `
+              <div class="ml-suggestions-container">
+                ${data['ML Suggestions'].map(s => {
+                  const confidence = Math.round(s.confidence * 100);
+                  const confidenceClass = confidence >= 90 ? 'confidence-high' : confidence >= 70 ? 'confidence-medium' : 'confidence-low';
+                  return `<div class="ml-suggestion-item">
+                    <span class="suggestion-type">${s.type}:</span>
+                    <span class="suggestion-locator" title="${s.locator}">${s.locator}</span>
+                    <span class="suggestion-confidence ${confidenceClass}">(${confidence}%)</span>
+                  </div>`;
+                }).join('')}
+              </div>
+            ` : 'N/A'}
+          </td></tr>
           <tr><td>In Shadow DOM:</td><td>${isInShadow ? '<span class="shadow-badge">Shadow</span>' : 'No'}</td></tr>
         </table>
         <div style="margin-top: 12px; display: flex; gap: 8px;">
@@ -1963,8 +2544,58 @@ function displayInspectedElementData(data) {
       <tr><td>ID:</td><td title="${data['ID'] || 'N/A'}">${data['ID'] || 'N/A'}</td></tr>
       <tr><td>CSS Selector:</td><td title="${data['CSS'] || 'N/A'}">${data['CSS'] || 'N/A'}</td></tr>
       <tr><td>XPath:</td><td title="${data['XPATH'] || 'N/A'}">${data['XPATH'] || 'N/A'}</td></tr>
-      <tr><td>In Shadow DOM:</td><td>${shadowInfo}</td></tr>
+      <tr><td>In Shadow DOM:</td><td>${isInShadow ? '<span class="shadow-badge">Shadow</span>' : 'No'}</td></tr>
     </table>
+    ${data['Automation Locators'] ? `
+      <div class="automation-locators-section">
+        <h5 class="automation-locators-header">🤖 Automation Framework Locators</h5>
+        <div class="automation-locators-container">
+          ${data['Automation Locators'].playwrightLocator ? `
+            <div class="automation-locator-item">
+              <span class="locator-framework">Playwright:</span>
+              <div class="locator-code">
+                <code>${data['Automation Locators'].playwrightLocator}</code>
+                <button class="copy-automation-btn" data-copy="${encodeURIComponent(data['Automation Locators'].playwrightLocator)}" title="Copy Playwright locator">📋</button>
+              </div>
+            </div>
+          ` : ''}
+          ${data['Automation Locators'].seleniumJavaScript ? `
+            <div class="automation-locator-item">
+              <span class="locator-framework">Selenium (JS):</span>
+              <div class="locator-code">
+                <code>${data['Automation Locators'].seleniumJavaScript.replace(/\n/g, '<br>')}</code>
+                <button class="copy-automation-btn" data-copy="${encodeURIComponent(data['Automation Locators'].seleniumJavaScript)}" title="Copy Selenium JavaScript">📋</button>
+              </div>
+            </div>
+          ` : ''}
+          ${data['Automation Locators'].cypressLocator ? `
+            <div class="automation-locator-item">
+              <span class="locator-framework">Cypress:</span>
+              <div class="locator-code">
+                <code>${data['Automation Locators'].cypressLocator}</code>
+                <button class="copy-automation-btn" data-copy="${encodeURIComponent(data['Automation Locators'].cypressLocator)}" title="Copy Cypress locator">📋</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    ` : ''}
+    ${Array.isArray(data['ML Suggestions']) && data['ML Suggestions'].length ? `
+      <div class="ml-suggestions-section">
+        <h5 class="ml-suggestions-header">🤖 ML Suggestions</h5>
+        <div class="ml-suggestions-container">
+          ${data['ML Suggestions'].map(s => {
+            const confidence = Math.round(s.confidence * 100);
+            const confidenceClass = confidence >= 90 ? 'confidence-high' : confidence >= 70 ? 'confidence-medium' : 'confidence-low';
+            return `<div class="ml-suggestion-item">
+              <span class="suggestion-type">${s.type}:</span>
+              <span class="suggestion-locator" title="${s.locator}">${s.locator}</span>
+              <span class="suggestion-confidence ${confidenceClass}">(${confidence}%)</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
     <div style="margin-top: 12px; display: flex; gap: 8px;">
       <button class="copy-btn" 
               data-copy="${encodeURIComponent(data['Best Locator'] || '')}" 
@@ -2123,4 +2754,469 @@ function initializeOpenInNewTab() {
       });
     });
   });
+}
+
+// ---- PLAYWRIGHT VALIDATION INTEGRATION ----
+
+// Global state for Playwright validation
+let playwrightValidationResults = new Map();
+let playwrightSettings = {
+  enabled: true,
+  autoValidate: false
+};
+
+// Initialize Playwright settings on startup
+function initializePlaywrightSettings() {
+  chrome.runtime.sendMessage({ action: 'getPlaywrightSettings' }, (response) => {
+    if (response) {
+      playwrightSettings = response;
+      updatePlaywrightUI();
+    }
+  });
+}
+
+// Update Playwright UI elements
+function updatePlaywrightUI() {
+  const playwrightEnabled = document.getElementById('playwrightEnabled');
+  const autoValidate = document.getElementById('autoValidate');
+  const playwrightStats = document.getElementById('playwrightStats');
+  
+  if (playwrightEnabled) {
+    playwrightEnabled.checked = playwrightSettings.enabled;
+  }
+  
+  if (autoValidate) {
+    autoValidate.checked = playwrightSettings.autoValidate;
+  }
+  
+  // Show/hide stats panel based on whether we have validation results
+  if (playwrightStats) {
+    playwrightStats.style.display = playwrightValidationResults.size > 0 ? 'block' : 'none';
+  }
+}
+
+// Validate single element with Playwright
+async function validateElementWithPlaywright(element, index) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({
+      action: 'validateWithPlaywright',
+      locator: element['Best Locator'],
+      url: window.location.href,
+      elementData: {
+        elementName: element['Element Name'],
+        elementType: element['Element Type'],
+        locatorType: element['Locator Type'],
+        id: element['ID'],
+        index: index,
+        originalStrength: element['Strength'] // Add Element Extractor strength
+      }
+    }, (response) => {
+      if (response && response.success) {
+        // Apply scoring alignment if available
+        let finalResult = response.result;
+        
+        // Check if scoring alignment is available
+        if (window.scoringIntegration && window.ScoringAlignmentFix) {
+          try {
+            // Prepare Element Extractor data
+            const elementExtractorData = {
+              'Element Name': element['Element Name'],
+              'Element Type': element['Element Type'],
+              'Best Locator': element['Best Locator'],
+              'Locator Type': element['Locator Type'],
+              'Strength': element['Strength'] || 0,
+              'ID': element['ID']
+            };
+            
+            // Prepare Playwright result in expected format
+            const playwrightResult = {
+              locator: element['Best Locator'],
+              overall: {
+                score: response.result.score || 0,
+                grade: response.result.grade || 'F',
+                passed: response.result.isValid || false
+              },
+              tests: response.result.tests || {}
+            };
+            
+            // Apply alignment
+            const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+            
+            // Update the result with aligned scores
+            finalResult = {
+              ...response.result,
+              score: alignedResult.aligned_result.Strength,
+              grade: alignedResult.aligned_result["Playwright Grade"],
+              alignmentStrategy: alignedResult.aligned_result["Alignment Strategy"],
+              originalEEScore: element['Strength'],
+              originalPWScore: response.result.score,
+              scoreAdjustments: alignedResult.aligned_result["Score Adjustments"],
+              aligned: true
+            };
+            
+            console.log('🎯 Applied scoring alignment:', {
+              element: element['Element Name'],
+              originalEE: element['Strength'],
+              originalPW: response.result.score,
+              aligned: finalResult.score,
+              strategy: finalResult.alignmentStrategy
+            });
+            
+          } catch (alignmentError) {
+            console.warn('⚠️ Scoring alignment failed:', alignmentError);
+            // Fall back to original result
+          }
+        }
+        
+        resolve(finalResult);
+      } else {
+        resolve({
+          isValid: false,
+          score: 0,
+          grade: 'F',
+          issues: ['Validation failed'],
+          recommendations: ['Check Playwright setup']
+        });
+      }
+    });
+  });
+}
+
+// Validate all elements with Playwright
+async function validateAllElementsWithPlaywright() {
+  if (!playwrightSettings.enabled) {
+    updateStatusMessage('Playwright validation is disabled', 'warning');
+    return;
+  }
+  
+  const elements = currentFilteredData.length > 0 ? currentFilteredData : allOriginalData;
+  if (elements.length === 0) {
+    updateStatusMessage('No elements to validate', 'info');
+    return;
+  }
+  
+  updateStatusMessage(`Validating ${elements.length} elements with Playwright...`, 'info');
+  
+  // Disable validation buttons during processing
+  const validateAllBtn = document.getElementById('validateAllBtn');
+  const validateSelectedBtn = document.getElementById('validateSelectedBtn');
+  if (validateAllBtn) validateAllBtn.disabled = true;
+  if (validateSelectedBtn) validateSelectedBtn.disabled = true;
+  
+  try {
+    // Send batch validation request
+    const response = await new Promise((resolve) => {
+      chrome.runtime.sendMessage({
+        action: 'batchValidateWithPlaywright',
+        elements: elements.map((el, index) => ({
+          locator: el['Best Locator'],
+          elementName: el['Element Name'],
+          elementType: el['Element Type'],
+          locatorType: el['Locator Type'],
+          strength: el['Strength'] || 0, // Add Element Extractor strength
+          id: el['ID'],
+          index: index
+        })),
+        url: window.location.href
+      }, resolve);
+    });
+    
+    if (response && response.success) {
+      // Apply scoring alignment to batch results if available
+      response.results.forEach(result => {
+        let finalResult = result.result;
+        
+        // Apply scoring alignment if available
+        if (window.scoringIntegration && window.ScoringAlignmentFix) {
+          try {
+            const elementIndex = result.elementIndex;
+            const element = elements[elementIndex];
+            
+            if (element) {
+              // Prepare Element Extractor data
+              const elementExtractorData = {
+                'Element Name': element['Element Name'],
+                'Element Type': element['Element Type'],
+                'Best Locator': element['Best Locator'],
+                'Locator Type': element['Locator Type'],
+                'Strength': element['Strength'] || 0,
+                'ID': element['ID']
+              };
+              
+              // Prepare Playwright result in expected format
+              const playwrightResult = {
+                locator: element['Best Locator'],
+                overall: {
+                  score: result.result.score || 0,
+                  grade: result.result.grade || 'F',
+                  passed: result.result.isValid || false
+                },
+                tests: result.result.tests || {}
+              };
+              
+              // Apply alignment
+              const alignedResult = window.scoringIntegration.alignElementResult(elementExtractorData, playwrightResult);
+              
+              // Update the result with aligned scores
+              finalResult = {
+                ...result.result,
+                score: alignedResult.aligned_result.Strength,
+                grade: alignedResult.aligned_result["Playwright Grade"],
+                alignmentStrategy: alignedResult.aligned_result["Alignment Strategy"],
+                originalEEScore: element['Strength'],
+                originalPWScore: result.result.score,
+                scoreAdjustments: alignedResult.aligned_result["Score Adjustments"],
+                aligned: true
+              };
+              
+              console.log('🎯 Batch alignment applied:', {
+                element: element['Element Name'],
+                originalEE: element['Strength'],
+                originalPW: result.result.score,
+                aligned: finalResult.score,
+                strategy: finalResult.alignmentStrategy
+              });
+            }
+          } catch (alignmentError) {
+            console.warn('⚠️ Batch scoring alignment failed for element:', alignmentError);
+            // Fall back to original result
+          }
+        }
+        
+        // Store the final result (aligned or original)
+        playwrightValidationResults.set(result.elementIndex, finalResult);
+      });
+      
+      // Update UI
+      updatePlaywrightStatsDisplay();
+      updateTableWithPlaywrightResults();
+      
+      updateStatusMessage(`✅ Playwright validation completed for ${response.results.length} elements`, 'success');
+    } else {
+      updateStatusMessage(`❌ Playwright validation failed: ${response.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    console.error('Playwright validation error:', error);
+    updateStatusMessage(`❌ Playwright validation failed: ${error.message}`, 'error');
+  } finally {
+    // Re-enable validation buttons
+    if (validateAllBtn) validateAllBtn.disabled = false;
+    if (validateSelectedBtn) validateSelectedBtn.disabled = false;
+  }
+}
+
+// Update Playwright statistics display
+function updatePlaywrightStatsDisplay() {
+  const excellentCount = document.getElementById('excellentCount');
+  const goodCount = document.getElementById('goodCount');
+  const poorCount = document.getElementById('poorCount');
+  const avgScore = document.getElementById('avgScore');
+  
+  if (playwrightValidationResults.size === 0) {
+    if (excellentCount) excellentCount.textContent = '0';
+    if (goodCount) goodCount.textContent = '0';
+    if (poorCount) poorCount.textContent = '0';
+    if (avgScore) avgScore.textContent = '0';
+    return;
+  }
+  
+  const results = Array.from(playwrightValidationResults.values());
+  const excellent = results.filter(r => r.grade === 'A+' || r.grade === 'A').length;
+  const good = results.filter(r => r.grade === 'B' || r.grade === 'C').length;
+  const poor = results.filter(r => r.grade === 'D' || r.grade === 'F').length;
+  const totalScore = results.reduce((sum, r) => sum + r.score, 0);
+  const averageScore = Math.round(totalScore / results.length);
+  
+  if (excellentCount) excellentCount.textContent = excellent;
+  if (goodCount) goodCount.textContent = good;
+  if (poorCount) poorCount.textContent = poor;
+  if (avgScore) avgScore.textContent = averageScore;
+  
+  // Show stats panel
+  const playwrightStats = document.getElementById('playwrightStats');
+  if (playwrightStats) {
+    playwrightStats.style.display = 'block';
+  }
+}
+
+// Update table with Playwright validation results
+function updateTableWithPlaywrightResults() {
+  const tableRows = document.querySelectorAll('#preview table tr');
+  
+  tableRows.forEach((row, index) => {
+    if (index === 0) return; // Skip header row
+    
+    const dataIndex = index - 1;
+    const result = playwrightValidationResults.get(dataIndex);
+    
+    if (result) {
+      // Remove existing Playwright classes
+      row.classList.remove('playwright-excellent', 'playwright-good', 'playwright-poor');
+      
+      // Add new class based on score
+      if (result.grade === 'A+' || result.grade === 'A') {
+        row.classList.add('playwright-excellent');
+      } else if (result.grade === 'B' || result.grade === 'C') {
+        row.classList.add('playwright-good');
+      } else {
+        row.classList.add('playwright-poor');
+      }
+      
+      // Add Playwright score column if it doesn't exist
+      let playwrightCell = row.querySelector('.playwright-column');
+      if (!playwrightCell) {
+        playwrightCell = document.createElement('td');
+        playwrightCell.className = 'playwright-column';
+        row.appendChild(playwrightCell);
+      }
+      
+      playwrightCell.innerHTML = `
+        <div class="playwright-score">
+          <div class="score-number">${result.score}</div>
+          <div class="score-grade grade-${result.grade.toLowerCase().replace('+', '-plus')}">${result.grade}</div>
+        </div>
+      `;
+    }
+  });
+  
+  // Add Playwright header if it doesn't exist
+  const headerRow = document.querySelector('#preview table tr:first-child');
+  if (headerRow && !headerRow.querySelector('.playwright-header')) {
+    const headerCell = document.createElement('th');
+    headerCell.className = 'playwright-header';
+    headerCell.textContent = '🎭 Playwright';
+    headerRow.appendChild(headerCell);
+  }
+}
+
+// Update status message with different types
+function updateStatusMessage(message, type = 'info') {
+  const statusElement = document.getElementById('status');
+  if (statusElement) {
+    const icon = {
+      'info': 'ℹ️',
+      'success': '✅',
+      'warning': '⚠️',
+      'error': '❌'
+    }[type] || 'ℹ️';
+    
+    statusElement.innerHTML = `${icon} ${message}`;
+    statusElement.className = `status-row ${type}`;
+  }
+}
+
+// Playwright settings handlers
+function handlePlaywrightSettingsChange() {
+  const playwrightEnabled = document.getElementById('playwrightEnabled');
+  const autoValidate = document.getElementById('autoValidate');
+  
+  if (playwrightEnabled) {
+    playwrightEnabled.addEventListener('change', (e) => {
+      playwrightSettings.enabled = e.target.checked;
+      chrome.runtime.sendMessage({
+        action: 'setPlaywrightSettings',
+        enabled: playwrightSettings.enabled,
+        autoValidate: playwrightSettings.autoValidate
+      });
+    });
+  }
+  
+  if (autoValidate) {
+    autoValidate.addEventListener('change', (e) => {
+      playwrightSettings.autoValidate = e.target.checked;
+      chrome.runtime.sendMessage({
+        action: 'setPlaywrightSettings',
+        enabled: playwrightSettings.enabled,
+        autoValidate: playwrightSettings.autoValidate
+      });
+    });
+  }
+}
+
+// Playwright validation button handlers
+function setupPlaywrightValidationButtons() {
+  const validateAllBtn = document.getElementById('validateAllBtn');
+  const validateSelectedBtn = document.getElementById('validateSelectedBtn');
+  
+  if (validateAllBtn) {
+    validateAllBtn.addEventListener('click', () => {
+      validateAllElementsWithPlaywright();
+    });
+  }
+  
+  if (validateSelectedBtn) {
+    validateSelectedBtn.addEventListener('click', () => {
+      // For now, validate all since we don't have row selection
+      // This could be enhanced to validate only selected rows
+      validateAllElementsWithPlaywright();
+    });
+  }
+}
+
+// Enhanced renderElementsTable function with Playwright integration
+function renderElementsTableWithPlaywright(data) {
+  // Call original render function
+  renderElementsTable(data);
+  
+  // Add Playwright validation if auto-validate is enabled
+  if (playwrightSettings.autoValidate && playwrightSettings.enabled) {
+    setTimeout(() => {
+      validateAllElementsWithPlaywright();
+    }, 500);
+  }
+}
+
+// Override the CSV download to include Playwright scores
+function downloadCSVFileWithPlaywright(elementList, filename) {
+  const headers = [
+    'Element Name', 'Element Type', 'Best Locator', 'Locator Type', 'Strength', 
+    'ID', 'CSS', 'XPATH', 'In Shadow DOM', 'Host Element Path',
+    'Playwright Score', 'Playwright Grade', 'Playwright Valid', 'Playwright Issues'
+  ];
+  
+  const csvRows = [headers.join(',')];
+  
+  elementList.forEach((row, index) => {
+    const result = playwrightValidationResults.get(index);
+    const playwrightData = result ? {
+      score: result.score,
+      grade: result.grade,
+      valid: result.isValid ? 'Yes' : 'No',
+      issues: result.issues.join('; ')
+    } : {
+      score: 'N/A',
+      grade: 'N/A',
+      valid: 'N/A',
+      issues: 'N/A'
+    };
+    
+    const csvRow = [
+      `"${(row['Element Name'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Element Type'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Best Locator'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Locator Type'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Strength'] || '').toString().replace(/"/g, '""')}"`,
+      `"${(row['ID'] || '').replace(/"/g, '""')}"`,
+      `"${(row['CSS'] || '').replace(/"/g, '""')}"`,
+      `"${(row['XPATH'] || '').replace(/"/g, '""')}"`,
+      `"${(row['In Shadow DOM'] || '').replace(/"/g, '""')}"`,
+      `"${(row['Host Element Path'] || '').replace(/"/g, '""')}"`,
+      `"${playwrightData.score}"`,
+      `"${playwrightData.grade}"`,
+      `"${playwrightData.valid}"`,
+      `"${playwrightData.issues}"`
+    ];
+    
+    csvRows.push(csvRow.join(','));
+  });
+  
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.replace('.csv', '_with_playwright.csv');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

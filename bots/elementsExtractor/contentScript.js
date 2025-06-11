@@ -32,6 +32,43 @@ if (window.aiExtractorLoaded) {
   console.log("Element AI Extractor: Page URL:", window.location.href);
   console.log("Element AI Extractor: Frame type:", window === window.top ? 'main frame' : 'iframe');
   console.log("Element AI Extractor: User agent:", navigator.userAgent.substring(0, 100));
+
+  // ========== GLOBAL STATE VARIABLES ==========
+  // Declare global state variables at script level to avoid scoping issues
+  let isInspecting = false;
+  let currentHighlightedElement = null;
+  let currentlyHighlightedElement = null; // Keep both for compatibility
+  let lastClickedElement = null;
+  let storageCheckInterval = null;
+  let inspectorBadge = null;
+  
+  // Make inspection state globally accessible
+  window.aiExtractorIsInspecting = false;
+
+  // ========== ML SUGGESTER FUNCTION - EMBEDDED ==========
+  function getMLSuggestedLocators(elementInfo) {
+    console.log('[ML Suggester] Received element info:', elementInfo);
+
+    // Mock suggestions - to be replaced with actual ML model output
+    const mockSuggestions = [
+      { locator: `//${elementInfo.tagName || elementInfo.tag || 'div'}[@id='${elementInfo.id || 'mockId'}']`, confidence: 0.95, type: 'xpath' },
+      { locator: `${elementInfo.tagName || elementInfo.tag || 'div'}.${(elementInfo.className || 'mockClass').split(' ').join('.')}`, confidence: 0.85, type: 'css' },
+      { locator: `//${elementInfo.tagName || elementInfo.tag || 'div'}[contains(text(),'${(elementInfo.text || 'mockText').substring(0, 20)}')]`, confidence: 0.75, type: 'xpath' }
+    ];
+
+    // Simulate some processing delay
+    return new Promise(resolve => {
+      setTimeout(() => {
+        console.log('[ML Suggester] Returning mock suggestions:', mockSuggestions);
+        resolve(mockSuggestions);
+      }, 200);
+    });
+  }
+  
+  // Expose to window as well
+  window.getMLSuggestedLocators = getMLSuggestedLocators;
+  console.log("Element AI Extractor: ML Suggester function embedded and available");
+  // ========== END ML SUGGESTER ==========
   
   // Comprehensive Chrome APIs check
   if (typeof chrome !== 'undefined' && chrome.runtime) {
@@ -41,15 +78,6 @@ if (window.aiExtractorLoaded) {
     console.error("Element AI Extractor: Chrome runtime API not available!");
     console.error("Element AI Extractor: Chrome object:", typeof chrome);
   }
-
-  // Global state for inspection mode
-  let isInspecting = false;
-  let currentHighlightedElement = null;
-  let lastClickedElement = null;
-  let storageCheckInterval = null;
-  
-  // Make inspection state globally accessible for duplicate script checking
-  window.aiExtractorIsInspecting = false;
 
 // Sync inspection state with storage periodically
 function startStorageSync() {
@@ -224,8 +252,6 @@ const HIGHLIGHT_STYLES = `
   }
 `;
 
-let inspectorBadge = null;
-
 // Create floating inspector badge with enhanced functionality
 function createInspectorBadge() {
   // Only create badge in the top-level frame to prevent duplicates
@@ -279,114 +305,83 @@ function createInspectorBadge() {
   
   // Handle all badge clicks with single event listener using delegation
   inspectorBadge.addEventListener('click', (event) => {
-    console.log("Element AI Extractor: Badge clicked, target:", event.target, "classList:", event.target.classList);
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Check target and closest elements for the classes
+    console.log("Element AI Extractor: Badge clicked, target:", event.target, "classes:", event.target.classList);
     const target = event.target;
     const closestClose = target.closest('.badge-close');
     const closestCopy = target.closest('.badge-copy-btn');
     const closestHighlight = target.closest('.badge-highlight-btn');
     
     // Handle close button click
-    if (closestClose || target.classList.contains('badge-close')) {
+    if (closestClose) {
+      event.preventDefault(); event.stopPropagation();
       console.log("Element AI Extractor: Badge close clicked, stopping inspection");
       stopInspection();
-      // Clear storage state to ensure popup knows we stopped
       chrome.storage.local.set({ isInspecting: false });
-      // Send message to popup if it's open
-      chrome.runtime.sendMessage({
-        action: "inspectionStoppedFromBadge"
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          // Popup might be closed, that's okay
-          console.log("Element AI Extractor: No popup open to notify");
-        }
-      });
+      chrome.runtime.sendMessage({ action: "inspectionStoppedFromBadge" }, () => {});
       return;
     }
-    
+
     // Handle copy button click
-    if (closestCopy || target.classList.contains('badge-copy-btn')) {
+    if (closestCopy) {
+      event.preventDefault(); event.stopPropagation();
       console.log("Element AI Extractor: Copy button clicked");
       const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
-      console.log("Element AI Extractor: Locator value element:", locatorValue);
       if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
-        const textToCopy = locatorValue.title || locatorValue.textContent; // Use full text from title if available
-        console.log("Element AI Extractor: Copying text:", textToCopy);
+        const textToCopy = locatorValue.title || locatorValue.textContent;
         copyToClipboard(textToCopy);
-        const buttonElement = closestCopy || target;
-        buttonElement.textContent = '✅ Copied';
-        setTimeout(() => {
-          buttonElement.textContent = '📋 Copy';
-        }, 1500);
-      } else {
-        console.log("Element AI Extractor: No locator value to copy - locatorValue:", locatorValue, "textContent:", locatorValue?.textContent);
+        const btn = closestCopy;
+        btn.textContent = '✅ Copied';
+        setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
       }
       return;
     }
-    
+
     // Handle highlight button click
-    if (closestHighlight || target.classList.contains('badge-highlight-btn')) {
-      console.log("Element AI Extractor: Highlight button clicked, lastClickedElement:", lastClickedElement);
+    if (closestHighlight) {
+      event.preventDefault(); event.stopPropagation();
+      console.log("Element AI Extractor: Highlight button clicked");
       if (lastClickedElement) {
-        // Highlight the last clicked element
-        console.log("Element AI Extractor: Highlighting element:", lastClickedElement);
         highlightElement(lastClickedElement);
-        const buttonElement = closestHighlight || target;
-        buttonElement.textContent = '✨ Highlighted';
-        setTimeout(() => {
-          buttonElement.textContent = '👁️ Highlight';
-        }, 1500);
-      } else {
-        console.log("Element AI Extractor: No element to highlight");
+        const btn = closestHighlight;
+        btn.textContent = '✨ Highlighted';
+        setTimeout(() => { btn.textContent = '👁️ Highlight'; }, 1500);
       }
       return;
     }
-    
-    console.log("Element AI Extractor: Click not handled - no matching class found");
+
+    // If click not on a button, let events through
+    // console.log("Element AI Extractor: Badge click unhandled");
   });
   
-  // Add direct event listeners to buttons as backup
-  setTimeout(() => {
-    const copyBtn = inspectorBadge.querySelector('.badge-copy-btn');
-    const highlightBtn = inspectorBadge.querySelector('.badge-highlight-btn');
-    
-    if (copyBtn) {
-      copyBtn.addEventListener('click', (e) => {
-        console.log("Element AI Extractor: Direct copy button click");
-        e.stopPropagation();
-        e.preventDefault();
-        // Handle copy functionality directly instead of triggering recursion
-        const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
-        if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
-          const textToCopy = locatorValue.title || locatorValue.textContent;
-          copyToClipboard(textToCopy);
-          e.target.textContent = '✅ Copied';
-          setTimeout(() => {
-            e.target.textContent = '📋 Copy';
-          }, 1500);
-        }
-      });
-    }
-    
-    if (highlightBtn) {
-      highlightBtn.addEventListener('click', (e) => {
-        console.log("Element AI Extractor: Direct highlight button click");
-        e.stopPropagation();
-        e.preventDefault();
-        // Handle highlight functionality directly instead of triggering recursion
-        if (lastClickedElement) {
-          highlightElement(lastClickedElement);
-          e.target.textContent = '✨ Highlighted';
-          setTimeout(() => {
-            e.target.textContent = '👁️ Highlight';
-          }, 1500);
-        }
-      });
-    }
-  }, 100);
+  // Direct listeners as backup for copy/highlight buttons
+  const directCopyBtn = inspectorBadge.querySelector('.badge-copy-btn');
+  if (directCopyBtn) {
+    directCopyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      console.log("Element AI Extractor: Direct copy button click");
+      const locatorValue = inspectorBadge.querySelector('.badge-locator-value');
+      if (locatorValue && locatorValue.textContent && locatorValue.textContent !== 'N/A') {
+        const textToCopy = locatorValue.title || locatorValue.textContent;
+        copyToClipboard(textToCopy);
+        directCopyBtn.textContent = '✅ Copied';
+        setTimeout(() => { directCopyBtn.textContent = '📋 Copy'; }, 1500);
+      }
+    });
+  }
+  const directHlBtn = inspectorBadge.querySelector('.badge-highlight-btn');
+  if (directHlBtn) {
+    directHlBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      console.log("Element AI Extractor: Direct highlight button click");
+      if (lastClickedElement) {
+        highlightElement(lastClickedElement);
+        directHlBtn.textContent = '✨ Highlighted';
+        setTimeout(() => { directHlBtn.textContent = '👁️ Highlight'; }, 1500);
+      } else {
+        console.log("Element AI Extractor: No element to highlight (direct)");
+      }
+    });
+  }
   
   document.body.appendChild(inspectorBadge);
 }
@@ -562,29 +557,92 @@ function removeStyles() {
   removeStylesFromShadowRoots();
 }
 
-// Highlight element on hover
+// Highlight element on hover - FIXED to use aggressive styling like Element Extractor
 function highlightElement(element) {
+  console.log("Element AI Extractor: highlightElement called with:", element);
+  
   if (currentHighlightedElement && currentHighlightedElement !== element) {
+    console.log("Element AI Extractor: Removing previous highlight from:", currentHighlightedElement);
+    // Remove both CSS class and inline styles from previous element
     currentHighlightedElement.classList.remove('ai-extractor-highlight');
+    currentHighlightedElement.style.removeProperty('outline');
+    currentHighlightedElement.style.removeProperty('outline-offset');
+    currentHighlightedElement.style.removeProperty('background-color');
+    currentHighlightedElement.style.removeProperty('z-index');
   }
   
   if (element && element !== document.body && element !== document.documentElement) {
+    console.log("Element AI Extractor: Adding highlight to:", element);
+    
+    // FIXED: Use the same aggressive styling approach as highlightElementOnTab
+    // This ensures Inspector mode works with Shadow DOM elements exactly like Element Extractor
+    element.style.setProperty('outline', '3px dashed #ff6b35', 'important');
+    element.style.setProperty('outline-offset', '2px', 'important');
+    element.style.setProperty('background-color', 'rgba(255, 107, 53, 0.1)', 'important');
+    element.style.setProperty('z-index', '999999', 'important');
+    element.style.setProperty('position', 'relative', 'important');
+    
+    // Also add the CSS class as backup (for any custom styles)
     element.classList.add('ai-extractor-highlight');
-    currentHighlightedElement = element;
+    
+    currentlyHighlightedElement = element;
+    
+    // Debug: Verify the highlighting was applied
+    const computedStyle = window.getComputedStyle(element);
+    console.log("Element AI Extractor: Applied AGGRESSIVE highlighting - computed outline:", computedStyle.outline);
+    console.log("Element AI Extractor: Applied AGGRESSIVE highlighting - computed background:", computedStyle.backgroundColor);
+    console.log("Element AI Extractor: Applied AGGRESSIVE highlighting - computed z-index:", computedStyle.zIndex);
+    
+    const hasClass = element.classList.contains('ai-extractor-highlight');
+    console.log("Element AI Extractor: CSS class applied:", hasClass);
+    
+    // Special handling for Shadow DOM elements
+    if (isInShadowDOM && isInShadowDOM(element)) {
+      console.log("Element AI Extractor: SHADOW DOM element detected - applying enhanced highlighting");
+      
+      // Try to ensure the shadow host is also properly styled to show the highlight
+      const shadowRoot = element.getRootNode();
+      if (shadowRoot instanceof ShadowRoot && shadowRoot.host) {
+        const host = shadowRoot.host;
+        console.log("Element AI Extractor: Also highlighting shadow host:", host);
+        
+        // Add a subtle highlight to the host to make it more visible
+        host.style.setProperty('box-shadow', '0 0 0 2px rgba(255, 107, 53, 0.3)', 'important');
+      }
+    }
+  } else {
+    console.log("Element AI Extractor: Element not suitable for highlighting:", element);
   }
 }
 
-// Remove highlight from element
+// Remove highlight from element - FIXED to use removeProperty for aggressive styles
 function removeHighlight(element) {
   if (element) {
+    console.log("Element AI Extractor: Removing highlight from element:", element);
     element.classList.remove('ai-extractor-highlight');
+    
+    // FIXED: Use removeProperty for styles that were set with !important
+    element.style.removeProperty('outline');
+    element.style.removeProperty('outline-offset');
+    element.style.removeProperty('background-color');
+    element.style.removeProperty('z-index');
+    element.style.removeProperty('position');
+    
+    // Also remove shadow host styling if it was added
+    if (isInShadowDOM && isInShadowDOM(element)) {
+      const shadowRoot = element.getRootNode();
+      if (shadowRoot instanceof ShadowRoot && shadowRoot.host) {
+        const host = shadowRoot.host;
+        host.style.removeProperty('box-shadow');
+      }
+    }
   }
-  if (currentHighlightedElement === element) {
-    currentHighlightedElement = null;
+  if (currentlyHighlightedElement === element) {
+    currentlyHighlightedElement = null;
   }
 }
 
-// Remove all highlights from shadow roots
+// Remove all highlights from shadow roots - FIXED for aggressive style cleanup
 function removeAllHighlightsFromShadowRoots(rootNode = document) {
   const allElements = rootNode.querySelectorAll('*');
   
@@ -593,7 +651,16 @@ function removeAllHighlightsFromShadowRoots(rootNode = document) {
       const shadowHighlightedElements = element.shadowRoot.querySelectorAll('.ai-extractor-highlight');
       shadowHighlightedElements.forEach(el => {
         el.classList.remove('ai-extractor-highlight');
+        // FIXED: Use removeProperty for aggressive styles
+        el.style.removeProperty('outline');
+        el.style.removeProperty('outline-offset');
+        el.style.removeProperty('background-color');
+        el.style.removeProperty('z-index');
+        el.style.removeProperty('position');
       });
+      
+      // Also remove shadow host styling
+      element.style.removeProperty('box-shadow');
       
       // Recursively remove from nested shadow roots
       removeAllHighlightsFromShadowRoots(element.shadowRoot);
@@ -601,11 +668,17 @@ function removeAllHighlightsFromShadowRoots(rootNode = document) {
   });
 }
 
-// Remove all highlights
+// Remove all highlights - FIXED for aggressive style cleanup
 function removeAllHighlights() {
   const highlightedElements = document.querySelectorAll('.ai-extractor-highlight');
   highlightedElements.forEach(el => {
     el.classList.remove('ai-extractor-highlight');
+    // FIXED: Use removeProperty for aggressive styles
+    el.style.removeProperty('outline');
+    el.style.removeProperty('outline-offset');
+    el.style.removeProperty('background-color');
+    el.style.removeProperty('z-index');
+    el.style.removeProperty('position');
   });
   
   // Also remove highlights from all shadow roots
@@ -615,7 +688,7 @@ function removeAllHighlights() {
 }
 
 // Get element details for inspection
-function getElementDetails(element) {
+async function getElementDetails(element) { // Added async here
   if (!element || element === document || element === document.body) {
     return null;
   }
@@ -624,6 +697,36 @@ function getElementDetails(element) {
   const elementType = getElementType(element);
   const locators = generateLocators(element);
   const bestLocator = getBestLocator(locators);
+
+  // Prepare elementInfo for ML Suggester
+  const elementInfoForML = {
+    elementName: getElementName(element),
+    elementType: elementType,
+    id: element.id || null,
+    css: locators.css,
+    xpath: locators.xpath,
+    inShadowDOM: isInShadowDOM(element),
+    hostElementPath: getShadowHostPath(element),
+    tagName: tagName,
+    className: element.className || null,
+    text: (element.textContent || '').trim().substring(0, 100) || null,
+    attributes: Array.from(element.attributes).map(attr => ({ name: attr.name, value: attr.value })),
+    parentId: element.parentElement ? element.parentElement.id || null : null,
+    parentTagName: element.parentElement ? element.parentElement.tagName.toLowerCase() : null,
+  };
+
+  let mlSuggestions = [];
+  
+  // Call embedded ML suggester function
+  try {
+    mlSuggestions = await getMLSuggestedLocators(elementInfoForML);
+    console.log("Element AI Extractor: Received ML Suggestions", mlSuggestions);
+  } catch (error) {
+    console.error("Element AI Extractor: Error getting ML suggestions", error);
+  }
+  
+  // Get automation-compatible locators for Shadow DOM elements
+  const automationLocators = isInShadowDOM(element) ? generateAutomationCompatibleLocators(element) : null;
   
   return {
     'Element Name': getElementName(element),
@@ -634,8 +737,10 @@ function getElementDetails(element) {
     'ID': element.id || 'N/A',
     'CSS': locators.css,
     'XPATH': locators.xpath,
+    'ML Suggestions': mlSuggestions, // Added ML suggestions here
     'In Shadow DOM': isInShadowDOM(element) ? 'Yes' : 'No',
     'Host Element Path': getShadowHostPath(element),
+    'Automation Locators': automationLocators, // NEW: Automation-compatible locators
     'Tag Name': tagName,
     'Class': element.className || 'N/A',
     'Text': (element.textContent || '').trim().substring(0, 100) || 'N/A'
@@ -679,22 +784,97 @@ function getElementType(element) {
   return tagName.charAt(0).toUpperCase() + tagName.slice(1);
 }
 
-// Generate different locator strategies
+// Generate different locator strategies with DevTools compatibility
 function generateLocators(element) {
   // Helper function to check if ID contains special CSS characters
   function hasSpecialCssChars(id) {
     return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
   }
   
+  // Helper function to validate selector works and is UNIQUE - FIXED for Shadow DOM
+  function validateSelector(selector, targetElement = null) {
+    try {
+      // FIXED: For Shadow DOM elements, we need to search in the correct context
+      let searchRoot = document;
+      let testElements;
+      
+      // If we have a target element and it's in Shadow DOM, search from its shadow root
+      if (targetElement && isInShadowDOM && isInShadowDOM(targetElement)) {
+        const shadowRoot = targetElement.getRootNode();
+        if (shadowRoot instanceof ShadowRoot) {
+          searchRoot = shadowRoot;
+          console.log('Element AI Extractor: Validating selector in Shadow DOM context:', selector);
+        }
+      }
+      
+      testElements = searchRoot.querySelectorAll(selector);
+      
+      // CRITICAL: Selector must be UNIQUE (exactly 1 match) for automation reliability
+      if (testElements.length !== 1) {
+        // IMPROVED: Don't warn for Shadow DOM context mismatches, this is expected
+        if (targetElement && !isInShadowDOM(targetElement)) {
+          console.warn(`Element AI Extractor: Non-unique selector (found ${testElements.length} elements):`, selector);
+        }
+        return false;
+      }
+      
+      // If we have a target element, verify the selector actually selects it
+      if (targetElement && testElements[0] !== targetElement) {
+        console.warn('Element AI Extractor: Selector selects wrong element:', selector);
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      console.warn('Element AI Extractor: Invalid selector syntax in contentScript:', selector, e);
+      return false;
+    }
+  }
+  
+  // Helper function to generate robust ID selector - IMPROVED for Shadow DOM
+  function generateIdSelector(id, targetElement) {
+    // Always use attribute selector for maximum compatibility
+    const attributeSelector = `[id="${id}"]`;
+    
+    // For simple IDs, also try CSS.escape with hash selector
+    if (!hasSpecialCssChars(id)) {
+      try {
+        const hashSelector = `#${CSS.escape(id)}`;
+        
+        // IMPROVED: For Shadow DOM elements, prefer attribute selector for better compatibility
+        if (targetElement && isInShadowDOM && isInShadowDOM(targetElement)) {
+          console.log('Element AI Extractor: Using attribute selector for Shadow DOM element:', attributeSelector);
+          return attributeSelector;
+        }
+        
+        // Validate both and prefer the simpler one if both work
+        if (validateSelector(hashSelector, targetElement) && validateSelector(attributeSelector, targetElement)) {
+          return hashSelector;
+        } else if (validateSelector(attributeSelector, targetElement)) {
+          return attributeSelector;
+        } else if (validateSelector(hashSelector, targetElement)) {
+          return hashSelector;
+        }
+      } catch (e) {
+        // CSS.escape failed, fall back to attribute selector
+        console.log('Element AI Extractor: CSS.escape failed, using attribute selector:', attributeSelector);
+      }
+    }
+    
+    return attributeSelector;
+  }
+  
   const locators = {};
   
-  // ID selector
+  // ID selector - Enhanced with DevTools compatibility and fallbacks
   if (element.id) {
-    // Use attribute selector for complex IDs with special characters
-    if (hasSpecialCssChars(element.id)) {
-      locators.id = `[id="${element.id}"]`;
+    const idSelector = generateIdSelector(element.id, element);
+    if (validateSelector(idSelector, element)) {
+      locators.id = idSelector;
     } else {
-      locators.id = `#${element.id}`;
+      // IMPROVED: Even if validation fails, include the ID selector for Shadow DOM contexts
+      locators.id = idSelector;
+      console.log('Element AI Extractor: ID selector validation failed but including for Shadow DOM compatibility:', idSelector);
     }
   }
   
@@ -704,17 +884,41 @@ function generateLocators(element) {
   // XPath
   locators.xpath = generateXPath(element);
   
+  // IMPROVED: Ensure we always have basic fallbacks for robustness
+  if (!locators.id && !locators.css) {
+    // Generate emergency fallback selectors
+    const tagName = element.tagName.toLowerCase();
+    
+    // Try class-based selector
+    if (element.className && typeof element.className === 'string') {
+      const classes = element.className.split(' ').filter(c => c.trim() && !c.startsWith('ai-extractor-'));
+      if (classes.length > 0) {
+        locators.css = `${tagName}.${classes.join('.')}`;
+      }
+    }
+    
+    // Ensure we have at least a basic selector
+    if (!locators.css) {
+      locators.css = tagName;
+    }
+  }
+  
   // Name attribute
   if (element.name) {
-    locators.name = `[name="${element.name}"]`;
+    const nameSelector = `[name="${element.name}"]`;
+    if (validateSelector(nameSelector, element)) {
+      locators.name = nameSelector;
+    }
   }
   
   // Aria-label
   if (element.getAttribute('aria-label')) {
-    locators.ariaLabel = `[aria-label="${element.getAttribute('aria-label')}"]`;
+    const ariaSelector = `[aria-label="${element.getAttribute('aria-label')}"]`;
+    if (validateSelector(ariaSelector, element)) {
+      locators.ariaLabel = ariaSelector;
+    }
   }
-  
-  // ULTIMATE Href locator strategies for navigation elements
+  // ULTIMATE Href locator strategies for navigation elements with validation
   if (element.tagName.toLowerCase() === 'a' && element.getAttribute('href')) {
     const href = element.getAttribute('href');
     
@@ -723,41 +927,109 @@ function generateLocators(element) {
       const classes = element.className.split(' ')
         .filter(c => c.trim() && !c.startsWith('ai-extractor-'));
       if (classes.length > 0) {
-        locators.classHref = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
+        const classHrefSelector = `.${classes.map(c => CSS.escape(c)).join('.')}[href="${href}"]`;
+        if (validateSelector(classHrefSelector, element)) {
+          locators.classHref = classHrefSelector;
+        }
       }
     }
     
     // Strategy 2: Pure href (fallback)
-    locators.href = `a[href="${href}"]`;
+    const hrefSelector = `a[href="${href}"]`;
+    if (validateSelector(hrefSelector, element)) {
+      locators.href = hrefSelector;
+    }
     
     // Strategy 3: Text + href for unique navigation items
     const linkText = element.textContent?.trim();
     if (linkText && linkText.length < 50) {
-      locators.textHref = `a[href="${href}"]:has-text("${linkText}")`;
+      // Note: :has-text() is Playwright-specific, may not work in all browsers
+      const textHrefSelector = `a[href="${href}"]:has-text("${linkText}")`;
+      locators.textHref = textHrefSelector; // Include but don't validate as it's framework-specific
     }
     
     // Strategy 4: Role-based navigation locator
     if (element.getAttribute('role')) {
-      locators.roleHref = `[role="${element.getAttribute('role')}"][href="${href}"]`;
+      const roleHrefSelector = `[role="${element.getAttribute('role')}"][href="${href}"]`;
+      if (validateSelector(roleHrefSelector, element)) {
+        locators.roleHref = roleHrefSelector;
+      }
     }
   }
   
   return locators;
 }
 
-// Generate CSS selector
+// Generate CSS selector with DevTools compatibility
 function generateCSSSelector(element) {
   // Helper function to check if ID contains special CSS characters
   function hasSpecialCssChars(id) {
     return /[.()[\]{}+~>,:;#@$%^&*=!|\\/"'`\s]/.test(id);
   }
   
-  if (element.id) {
-    // Use attribute selector for complex IDs with special characters
-    if (hasSpecialCssChars(element.id)) {
-      return `[id="${element.id}"]`;
+  // Helper function to validate selector works and is UNIQUE - FIXED for Shadow DOM context
+  function validateSelector(selector, targetElement = null) {
+    try {
+      // FIXED: For Shadow DOM elements, search in the correct context
+      let searchRoot = document;
+      let testElements;
+      
+      // If we have a target element and it's in Shadow DOM, search from its shadow root
+      if (targetElement && isInShadowDOM && isInShadowDOM(targetElement)) {
+        const shadowRoot = targetElement.getRootNode();
+        if (shadowRoot instanceof ShadowRoot) {
+          searchRoot = shadowRoot;
+        }
+      }
+      
+      testElements = searchRoot.querySelectorAll(selector);
+      
+      // CRITICAL: Must be exactly 1 match for uniqueness
+      if (testElements.length !== 1) {
+        // IMPROVED: Only log warnings for main document context
+        if (!targetElement || !isInShadowDOM(targetElement)) {
+          console.log(`Element AI Extractor: Selector validation failed (found ${testElements.length} elements):`, selector);
+        }
+        return false;
+      }
+      
+      // If we have a target element, verify the selector actually selects it
+      if (targetElement && testElements[0] !== targetElement) {
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      return false;
     }
-    return `#${element.id}`;
+  }
+  
+  // Helper function to generate robust ID selector
+  function generateIdSelector(id) {
+    // Always use attribute selector for maximum compatibility
+    const attributeSelector = `[id="${id}"]`;
+    
+    // For simple IDs, also try CSS.escape with hash selector
+    if (!hasSpecialCssChars(id)) {
+      try {
+        const hashSelector = `#${CSS.escape(id)}`;
+        // Validate both and prefer the simpler one if both work
+        if (validateSelector(hashSelector) && validateSelector(attributeSelector)) {
+          return hashSelector;
+        }
+      } catch (e) {
+        // CSS.escape failed, fall back to attribute selector
+      }
+    }
+    
+    return attributeSelector;
+  }
+  
+  if (element.id) {
+    const idSelector = generateIdSelector(element.id);
+    if (validateSelector(idSelector)) {
+      return idSelector;
+    }
   }
   
   const parts = [];
@@ -767,14 +1039,12 @@ function generateCSSSelector(element) {
     let selector = current.tagName.toLowerCase();
     
     if (current.id) {
-      // Use attribute selector for complex IDs with special characters
-      if (hasSpecialCssChars(current.id)) {
-        selector = `[id="${current.id}"]`;
-      } else {
-        selector += `#${current.id}`;
+      const idSelector = generateIdSelector(current.id);
+      if (validateSelector(idSelector)) {
+        selector = idSelector;
+        parts.unshift(selector);
+        break;
       }
-      parts.unshift(selector);
-      break;
     }
     
     if (current.className && typeof current.className === 'string') {
@@ -799,7 +1069,36 @@ function generateCSSSelector(element) {
     if (parts.length > 5) break; // Limit depth
   }
   
-  return parts.join(' > ');
+  const finalSelector = parts.join(' > ');
+  
+  // IMPROVED: Better validation and fallback handling for Shadow DOM
+  if (!validateSelector(finalSelector, element)) {
+    console.log('Element AI Extractor: Generated CSS selector failed validation:', finalSelector);
+    
+    // FALLBACK 1: Try simple tag + nth-of-type
+    if (element.parentNode) {
+      const simpleSelector = `${element.tagName.toLowerCase()}:nth-of-type(${Array.from(element.parentNode.children)
+        .filter(child => child.tagName === element.tagName).indexOf(element) + 1})`;
+      
+      if (validateSelector(simpleSelector, element)) {
+        console.log('Element AI Extractor: Using fallback nth-of-type selector:', simpleSelector);
+        return simpleSelector;
+      }
+    }
+    
+    // FALLBACK 2: For Shadow DOM elements, create a descriptive selector without validation
+    if (isInShadowDOM && isInShadowDOM(element)) {
+      const shadowFallback = `${element.tagName.toLowerCase()}${element.id ? '#' + element.id : ''}${element.className ? '.' + element.className.split(' ').filter(c => c.trim()).join('.') : ''}`;
+      console.log('Element AI Extractor: Using Shadow DOM fallback selector:', shadowFallback);
+      return shadowFallback;
+    }
+    
+    // FALLBACK 3: Basic tag selector as last resort
+    console.log('Element AI Extractor: Using basic tag fallback for:', element.tagName);
+    return element.tagName.toLowerCase();
+  }
+  
+  return finalSelector;
 }
 
 // Generate XPath
@@ -930,6 +1229,69 @@ function getShadowHostPath(element) {
   return hostPath.join(' >> ');
 }
 
+// Generate automation-compatible Shadow DOM locators
+function generateAutomationCompatibleLocators(element) {
+  if (!isInShadowDOM(element)) {
+    return null;
+  }
+  
+  const result = {
+    playwrightLocator: null,
+    seleniumJavaScript: null,
+    cypressLocator: null
+  };
+  
+  // Build the shadow path
+  const shadowPath = [];
+  let current = element;
+  let elementSelector = null;
+  
+  // First, get the selector for the element itself within its shadow root
+  const shadowRoot = current.getRootNode();
+  if (shadowRoot instanceof ShadowRoot) {
+    elementSelector = generateCSSSelector(current);
+    current = shadowRoot.host;
+  }
+  
+  // Then traverse up through shadow hosts
+  while (current && isInShadowDOM(current)) {
+    const root = current.getRootNode();
+    if (root instanceof ShadowRoot && root.host) {
+      const hostSelector = generateCSSSelector(current);
+      shadowPath.unshift(hostSelector);
+      current = root.host;
+    } else {
+      break;
+    }
+  }
+  
+  // Add the final host selector (not in shadow)
+  if (current) {
+    const finalHostSelector = generateCSSSelector(current);
+    shadowPath.unshift(finalHostSelector);
+  }
+  
+  // Generate automation-specific locators
+  if (shadowPath.length > 0 && elementSelector) {
+    // Playwright locator (uses pierceRoot)
+    result.playwrightLocator = `page.locator('${shadowPath[0]}').locator('${elementSelector}')`;
+    
+    // Selenium JavaScript executor
+    const hostPath = shadowPath.join(' >> ');
+    result.seleniumJavaScript = `
+// Selenium Shadow DOM locator
+WebElement element = (WebElement) ((JavascriptExecutor) driver).executeScript(
+  "return arguments[0].shadowRoot.querySelector('${elementSelector}');",
+  driver.findElement(By.cssSelector('${shadowPath[shadowPath.length - 1]}'))
+);`;
+    
+    // Cypress locator
+    result.cypressLocator = `cy.get('${shadowPath[0]}').shadow().find('${elementSelector}')`;
+  }
+  
+  return result;
+}
+
 // Start inspection mode
 function startInspection() {
   // Only allow inspection to start in the top-level frame
@@ -943,28 +1305,78 @@ function startInspection() {
   }
   
   console.log("Element AI Extractor: Starting inspection mode");
+  
+  // Set inspection state FIRST
   isInspecting = true;
-  window.aiExtractorIsInspecting = true; // Update global state
+  window.aiExtractorIsInspecting = true;
+  
+  console.log("Element AI Extractor: Inspection state set - isInspecting:", isInspecting, "window.aiExtractorIsInspecting:", window.aiExtractorIsInspecting);
   
   // Start syncing with storage
   startStorageSync();
   
   // Inject styles (including into shadow roots)
+  console.log("Element AI Extractor: Injecting styles for highlighting...");
   injectStyles();
+  
+  // Debug: Verify styles were injected
+  setTimeout(() => {
+    const styleElement = document.getElementById('ai-extractor-styles');
+    if (styleElement) {
+      console.log("Element AI Extractor: Styles successfully injected, content length:", styleElement.textContent.length);
+      console.log("Element AI Extractor: Style element:", styleElement);
+    } else {
+      console.error("Element AI Extractor: ERROR - Style element not found after injection!");
+    }
+  }, 100);
   
   // Set up shadow DOM observer for dynamic content
   setupShadowDOMObserver();
   
   // Add cursor style to body
   document.body.classList.add('ai-extractor-inspecting');
+  console.log("Element AI Extractor: Added inspecting class to body");
   
   // Create floating badge for user guidance
   createInspectorBadge();
   
-  // Add event listeners
+  // Add event listeners with explicit debugging
+  console.log("Element AI Extractor: Adding event listeners...");
+  console.log("Element AI Extractor: handleMouseOver function exists:", typeof handleMouseOver === 'function');
+  console.log("Element AI Extractor: handleMouseOut function exists:", typeof handleMouseOut === 'function');
+  console.log("Element AI Extractor: handleClick function exists:", typeof handleClick === 'function');
+  
+  // Remove any existing listeners first to avoid duplicates
+  document.removeEventListener('mouseover', handleMouseOver, true);
+  document.removeEventListener('mouseout', handleMouseOut, true);
+  document.removeEventListener('click', handleClick, true);
+  
+  // Add fresh event listeners
   document.addEventListener('mouseover', handleMouseOver, true);
   document.addEventListener('mouseout', handleMouseOut, true);
   document.addEventListener('click', handleClick, true);
+  
+  console.log("Element AI Extractor: Event listeners added successfully");
+  
+  // Test that the functions are actually attached by simulating an event
+  setTimeout(() => {
+    console.log("Element AI Extractor: Testing event listener attachment...");
+    console.log("Element AI Extractor: Current isInspecting state:", isInspecting);
+    console.log("Element AI Extractor: Current window.aiExtractorIsInspecting state:", window.aiExtractorIsInspecting);
+    
+    // Create a test mouseover event to verify the handler is working
+    const testEvent = new MouseEvent('mouseover', {
+      bubbles: true,
+      cancelable: true,
+      clientX: 100,
+      clientY: 100
+    });
+    
+    // Dispatch on document body as a test
+    console.log("Element AI Extractor: Dispatching test mouseover event...");
+    document.body.dispatchEvent(testEvent);
+    console.log("Element AI Extractor: Test mouseover event dispatched");
+  }, 200);
   
   return { status: 'listening' };
 }
@@ -1053,9 +1465,6 @@ function stopInspection() {
   return { status: 'stopped' };
 }
 
-// Track currently highlighted element
-let currentlyHighlightedElement = null;
-
 // Get the actual element under the mouse, including shadow DOM elements
 function getElementFromPoint(x, y) {
   let element = document.elementFromPoint(x, y);
@@ -1094,7 +1503,13 @@ function getDeepElementFromPoint(x, y) {
 
 // Handle mouse over events
 function handleMouseOver(event) {
-  if (!isInspecting) return;
+  // Add immediate debug logging
+  console.log("Element AI Extractor: handleMouseOver TRIGGERED - isInspecting:", isInspecting, "window.aiExtractorIsInspecting:", window.aiExtractorIsInspecting);
+  
+  if (!isInspecting && !window.aiExtractorIsInspecting) {
+    console.log("Element AI Extractor: Mouse over ignored - not inspecting");
+    return;
+  }
   
   event.stopPropagation();
   
@@ -1102,28 +1517,50 @@ function handleMouseOver(event) {
   const actualElement = getDeepElementFromPoint(event.clientX, event.clientY);
   const element = actualElement || event.target;
   
-  console.log("Element AI Extractor: Mouse over", {
+  console.log("Element AI Extractor: Mouse over ACTIVE", {
     originalTarget: event.target,
     actualElement: actualElement,
     finalElement: element,
-    inShadowDOM: isInShadowDOM(element)
+    inShadowDOM: isInShadowDOM(element),
+    elementTag: element.tagName,
+    elementId: element.id,
+    elementClasses: element.className
   });
   
   // Don't highlight body or html
   if (element === document.body || element === document.documentElement) {
+    console.log("Element AI Extractor: Skipping body/html highlighting");
     return;
   }
   
   // Only update highlight if this is a different element
   if (element !== currentlyHighlightedElement) {
+    console.log("Element AI Extractor: Highlighting NEW element:", element);
+    
     // Remove highlight from previous element
     if (currentlyHighlightedElement) {
+      console.log("Element AI Extractor: Removing highlight from previous element:", currentlyHighlightedElement);
       removeHighlight(currentlyHighlightedElement);
     }
     
     // Highlight new element
     highlightElement(element);
     currentlyHighlightedElement = element;
+    
+    // Debug: Check if highlight was applied
+    setTimeout(() => {
+      const hasHighlightClass = element.classList.contains('ai-extractor-highlight');
+      console.log("Element AI Extractor: Highlight applied successfully?", hasHighlightClass, "Element:", element);
+      
+      // Also check if styles are present
+      const styleElement = document.getElementById('ai-extractor-styles');
+      console.log("Element AI Extractor: Style element exists?", !!styleElement);
+      if (styleElement) {
+        console.log("Element AI Extractor: Style content length:", styleElement.textContent.length);
+      }
+    }, 10);
+  } else {
+    console.log("Element AI Extractor: Same element, not re-highlighting");
   }
 }
 
@@ -1137,7 +1574,7 @@ function handleMouseOut(event) {
 }
 
 // Handle click events
-function handleClick(event) {
+async function handleClick(event) {
   if (!isInspecting) return;
   
   // Get the actual element under the mouse, including shadow DOM elements
@@ -1180,8 +1617,8 @@ function handleClick(event) {
   event.preventDefault();
   event.stopPropagation();
   
-  // Get element details
-  const elementData = getElementDetails(element);
+  // Get element details (now async)
+  const elementData = await getElementDetails(element);
   
   if (elementData) {
     console.log("Element AI Extractor: Sending element data to popup", elementData);
